@@ -1,6 +1,12 @@
-import { use, createContext, type PropsWithChildren } from "react";
 import { useStorageState } from "@/hooks/useStorageState";
-import { RegisterPayload, AuthResponse, LoginPayload, LoginReponse, User } from "@/types/auth";
+import {
+  AuthResponse,
+  LoginPayload,
+  LoginReponse,
+  RegisterPayload,
+  User,
+} from "@/types/auth";
+import { createContext, use, type PropsWithChildren } from "react";
 
 interface AuthContextType {
   signIn: (data: RegisterPayload) => Promise<void>;
@@ -40,9 +46,23 @@ export function SessionProvider({ children }: PropsWithChildren) {
           const { login: loginUser } = await import("@/services/auth.service");
           const response: LoginReponse = await loginUser(data);
           setToken(response.access_token);
-          setUser(JSON.stringify({ id: response.id, username: response.username, email: response.email }));
+          setUser(
+            JSON.stringify({
+              id: response.id,
+              username: response.username,
+              email: response.email,
+            }),
+          );
         },
         signOut: async () => {
+          if (token) {
+            try {
+              const { logout } = await import("@/services/auth.service");
+              await logout(token);
+            } catch {
+              // limpiar local
+            }
+          }
           setToken(null);
           setUser(null);
         },

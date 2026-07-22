@@ -46,3 +46,20 @@ export async function login(data: LoginPayload): Promise<LoginReponse> {
 
   return response.json();
 }
+
+export async function logout(token: string): Promise<void> {
+  const response = await fetch(`${API_URL}/authlogout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    const errorMsg = Array.isArray(error.message)
+      ? error.message.join("\n")
+      : (error.message ?? "Error al cerrar sesión");
+    throw new Error(errorMsg);
+  }
+}
