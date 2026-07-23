@@ -34,20 +34,20 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 justify-center bg-white px-8">
-      <Text className="text-2xl font-bold text-center mb-8">
+    <View className="flex-1 justify-center bg-background px-8">
+      <Text className="text-2xl font-bold text-center text-text mb-8">
         Iniciar Sesión
       </Text>
 
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+        className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base text-text"
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
       />
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+        className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base text-text"
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
@@ -55,7 +55,7 @@ export default function LoginScreen() {
         autoCapitalize="none"
       />
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+        className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base text-text"
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
@@ -65,19 +65,19 @@ export default function LoginScreen() {
       <TouchableOpacity
         onPress={handleLogin}
         disabled={loading}
-        className="bg-black rounded-lg py-4"
+        className="bg-text rounded-lg py-4"
       >
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-white text-center font-bold text-lg">
-            Inciar sesión
+          <Text className="text-background text-center font-bold text-lg">
+            Iniciar sesión
           </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-        <Text className="text-blue-500 text-center pt-3">Crear cuenta</Text>
+        <Text className="text-textSecondary text-center pt-3">Crear cuenta</Text>
       </TouchableOpacity>
     </View>
   );

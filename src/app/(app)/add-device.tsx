@@ -1,4 +1,5 @@
 import QrScanner from "@/components/qr-scanner";
+import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
 import { configureEsp32, provisionBlower } from "@/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -95,26 +96,24 @@ export default function AddDeviceScreen() {
       case "form":
         return (
           <View className="flex-1 px-6" style={{ paddingTop: margin }}>
-            <Text className="text-gray-500 text-base mb-6">
+            <Text className="text-textSecondary text-base mb-6">
               Configura un nuevo blower para tu granja.
             </Text>
 
-            <Text className="text-gray-700 font-semibold mb-1">
-              ID del blower
-            </Text>
+            <Text className="text-text font-semibold mb-1">ID del blower</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-800"
+              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-text"
               placeholder="Ej: blwr_abc123"
               value={blowerId}
               onChangeText={setBlowerId}
               autoCapitalize="none"
             />
 
-            <Text className="text-gray-700 font-semibold mb-1">
+            <Text className="text-text font-semibold mb-1">
               Nombre del blower
             </Text>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-800"
+              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-text"
               placeholder="Ej: Ventilador 1"
               value={blowerName}
               onChangeText={setBlowerName}
@@ -122,24 +121,26 @@ export default function AddDeviceScreen() {
             />
 
             <View className="flex-row items-center justify-between mb-1">
-              <Text className="text-gray-700 font-semibold">Red WiFi</Text>
+              <Text className="text-text font-semibold">Red WiFi</Text>
               <TouchableOpacity onPress={() => setShowScanner(true)}>
-                <Text className="font-semibold">Escanear QR</Text>
+                <Text className="text-textSecondary font-semibold">
+                  Escanear QR
+                </Text>
               </TouchableOpacity>
             </View>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-800"
+              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-text"
               placeholder="Nombre de tu red WiFi"
               value={ssid}
               onChangeText={setSsid}
               autoCapitalize="none"
             />
 
-            <Text className="text-gray-700 font-semibold mb-1">
+            <Text className="text-text font-semibold mb-1">
               Contraseña WiFi
             </Text>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-800"
+              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-6 text-text"
               placeholder="Contraseña de tu red"
               value={password}
               onChangeText={setPassword}
@@ -148,10 +149,10 @@ export default function AddDeviceScreen() {
             />
 
             <TouchableOpacity
-              className="bg-black rounded-lg py-3 items-center"
+              className="bg-text rounded-lg py-3 items-center"
               onPress={handleProvision}
             >
-              <Text className="text-white font-semibold text-base">
+              <Text className="text-background font-semibold text-base">
                 Configurar
               </Text>
             </TouchableOpacity>
@@ -161,8 +162,8 @@ export default function AddDeviceScreen() {
       case "provisioning":
         return (
           <View className="flex-1 items-center justify-center px-6">
-            <ActivityIndicator size="large" color="#2563eb" />
-            <Text className="text-gray-600 mt-4 text-base">
+            <ActivityIndicator size="large" color={Colors.light.text} />
+            <Text className="text-textSecondary mt-4 text-base">
               Conectando con el servidor...
             </Text>
           </View>
@@ -170,27 +171,36 @@ export default function AddDeviceScreen() {
 
       case "instructions":
         return (
-          <View className="flex-1 px-6 items-center justify-center">
-            <MaterialCommunityIcons name="wifi" size={64} color="#fffff" />
-            <Text className="text-gray-800 text-lg font-bold mt-6 text-center">
+          <View
+            className="flex-1 px-6 items-center"
+            style={{ paddingTop: margin }}
+          >
+            <MaterialCommunityIcons
+              name="wifi"
+              size={64}
+              color={Colors.light.text}
+            />
+            <Text className="text-text text-lg font-bold mt-6 text-center">
               Conéctate a la red del dispositivo
             </Text>
-            <Text className="text-gray-500 text-base mt-3 text-center leading-6">
+            <Text className="text-textSecondary text-base mt-3 text-center leading-6">
               Ve a la configuración de WiFi de tu celular y conéctate a:
             </Text>
-            <View className="bg-blue-50 border border-blue-200 rounded-lg px-6 py-4 mt-4 items-center">
-              <Text className="font-bold text-lg">Blower_Setup</Text>
-              <Text className="text-sm mt-1">Contraseña: 12345678</Text>
+            <View className="bg-backgroundElement border border-backgroundSelected rounded-lg px-6 py-4 mt-4 items-center">
+              <Text className="text-text font-bold text-lg">Blower_Setup</Text>
+              <Text className="text-textSecondary text-sm mt-1">
+                Contraseña: 12345678
+              </Text>
             </View>
-            <Text className="text-gray-400 text-sm mt-4 text-center">
+            <Text className="text-textSecondary text-sm mt-4 text-center">
               Una vez conectado, regresa a esta pantalla y toca "Enviar
               configuración".
             </Text>
             <TouchableOpacity
-              className="bg-black rounded-lg py-3 px-8 mt-8"
+              className="bg-text rounded-lg py-3 px-8 mt-8"
               onPress={handleSendConfig}
             >
-              <Text className="text-white font-semibold text-base">
+              <Text className="text-background font-semibold text-base">
                 Enviar configuración
               </Text>
             </TouchableOpacity>
@@ -200,8 +210,8 @@ export default function AddDeviceScreen() {
       case "sending":
         return (
           <View className="flex-1 items-center justify-center px-6">
-            <ActivityIndicator size="large" color="#2563eb" />
-            <Text className="text-gray-600 mt-4 text-base text-center">
+            <ActivityIndicator size="large" color={Colors.light.text} />
+            <Text className="text-textSecondary mt-4 text-base text-center">
               Configurando el dispositivo...
             </Text>
           </View>
@@ -209,24 +219,27 @@ export default function AddDeviceScreen() {
 
       case "done":
         return (
-          <View className="flex-1 px-6 items-center justify-center">
+          <View
+            className="flex-1 px-6 items-center"
+            style={{ paddingTop: margin }}
+          >
             <MaterialCommunityIcons
               name="check-circle"
               size={64}
-              color="#16a34a"
+              color={Colors.light.text}
             />
-            <Text className="text-gray-800 text-lg font-bold mt-6 text-center">
+            <Text className="text-text text-lg font-bold mt-6 text-center">
               ¡Dispositivo configurado!
             </Text>
-            <Text className="text-gray-500 text-base mt-3 text-center leading-6">
+            <Text className="text-textSecondary text-base mt-3 text-center leading-6">
               Reconéctate a tu red WiFi normal. El blower se conectará
               automáticamente al backend.
             </Text>
             <TouchableOpacity
-              className="bg-green-600 rounded-lg py-3 px-8 mt-8"
+              className="bg-text rounded-lg py-3 px-8 mt-8"
               onPress={handleReset}
             >
-              <Text className="text-white font-semibold text-base">
+              <Text className="text-background font-semibold text-base">
                 Finalizar
               </Text>
             </TouchableOpacity>
@@ -235,20 +248,23 @@ export default function AddDeviceScreen() {
 
       case "error":
         return (
-          <View className="flex-1 px-6 items-center justify-center">
+          <View
+            className="flex-1 px-6 items-center"
+            style={{ paddingTop: margin }}
+          >
             <MaterialCommunityIcons
               name="alert-circle"
               size={64}
-              color="#dc2626"
+              color={Colors.light.textSecondary}
             />
-            <Text className="text-red-600 text-base mt-4 text-center">
+            <Text className="text-textSecondary text-base mt-4 text-center">
               {errorMsg}
             </Text>
             <TouchableOpacity
-              className="bg-gray-600 rounded-lg py-3 px-8 mt-8"
+              className="bg-textSecondary rounded-lg py-3 px-8 mt-8"
               onPress={handleReset}
             >
-              <Text className="text-white font-semibold text-base">
+              <Text className="text-background font-semibold text-base">
                 Reintentar
               </Text>
             </TouchableOpacity>
@@ -258,7 +274,7 @@ export default function AddDeviceScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View
         className="flex-row items-center justify-between"
         style={{ paddingHorizontal: margin, paddingTop: margin }}
@@ -271,11 +287,11 @@ export default function AddDeviceScreen() {
           <MaterialCommunityIcons
             name="arrow-left"
             size={iconSize}
-            color="#333"
+            color={Colors.light.textSecondary}
           />
           <Text
             style={{ fontSize: iconSize * 1.1 }}
-            className="font-bold text-gray-800 ml-2"
+            className="font-bold text-text ml-2"
           >
             Nuevo dispositivo
           </Text>

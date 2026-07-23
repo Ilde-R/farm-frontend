@@ -34,11 +34,11 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View className="flex-1 justify-center bg-white px-8">
-      <Text className="text-2xl font-bold text-center mb-8">Crear Cuenta</Text>
+    <View className="flex-1 justify-center bg-background px-8">
+      <Text className="text-2xl font-bold text-center text-text mb-8">Crear Cuenta</Text>
 
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+        className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base text-text"
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
@@ -46,7 +46,7 @@ export default function RegisterScreen() {
       />
 
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+        className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base text-text"
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
@@ -55,32 +55,32 @@ export default function RegisterScreen() {
       />
 
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 mb-2 text-base"
+        className="border border-backgroundSelected rounded-lg px-4 py-3 mb-2 text-base text-text"
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Text className="text-xs text-gray-400 mb-6">
+      <Text className="text-xs text-textSecondary mb-6">
         Mín. 8 caracteres, mayúscula, minúscula, número y carácter especial
       </Text>
 
       <TouchableOpacity
-        className="bg-black rounded-lg py-4"
+        className="bg-text rounded-lg py-4"
         onPress={handleRegister}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-white text-center fsont-bold text-lg">
+          <Text className="text-background text-center font-bold text-lg">
             Registrarse
           </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-        <Text className="text-blue-500 text-center pt-3">Iniciar sesión</Text>
+        <Text className="text-textSecondary text-center pt-3">Iniciar sesión</Text>
       </TouchableOpacity>
     </View>
   );

@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/theme";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState } from "react";
 import {
@@ -60,7 +61,7 @@ export default function QrScanner({
     return (
       <Modal visible={visible} animationType="slide">
         <View className="flex-1 items-center justify-center bg-black">
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={Colors.dark.text} />
         </View>
       </Modal>
     );
@@ -69,23 +70,23 @@ export default function QrScanner({
   if (!permission.granted) {
     return (
       <Modal visible={visible} animationType="slide">
-        <View className="flex-1 items-center justify-center bg-white px-6">
-          <Text className="text-gray-800 text-lg font-bold text-center mb-4">
+        <View className="flex-1 items-center justify-center bg-background px-6">
+          <Text className="text-text text-lg font-bold text-center mb-4">
             Permiso de cámara requerido
           </Text>
-          <Text className="text-gray-500 text-base text-center mb-8">
+          <Text className="text-textSecondary text-base text-center mb-8">
             Necesitamos acceder a la cámara para escanear el código QR de tu red WiFi.
           </Text>
           <TouchableOpacity
-            className="bg-blue-600 rounded-lg py-3 px-8"
+            className="bg-text rounded-lg py-3 px-8"
             onPress={requestPermission}
           >
-            <Text className="text-white font-semibold text-base">
+            <Text className="text-background font-semibold text-base">
               Conceder permiso
             </Text>
           </TouchableOpacity>
           <TouchableOpacity className="mt-4 py-3" onPress={handleClose}>
-            <Text className="text-gray-500 text-base">Cancelar</Text>
+            <Text className="text-textSecondary text-base">Cancelar</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -106,16 +107,16 @@ export default function QrScanner({
           </Text>
         </View>
         {error ? (
-          <View className="absolute bottom-24 left-6 right-6 bg-red-600 rounded-lg py-3 px-4 items-center">
-            <Text className="text-white text-sm text-center">{error}</Text>
+          <View className="absolute bottom-24 left-6 right-6 bg-backgroundElement border border-textSecondary rounded-lg py-3 px-4 items-center">
+            <Text className="text-text text-sm text-center">{error}</Text>
           </View>
         ) : null}
         <View className="absolute bottom-10 left-0 right-0 items-center">
           <TouchableOpacity
-            className="bg-white/90 rounded-lg py-3 px-8"
+            className="bg-background/90 rounded-lg py-3 px-8"
             onPress={handleClose}
           >
-            <Text className="text-gray-800 font-semibold text-base">
+            <Text className="text-text font-semibold text-base">
               Cancelar
             </Text>
           </TouchableOpacity>

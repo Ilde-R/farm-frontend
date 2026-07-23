@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
@@ -20,20 +21,20 @@ export default function SensorsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View
         className="flex-row items-center justify-between"
         style={{ paddingHorizontal: margin, paddingTop: margin }}
       >
-        <Text style={{ fontSize: iconSize * 1.2 }} className="font-bold text-gray-800">
+        <Text style={{ fontSize: iconSize * 1.2 }} className="font-bold text-text">
           Sensores
         </Text>
         <View className="flex-row items-center" style={{ gap: margin }}>
-          <TouchableOpacity onPress={() => router.push("/add-device")} hitSlop={8}>f
-            <MaterialCommunityIcons name="plus" size={iconSize} color="#fffff" />
+          <TouchableOpacity onPress={() => router.push("/add-device")} hitSlop={8}>
+            <MaterialCommunityIcons name="plus" size={iconSize} color={Colors.light.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} hitSlop={8}>
-            <MaterialCommunityIcons name="logout" size={iconSize} color="#333" />
+            <MaterialCommunityIcons name="logout" size={iconSize} color={Colors.light.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
