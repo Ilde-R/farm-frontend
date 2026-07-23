@@ -1,7 +1,8 @@
-import { useSession } from "@/contexts/AuthContext";
 import QrScanner from "@/components/qr-scanner";
+import { useSession } from "@/contexts/AuthContext";
 import { configureEsp32, provisionBlower } from "@/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -14,11 +15,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type FlowStep = "form" | "provisioning" | "instructions" | "sending" | "done" | "error";
+type FlowStep =
+  "form" | "provisioning" | "instructions" | "sending" | "done" | "error";
 
-export default function SensorsScreen() {
-  const { signOut, token } = useSession();
+export default function AddDeviceScreen() {
+  const { token } = useSession();
   const { width } = useWindowDimensions();
+  const router = useRouter();
 
   const iconSize = Math.round(width * 0.06);
   const margin = Math.round(width * 0.04);
@@ -32,15 +35,13 @@ export default function SensorsScreen() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showScanner, setShowScanner] = useState(false);
 
-  function handleLogout() {
-    Alert.alert("Cerrar sesión", "¿Estás seguro?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Salir", style: "destructive", onPress: () => signOut() },
-    ]);
-  }
-
   async function handleProvision() {
-    if (!blowerId.trim() || !blowerName.trim() || !ssid.trim() || !password.trim()) {
+    if (
+      !blowerId.trim() ||
+      !blowerName.trim() ||
+      !ssid.trim() ||
+      !password.trim()
+    ) {
       Alert.alert("Campos requeridos", "Llena todos los campos.");
       return;
     }
@@ -62,7 +63,11 @@ export default function SensorsScreen() {
   async function handleSendConfig() {
     setStep("sending");
     try {
-      await configureEsp32({ ssid: ssid.trim(), pass: password.trim(), deviceKey });
+      await configureEsp32({
+        ssid: ssid.trim(),
+        pass: password.trim(),
+        deviceKey,
+      });
       setStep("done");
     } catch (e: any) {
       setErrorMsg(e.message);
@@ -94,7 +99,9 @@ export default function SensorsScreen() {
               Configura un nuevo blower para tu granja.
             </Text>
 
-            <Text className="text-gray-700 font-semibold mb-1">ID del blower</Text>
+            <Text className="text-gray-700 font-semibold mb-1">
+              ID del blower
+            </Text>
             <TextInput
               className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-800"
               placeholder="Ej: blwr_abc123"
@@ -103,7 +110,9 @@ export default function SensorsScreen() {
               autoCapitalize="none"
             />
 
-            <Text className="text-gray-700 font-semibold mb-1">Nombre del blower</Text>
+            <Text className="text-gray-700 font-semibold mb-1">
+              Nombre del blower
+            </Text>
             <TextInput
               className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-800"
               placeholder="Ej: Ventilador 1"
@@ -114,12 +123,8 @@ export default function SensorsScreen() {
 
             <View className="flex-row items-center justify-between mb-1">
               <Text className="text-gray-700 font-semibold">Red WiFi</Text>
-              <TouchableOpacity
-                onPress={() => setShowScanner(true)}
-              >
-                <Text className="text-blue-600 font-semibold">
-                  Escanear QR
-                </Text>
+              <TouchableOpacity onPress={() => setShowScanner(true)}>
+                <Text className="font-semibold">Escanear QR</Text>
               </TouchableOpacity>
             </View>
             <TextInput
@@ -130,7 +135,9 @@ export default function SensorsScreen() {
               autoCapitalize="none"
             />
 
-            <Text className="text-gray-700 font-semibold mb-1">Contraseña WiFi</Text>
+            <Text className="text-gray-700 font-semibold mb-1">
+              Contraseña WiFi
+            </Text>
             <TextInput
               className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-800"
               placeholder="Contraseña de tu red"
@@ -141,10 +148,12 @@ export default function SensorsScreen() {
             />
 
             <TouchableOpacity
-              className="bg-blue-600 rounded-lg py-3 items-center"
+              className="bg-black rounded-lg py-3 items-center"
               onPress={handleProvision}
             >
-              <Text className="text-white font-semibold text-base">Configurar</Text>
+              <Text className="text-white font-semibold text-base">
+                Configurar
+              </Text>
             </TouchableOpacity>
           </View>
         );
@@ -153,14 +162,16 @@ export default function SensorsScreen() {
         return (
           <View className="flex-1 items-center justify-center px-6">
             <ActivityIndicator size="large" color="#2563eb" />
-            <Text className="text-gray-600 mt-4 text-base">Conectando con el servidor...</Text>
+            <Text className="text-gray-600 mt-4 text-base">
+              Conectando con el servidor...
+            </Text>
           </View>
         );
 
       case "instructions":
         return (
           <View className="flex-1 px-6 items-center justify-center">
-            <MaterialCommunityIcons name="wifi" size={64} color="#2563eb" />
+            <MaterialCommunityIcons name="wifi" size={64} color="#fffff" />
             <Text className="text-gray-800 text-lg font-bold mt-6 text-center">
               Conéctate a la red del dispositivo
             </Text>
@@ -168,17 +179,20 @@ export default function SensorsScreen() {
               Ve a la configuración de WiFi de tu celular y conéctate a:
             </Text>
             <View className="bg-blue-50 border border-blue-200 rounded-lg px-6 py-4 mt-4 items-center">
-              <Text className="text-blue-800 font-bold text-lg">Blower_Setup</Text>
-              <Text className="text-blue-600 text-sm mt-1">Contraseña: 12345678</Text>
+              <Text className="font-bold text-lg">Blower_Setup</Text>
+              <Text className="text-sm mt-1">Contraseña: 12345678</Text>
             </View>
             <Text className="text-gray-400 text-sm mt-4 text-center">
-              Una vez conectado, regresa a esta pantalla y toca "Enviar configuración".
+              Una vez conectado, regresa a esta pantalla y toca "Enviar
+              configuración".
             </Text>
             <TouchableOpacity
-              className="bg-blue-600 rounded-lg py-3 px-8 mt-8"
+              className="bg-black rounded-lg py-3 px-8 mt-8"
               onPress={handleSendConfig}
             >
-              <Text className="text-white font-semibold text-base">Enviar configuración</Text>
+              <Text className="text-white font-semibold text-base">
+                Enviar configuración
+              </Text>
             </TouchableOpacity>
           </View>
         );
@@ -196,18 +210,25 @@ export default function SensorsScreen() {
       case "done":
         return (
           <View className="flex-1 px-6 items-center justify-center">
-            <MaterialCommunityIcons name="check-circle" size={64} color="#16a34a" />
+            <MaterialCommunityIcons
+              name="check-circle"
+              size={64}
+              color="#16a34a"
+            />
             <Text className="text-gray-800 text-lg font-bold mt-6 text-center">
               ¡Dispositivo configurado!
             </Text>
             <Text className="text-gray-500 text-base mt-3 text-center leading-6">
-              Reconéctate a tu red WiFi normal. El blower se conectará automáticamente al backend.
+              Reconéctate a tu red WiFi normal. El blower se conectará
+              automáticamente al backend.
             </Text>
             <TouchableOpacity
               className="bg-green-600 rounded-lg py-3 px-8 mt-8"
               onPress={handleReset}
             >
-              <Text className="text-white font-semibold text-base">Finalizar</Text>
+              <Text className="text-white font-semibold text-base">
+                Finalizar
+              </Text>
             </TouchableOpacity>
           </View>
         );
@@ -215,13 +236,21 @@ export default function SensorsScreen() {
       case "error":
         return (
           <View className="flex-1 px-6 items-center justify-center">
-            <MaterialCommunityIcons name="alert-circle" size={64} color="#dc2626" />
-            <Text className="text-red-600 text-base mt-4 text-center">{errorMsg}</Text>
+            <MaterialCommunityIcons
+              name="alert-circle"
+              size={64}
+              color="#dc2626"
+            />
+            <Text className="text-red-600 text-base mt-4 text-center">
+              {errorMsg}
+            </Text>
             <TouchableOpacity
               className="bg-gray-600 rounded-lg py-3 px-8 mt-8"
               onPress={handleReset}
             >
-              <Text className="text-white font-semibold text-base">Reintentar</Text>
+              <Text className="text-white font-semibold text-base">
+                Reintentar
+              </Text>
             </TouchableOpacity>
           </View>
         );
@@ -234,11 +263,22 @@ export default function SensorsScreen() {
         className="flex-row items-center justify-between"
         style={{ paddingHorizontal: margin, paddingTop: margin }}
       >
-        <Text style={{ fontSize: iconSize * 1.2 }} className="font-bold text-gray-800">
-          Sensores
-        </Text>
-        <TouchableOpacity onPress={handleLogout} hitSlop={8}>
-          <MaterialCommunityIcons name="logout" size={iconSize} color="#333" />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={8}
+          className="flex-row items-center"
+        >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={iconSize}
+            color="#333"
+          />
+          <Text
+            style={{ fontSize: iconSize * 1.1 }}
+            className="font-bold text-gray-800 ml-2"
+          >
+            Nuevo dispositivo
+          </Text>
         </TouchableOpacity>
       </View>
       {renderContent()}

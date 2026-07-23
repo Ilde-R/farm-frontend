@@ -1,11 +1,14 @@
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import AppTabs from "@/components/app-tabs";
+import { Stack } from "expo-router";
 
 export default function AppLayout() {
   return (
     <>
       <AnimatedSplashOverlay />
-      <AppTabs />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="add-device" />
+      </Stack>
     </>
   );
 }
