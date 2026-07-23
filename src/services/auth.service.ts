@@ -3,6 +3,7 @@ import type {
   AuthResponse,
   LoginPayload,
   LoginReponse,
+  RefreshTokenResponse,
   RegisterPayload,
 } from "@/types/auth";
 
@@ -48,7 +49,7 @@ export async function login(data: LoginPayload): Promise<LoginReponse> {
 }
 
 export async function logout(token: string): Promise<void> {
-  const response = await fetch(`${API_URL}/authlogout`, {
+  const response = await fetch(`${API_URL}/auth/logout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -62,4 +63,23 @@ export async function logout(token: string): Promise<void> {
       : (error.message ?? "Error al cerrar sesión");
     throw new Error(errorMsg);
   }
+}
+
+export async function refreshToken(
+  refreshToken: string,
+): Promise<RefreshTokenResponse> {
+  const response = await fetch(`${API_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    const errorMsg = Array.isArray(error.message)
+      ? error.message.join("\n")
+      : (error.message ?? "Error al renovar token");
+    throw new Error(errorMsg);
+  }
+
+  return response.json();
 }

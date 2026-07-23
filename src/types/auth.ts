@@ -12,8 +12,11 @@ export interface User {
 }
 
 export interface AuthResponse {
+  id: string;
+  username: string;
+  email: string;
   access_token: string;
-  user: User;
+  refresh_token: string;
 }
 
 export interface LoginPayload {
@@ -26,6 +29,14 @@ export interface LoginReponse {
   id: string;
   username: string;
   email: string;
+  access_token: string;
+  refresh_token: string;
+}
+
+export interface RefreshTokenPayload {
+  refreshToken: string;
+}
+export interface RefreshTokenResponse {
   access_token: string;
   refresh_token: string;
 }

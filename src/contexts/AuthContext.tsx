@@ -1,6 +1,5 @@
 import { useStorageState } from "@/hooks/useStorageState";
 import {
-  AuthResponse,
   LoginPayload,
   LoginReponse,
   RegisterPayload,
@@ -12,6 +11,7 @@ interface AuthContextType {
   signIn: (data: RegisterPayload) => Promise<void>;
   login: (data: LoginPayload) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshAccessToken: () => Promise<void>;
   token: string | null;
   user: User | null;
   isLoading: boolean;
@@ -30,6 +30,8 @@ export function useSession() {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, token], setToken] = useStorageState("auth_token");
   const [[, userRaw], setUser] = useStorageState("auth_user");
+  const [[, refreshToken], setRefreshToken] =
+    useStorageState("auth_refresh_token");
 
   const user = userRaw ? JSON.parse(userRaw) : null;
 
@@ -38,14 +40,22 @@ export function SessionProvider({ children }: PropsWithChildren) {
       value={{
         signIn: async (data: RegisterPayload) => {
           const { register } = await import("@/services/auth.service");
-          const response: AuthResponse = await register(data);
+          const response = await register(data);
           setToken(response.access_token);
-          setUser(JSON.stringify(response.user));
+          setRefreshToken(response.refresh_token);
+          setUser(
+            JSON.stringify({
+              id: response.id,
+              username: response.username,
+              email: response.email,
+            }),
+          );
         },
         login: async (data: LoginPayload) => {
           const { login: loginUser } = await import("@/services/auth.service");
           const response: LoginReponse = await loginUser(data);
           setToken(response.access_token);
+          setRefreshToken(response.refresh_token);
           setUser(
             JSON.stringify({
               id: response.id,
@@ -65,10 +75,20 @@ export function SessionProvider({ children }: PropsWithChildren) {
           }
           setToken(null);
           setUser(null);
+          setRefreshToken(null);
         },
         token,
         user,
         isLoading,
+        refreshAccessToken: async () => {
+          if (!refreshToken) throw new Error("No refresh token");
+          const { refreshToken: refresh } = await import(
+            "@/services/auth.service"
+          );
+          const response = await refresh(refreshToken);
+          setToken(response.access_token);
+          setRefreshToken(response.refresh_token);
+        },
       }}
     >
       {children}

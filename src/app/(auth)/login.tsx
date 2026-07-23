@@ -35,7 +35,9 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 justify-center bg-white px-8">
-      <Text className="text-2xl font-bold text-center mb-8">Login</Text>
+      <Text className="text-2xl font-bold text-center mb-8">
+        Iniciar Sesión
+      </Text>
 
       <TextInput
         className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
