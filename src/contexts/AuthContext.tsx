@@ -48,6 +48,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
               id: response.id,
               username: response.username,
               email: response.email,
+              tenantId: response.tenantId,
             }),
           );
         },
@@ -61,6 +62,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
               id: response.id,
               username: response.username,
               email: response.email,
+              tenantId: response.tenantId,
             }),
           );
         },

@@ -16,3 +16,14 @@ export interface ConfigureEspPayload {
   pass: string;
   deviceKey: string;
 }
+
+export interface DeviceInfo {
+  id: string;
+  key: string;
+  isActive: boolean;
+  blowerConfigId: string;
+  blowerConfig: {
+    blowerId: string;
+    name: string;
+  };
+}

@@ -9,12 +9,14 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  tenantId: string;
 }
 
 export interface AuthResponse {
   id: string;
   username: string;
   email: string;
+  tenantId: string;
   access_token: string;
   refresh_token: string;
 }
@@ -29,6 +31,7 @@ export interface LoginReponse {
   id: string;
   username: string;
   email: string;
+  tenantId: string;
   access_token: string;
   refresh_token: string;
 }
