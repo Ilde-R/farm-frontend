@@ -25,5 +25,11 @@ export interface DeviceInfo {
   blowerConfig: {
     blowerId: string;
     name: string;
+    firmwareVersion?: string;
+    wifiRssi?: number;
+    uptimeMs?: number;
+    freeHeap?: number;
+    readIntervalMs?: number;
+    scaleFactor?: number;
   };
 }

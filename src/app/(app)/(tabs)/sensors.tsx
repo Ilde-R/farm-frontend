@@ -21,13 +21,15 @@ interface BlowerDisplay {
   name: string;
   psi: number | null;
   threshold: number;
+  firmwareVersion?: string;
+  readIntervalMs?: number;
 }
 
 export default function SensorsScreen() {
   const { signOut, token } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
-  const { lastReadingAt, latestReadings, thresholds, onlineDevices, sendSetThreshold } =
+  const { lastReadingAt, latestReadings, thresholds, onlineDevices, sendSetThreshold, sendSetDeviceConfig } =
     useSocket();
 
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
@@ -65,6 +67,8 @@ export default function SensorsScreen() {
           psi: reading?.psi ?? null,
           threshold:
             thresholds.get(d.blowerConfig.blowerId) ?? 2.0,
+          firmwareVersion: d.blowerConfig.firmwareVersion,
+          readIntervalMs: d.blowerConfig.readIntervalMs,
         };
       });
   })();
@@ -154,7 +158,10 @@ export default function SensorsScreen() {
               psi={b.psi}
               threshold={b.threshold}
               isOnline={onlineDevices.has(b.blowerId)}
+              firmwareVersion={b.firmwareVersion}
+              readIntervalMs={b.readIntervalMs}
               onSetThreshold={sendSetThreshold}
+              onSetDeviceConfig={sendSetDeviceConfig}
             />
           ))
         )}

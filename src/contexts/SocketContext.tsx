@@ -18,6 +18,7 @@ interface SocketContextType {
   onlineDevices: Set<string>;
   sendSetThreshold: (blowerId: string, threshold: number) => void;
   sendGetThreshold: (blowerId?: string) => void;
+  sendSetDeviceConfig: (blowerId: string, config: { readIntervalMs?: number }) => void;
 }
 
 const SocketContext = createContext<SocketContextType | null>(null);
@@ -146,6 +147,10 @@ export function SocketProvider({ children }: PropsWithChildren) {
     socketService.send("get_threshold", { blowerId });
   }
 
+  function sendSetDeviceConfig(blowerId: string, config: { readIntervalMs?: number }) {
+    socketService.send("set_device_config", { blowerId, ...config });
+  }
+
   return (
     <SocketContext.Provider
       value={{
@@ -156,6 +161,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
         onlineDevices,
         sendSetThreshold,
         sendGetThreshold,
+        sendSetDeviceConfig,
       }}
     >
       {children}
