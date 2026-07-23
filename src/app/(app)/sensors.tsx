@@ -1,8 +1,14 @@
 import { useSession } from "@/contexts/AuthContext";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Alert, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SensorsScreen() {
-  const { signOut, user } = useSession();
+  const { signOut } = useSession();
+  const { width } = useWindowDimensions();
+
+  const iconSize = Math.round(width * 0.06);
+  const margin = Math.round(width * 0.04);
 
   function handleLogout() {
     Alert.alert("Cerrar sesión", "¿Estás seguro?", [
@@ -12,20 +18,13 @@ export default function SensorsScreen() {
   }
 
   return (
-    <View className="flex-1 justify-center items-center bg-white">
-      <Text className="text-xl font-bold mb-4">Sensores</Text>
-      {user && (
-        <Text className="text-sm text-gray-500 mb-8">
-          Hola, {user.username}
-        </Text>
-      )}
-
-      <TouchableOpacity
-        className="bg-red-500 rounded-lg px-6 py-3"
-        onPress={handleLogout}
-      >
-        <Text className="text-white font-bold">Cerrar sesión</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <View className="flex-row items-center justify-between" style={{ paddingHorizontal: margin, paddingTop: margin }}>
+        <Text style={{ fontSize: iconSize * 1.2 }} className="font-bold text-gray-800">Sensores</Text>
+        <TouchableOpacity onPress={handleLogout} hitSlop={8}>
+          <MaterialCommunityIcons name="logout" size={iconSize} color="#333" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }

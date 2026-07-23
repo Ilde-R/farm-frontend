@@ -66,14 +66,14 @@ export default function RegisterScreen() {
       </Text>
 
       <TouchableOpacity
-        className="bg-green-600 rounded-lg py-4"
+        className="bg-black rounded-lg py-4"
         onPress={handleRegister}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-white text-center font-bold text-lg">
+          <Text className="text-white text-center fsont-bold text-lg">
             Registrarse
           </Text>
         )}
