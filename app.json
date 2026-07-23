@@ -27,6 +27,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -64,6 +66,12 @@
         "projectId": "7d16614c-ccb8-46e8-a39a-7840afda7177"
       }
     },
-    "owner": "ilderios"
+    "owner": "ilderios",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7d16614c-ccb8-46e8-a39a-7840afda7177"
+    }
   }
 }
