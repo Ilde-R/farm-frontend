@@ -5,7 +5,7 @@ import { useSocket } from "@/contexts/SocketContext";
 import { listDevices } from "@/services/iot.service";
 import type { DeviceInfo } from "@/types/blower";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -27,20 +27,26 @@ export default function SensorsScreen() {
   const { signOut, token } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
-  const { isConnected, latestReadings, thresholds, sendSetThreshold } =
+  const { lastReadingAt, latestReadings, thresholds, onlineDevices, sendSetThreshold } =
     useSocket();
 
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
+  const [, setTick] = useState(0);
 
   const iconSize = Math.round(width * 0.06);
   const margin = Math.round(width * 0.04);
 
-  useEffect(() => {
+  useFocusEffect(() => {
     if (!token) return;
     listDevices(token)
       .then(setDevices)
       .catch(() => {});
-  }, [token]);
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const blowers: BlowerDisplay[] = (() => {
     const seen = new Set<string>();
@@ -62,6 +68,8 @@ export default function SensorsScreen() {
         };
       });
   })();
+
+  const deviceOnline = lastReadingAt !== null && Date.now() - lastReadingAt < 10_000;
 
   function handleLogout() {
     Alert.alert("Cerrar sesión", "¿Estás seguro?", [
@@ -112,13 +120,13 @@ export default function SensorsScreen() {
           style={{
             width: 8,
             height: 8,
-            backgroundColor: isConnected
+            backgroundColor: deviceOnline
               ? Colors.light.text
               : Colors.light.textSecondary,
           }}
         />
         <Text className="text-textSecondary text-xs ml-2">
-          {isConnected ? "Conectado" : "Desconectado"}
+          {deviceOnline ? "Conectado" : "Desconectado"}
         </Text>
       </View>
 
@@ -145,6 +153,7 @@ export default function SensorsScreen() {
               name={b.name}
               psi={b.psi}
               threshold={b.threshold}
+              isOnline={onlineDevices.has(b.blowerId)}
               onSetThreshold={sendSetThreshold}
             />
           ))

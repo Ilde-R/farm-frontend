@@ -12,8 +12,10 @@ import {
 
 interface SocketContextType {
   isConnected: boolean;
+  lastReadingAt: number | null;
   latestReadings: Map<string, PressureReadingData>;
   thresholds: Map<string, number>;
+  onlineDevices: Set<string>;
   sendSetThreshold: (blowerId: string, threshold: number) => void;
   sendGetThreshold: (blowerId?: string) => void;
 }
@@ -37,6 +39,8 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const [thresholds, setThresholds] = useState(
     () => new Map<string, number>(),
   );
+  const [lastReadingAt, setLastReadingAt] = useState<number | null>(null);
+  const [onlineDevices, setOnlineDevices] = useState<Set<string>>(new Set());
   const prevTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -63,6 +67,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
     }
 
     function onPressureReading(data: PressureReadingData) {
+      setLastReadingAt(Date.now());
       setLatestReadings((prev) => {
         const next = new Map(prev);
         next.set(data.blowerId, data);
@@ -81,14 +86,35 @@ export function SocketProvider({ children }: PropsWithChildren) {
     function onCurrentThreshold(data: {
       threshold: number;
       blowerId?: string;
+      thresholds?: { blowerId: string; threshold: number }[];
     }) {
-      if (data.blowerId) {
-        setThresholds((prev) => {
-          const next = new Map(prev);
-          next.set(data.blowerId!, data.threshold);
-          return next;
-        });
-      }
+      setThresholds((prev) => {
+        const next = new Map(prev);
+        if (data.thresholds) {
+          for (const t of data.thresholds) {
+            next.set(t.blowerId, t.threshold);
+          }
+        } else if (data.blowerId) {
+          next.set(data.blowerId, data.threshold);
+        }
+        return next;
+      });
+    }
+
+    function onDeviceOnline(data: { blowerId: string }) {
+      setOnlineDevices((prev) => new Set(prev).add(data.blowerId));
+    }
+
+    function onDeviceOffline(data: { blowerId: string }) {
+      setOnlineDevices((prev) => {
+        const next = new Set(prev);
+        next.delete(data.blowerId);
+        return next;
+      });
+    }
+
+    function onDevicesOnline(data: { devices: { blowerId: string }[] }) {
+      setOnlineDevices(new Set(data.devices.map((d) => d.blowerId)));
     }
 
     socketService.on("connected", onConnected);
@@ -96,6 +122,9 @@ export function SocketProvider({ children }: PropsWithChildren) {
     socketService.on("pressure_reading", onPressureReading);
     socketService.on("update_threshold", onUpdateThreshold);
     socketService.on("current_threshold", onCurrentThreshold);
+    socketService.on("device_online", onDeviceOnline);
+    socketService.on("device_offline", onDeviceOffline);
+    socketService.on("devices_online", onDevicesOnline);
 
     return () => {
       socketService.off("connected", onConnected);
@@ -103,6 +132,9 @@ export function SocketProvider({ children }: PropsWithChildren) {
       socketService.off("pressure_reading", onPressureReading);
       socketService.off("update_threshold", onUpdateThreshold);
       socketService.off("current_threshold", onCurrentThreshold);
+      socketService.off("device_online", onDeviceOnline);
+      socketService.off("device_offline", onDeviceOffline);
+      socketService.off("devices_online", onDevicesOnline);
     };
   }, [token]);
 
@@ -118,8 +150,10 @@ export function SocketProvider({ children }: PropsWithChildren) {
     <SocketContext.Provider
       value={{
         isConnected,
+        lastReadingAt,
         latestReadings,
         thresholds,
+        onlineDevices,
         sendSetThreshold,
         sendGetThreshold,
       }}

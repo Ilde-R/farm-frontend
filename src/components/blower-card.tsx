@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface BlowerCardProps {
@@ -8,6 +8,7 @@ interface BlowerCardProps {
   name: string;
   psi: number | null;
   threshold: number;
+  isOnline: boolean;
   onSetThreshold: (blowerId: string, threshold: number) => void;
 }
 
@@ -16,10 +17,15 @@ export default function BlowerCard({
   name,
   psi,
   threshold,
+  isOnline,
   onSetThreshold,
 }: BlowerCardProps) {
   const [editing, setEditing] = useState(false);
   const [thresholdInput, setThresholdInput] = useState(threshold.toString());
+
+  useEffect(() => {
+    if (!editing) setThresholdInput(threshold.toString());
+  }, [threshold, editing]);
 
   const isAlert = psi !== null && psi <= threshold;
 
@@ -36,9 +42,21 @@ export default function BlowerCard({
   return (
     <View className="bg-backgroundElement rounded-xl p-5 mb-4">
       <View className="flex-row items-center justify-between mb-4">
-        <View>
-          <Text className="text-text font-bold text-lg">{name}</Text>
-          <Text className="text-textSecondary text-xs">{blowerId}</Text>
+        <View className="flex-row items-center" style={{ gap: 6 }}>
+          <View
+            className="rounded-full"
+            style={{
+              width: 8,
+              height: 8,
+              backgroundColor: isOnline
+                ? "#22c55e"
+                : Colors.light.textSecondary,
+            }}
+          />
+          <View>
+            <Text className="text-text font-bold text-lg">{name}</Text>
+            <Text className="text-textSecondary text-xs">{blowerId}</Text>
+          </View>
         </View>
         {isAlert && (
           <View className="flex-row items-center bg-backgroundSelected rounded-full px-3 py-1">
