@@ -58,8 +58,7 @@
       "expo-web-browser"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     },
     "extra": {
       "router": {},
@@ -72,7 +71,8 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/7d16614c-ccb8-46e8-a39a-7840afda7177"
+      "url": "https://u.expo.dev/7d16614c-ccb8-46e8-a39a-7840afda7177",
+      "checkAutomatically": "NEVER"
     }
   }
 }

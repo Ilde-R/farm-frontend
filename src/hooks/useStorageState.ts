@@ -43,6 +43,7 @@ export function useStorageState(key: string): UseStateHook<string> {
   const [state, setState] = useAsyncState<string>();
 
   useEffect(() => {
+    console.log(`[BOOT] useStorageState reading key="${key}"`);
     if (Platform.OS === "web") {
       try {
         if (typeof localStorage !== "undefined") {
@@ -53,7 +54,11 @@ export function useStorageState(key: string): UseStateHook<string> {
       }
     } else {
       SecureStore.getItemAsync(key).then((value: string | null) => {
+        console.log(`[BOOT] SecureStore key="${key}" value=${value ? "exists" : "null"}`);
         setState(value);
+      }).catch((e) => {
+        console.error(`[BOOT] SecureStore ERROR key="${key}"`, e);
+        setState(null);
       });
     }
   }, [key]);
