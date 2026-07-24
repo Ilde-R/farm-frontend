@@ -1,2 +1,5 @@
-export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "https://farm-backend.fly.dev";
+export const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error("EXPO_PUBLIC_API_URL no está definida. ");
+}
