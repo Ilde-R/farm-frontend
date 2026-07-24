@@ -23,6 +23,16 @@ function parseWifiQr(data: string): { ssid: string; password: string } | null {
     return { ssid: ssidMatch[1], password: passMatch[1] };
   }
 
+  const trimmed = data.trim();
+  const lastSpace = trimmed.lastIndexOf(" ");
+  if (lastSpace > 0) {
+    const ssid = trimmed.substring(0, lastSpace);
+    const password = trimmed.substring(lastSpace + 1);
+    if (ssid && password) {
+      return { ssid, password };
+    }
+  }
+
   return null;
 }
 
