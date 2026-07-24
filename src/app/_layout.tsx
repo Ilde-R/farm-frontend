@@ -4,11 +4,9 @@ import { SessionProvider, useSession } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { Stack } from "expo-router";
 
-console.log("[BOOT] _layout.tsx module loaded");
 
 function RootNavigator() {
   const { token } = useSession();
-  console.log("[BOOT] RootNavigator token=", token ? "exists" : "null");
 
   return (
     <Stack>
@@ -26,7 +24,6 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  console.log("[BOOT] RootLayout rendered");
   return (
     <SessionProvider>
       <SocketProvider>

@@ -1,8 +1,6 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { VectorIcon } from "expo-router";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { Tabs } from "expo-router";
 import { useColorScheme } from "react-native";
-
 import { Colors } from "@/constants/theme";
 
 export default function AppTabs() {
@@ -10,17 +8,23 @@ export default function AppTabs() {
   const colors = Colors[scheme === "unspecified" ? "light" : scheme];
 
   return (
-    <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: { backgroundColor: colors.background },
+        headerShown: false,
+      }}
     >
-      <NativeTabs.Trigger name="sensors">
-        <NativeTabs.Trigger.Label>Sensores</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={<VectorIcon family={MaterialCommunityIcons} name="thermometer" />}
-        />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+      <Tabs.Screen
+        name="sensors"
+        options={{
+          title: "Sensores",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="thermometer" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

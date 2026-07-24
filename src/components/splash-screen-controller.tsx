@@ -13,7 +13,6 @@ export function SplashScreenController() {
     const timeout = setTimeout(() => {
       if (!hasHidden.current) {
         hasHidden.current = true;
-        console.warn("[BOOT] Splash screen timeout - force hiding");
         SplashScreen.hideAsync().catch(() => {});
       }
     }, 5000);
@@ -24,9 +23,7 @@ export function SplashScreenController() {
   useEffect(() => {
     if (!isLoading && !hasHidden.current) {
       hasHidden.current = true;
-      console.log("[BOOT] Hiding splash screen (isLoading=false)");
       SplashScreen.hideAsync().catch((e) => {
-        console.warn("[BOOT] SplashScreen.hideAsync error:", e);
       });
     }
   }, [isLoading]);

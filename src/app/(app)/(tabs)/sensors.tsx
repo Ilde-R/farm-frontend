@@ -51,8 +51,9 @@ export default function SensorsScreen() {
   }, []);
 
   const blowers: BlowerDisplay[] = (() => {
+    const deviceList = Array.isArray(devices) ? devices : [];
     const seen = new Set<string>();
-    return devices
+    return deviceList
       .filter((d) => d.isActive && d.blowerConfig)
       .filter((d) => {
         if (seen.has(d.blowerConfig.blowerId)) return false;
