@@ -2,7 +2,6 @@ import { SplashScreenController } from "@/components/splash-screen-controller";
 import { SessionProvider, useSession } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { Stack } from "expo-router";
-import "../global.css";
 
 function RootNavigator() {
   const { token } = useSession();
