@@ -27,7 +27,8 @@ export async function register(data: RegisterPayload): Promise<AuthResponse> {
     throw new Error(errorMsg);
   }
 
-  return response.json();
+  const json = await response.json();
+  return json.data;
 }
 
 export async function login(data: LoginPayload): Promise<LoginReponse> {
@@ -45,7 +46,8 @@ export async function login(data: LoginPayload): Promise<LoginReponse> {
     throw new Error(errorMsg);
   }
 
-  return response.json();
+  const json = await response.json();
+  return json.data;
 }
 
 export async function logout(token: string): Promise<void> {
@@ -81,5 +83,6 @@ export async function refreshToken(
     throw new Error(errorMsg);
   }
 
-  return response.json();
+  const json = await response.json();
+  return json.data;
 }
