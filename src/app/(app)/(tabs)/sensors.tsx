@@ -2,6 +2,7 @@ import BlowerCard from "@/components/blower-card";
 import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
+import { deleteBlower } from "@/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -26,7 +27,7 @@ interface BlowerDisplay {
 }
 
 export default function SensorsScreen() {
-  const { signOut } = useSession();
+  const { signOut, token } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
   const {
@@ -88,6 +89,16 @@ export default function SensorsScreen() {
       { text: "Cancelar", style: "cancel" },
       { text: "Salir", style: "destructive", onPress: () => signOut() },
     ]);
+  }
+
+  async function handleDelete(blowerId: string) {
+    if (!token) return;
+    try {
+      await deleteBlower(token, blowerId);
+      await refreshDevices();
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
   }
 
   return (
@@ -175,6 +186,7 @@ export default function SensorsScreen() {
               readIntervalMs={b.readIntervalMs}
               onSetThreshold={sendSetThreshold}
               onSetDeviceConfig={sendSetDeviceConfig}
+              onDelete={handleDelete}
             />
           ))
         )}

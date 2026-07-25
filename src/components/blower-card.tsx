@@ -13,6 +13,7 @@ interface BlowerCardProps {
   readIntervalMs?: number;
   onSetThreshold: (blowerId: string, threshold: number) => void;
   onSetDeviceConfig?: (blowerId: string, config: { readIntervalMs?: number }) => void;
+  onDelete?: (blowerId: string) => void;
 }
 
 export default function BlowerCard({
@@ -25,6 +26,7 @@ export default function BlowerCard({
   readIntervalMs,
   onSetThreshold,
   onSetDeviceConfig,
+  onDelete,
 }: BlowerCardProps) {
   const [editing, setEditing] = useState(false);
   const [thresholdInput, setThresholdInput] = useState(threshold.toString());
@@ -99,6 +101,27 @@ export default function BlowerCard({
             />
             <Text className="text-textSecondary text-xs ml-1">Alerta</Text>
           </View>
+        )}
+        {onDelete && (
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                "Eliminar blower",
+                `¿Eliminar "${name}" (${blowerId})? Se borrarán el dispositivo y sus claves.`,
+                [
+                  { text: "Cancelar", style: "cancel" },
+                  { text: "Eliminar", style: "destructive", onPress: () => onDelete(blowerId) },
+                ],
+              );
+            }}
+            hitSlop={8}
+          >
+            <MaterialCommunityIcons
+              name="trash-can-outline"
+              size={20}
+              color={Colors.light.textSecondary}
+            />
+          </TouchableOpacity>
         )}
       </View>
 

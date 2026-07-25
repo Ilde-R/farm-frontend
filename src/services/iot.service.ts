@@ -55,4 +55,19 @@ export async function listDevices(token: string): Promise<DeviceInfo[]> {
   return json.data;
 }
 
+export async function deleteBlower(token: string, blowerId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/iot/blowers/${blowerId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    const errorMsg = Array.isArray(error.message)
+      ? error.message.join("\n")
+      : (error.message ?? `Error ${response.status}: ${response.statusText}`);
+    throw new Error(errorMsg);
+  }
+}
+
 
