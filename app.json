@@ -60,11 +60,10 @@
         "expo-build-properties",
         {
           "android": {
-            "cleartextTrafficPermitted": true
+            "usesCleartextTraffic": true
           }
         }
-      ],
-      "expo-build-properties"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
