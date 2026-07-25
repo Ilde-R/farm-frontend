@@ -24,7 +24,8 @@ export async function provisionBlower(
     throw new Error(errorMsg);
   }
 
-  return response.json();
+  const json = await response.json();
+  return json.data;
 }
 
 export async function configureEsp32(
@@ -50,7 +51,8 @@ export async function listDevices(token: string): Promise<DeviceInfo[]> {
     throw new Error("Error al obtener dispositivos");
   }
 
-  return response.json();
+  const json = await response.json();
+  return json.data;
 }
 
 
