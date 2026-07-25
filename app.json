@@ -80,7 +80,7 @@
     },
     "updates": {
       "url": "https://u.expo.dev/7d16614c-ccb8-46e8-a39a-7840afda7177",
-      "checkAutomatically": "NEVER"
+      "checkAutomatically": "ON_LOAD"
     }
   }
 }
