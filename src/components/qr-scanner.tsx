@@ -107,7 +107,7 @@ export default function QrScanner({
     <Modal visible={visible} animationType="slide">
       <View className="flex-1">
         <CameraView
-          className="flex-1"
+          style={{ flex: 1 }}
           barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         />

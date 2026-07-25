@@ -73,13 +73,6 @@ export default function ProfileScreen() {
     }
   }
 
-  function handleLogout() {
-    Alert.alert("Cerrar sesión", "¿Estás seguro?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Salir", style: "destructive", onPress: () => signOut() },
-    ]);
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View
@@ -127,12 +120,6 @@ export default function ProfileScreen() {
             >
               <Text className="text-text font-semibold text-base text-center">
                 Editar perfil
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="py-3" onPress={handleLogout}>
-              <Text className="text-textError font-semibold text-base text-center">
-                Cerrar sesión
               </Text>
             </TouchableOpacity>
           </>

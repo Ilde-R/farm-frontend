@@ -17,7 +17,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type FlowStep =
-  "form" | "provisioning" | "instructions" | "sending" | "done" | "error";
+  | "form"
+  | "provisioning"
+  | "instructions"
+  | "sending"
+  | "done"
+  | "error";
 
 export default function AddDeviceScreen() {
   const { token } = useSession();
@@ -89,6 +94,7 @@ export default function AddDeviceScreen() {
     setPassword("");
     setDeviceKey("");
     setErrorMsg("");
+    router.replace("/(app)/(tabs)/sensors");
   }
 
   function renderContent() {
@@ -102,7 +108,7 @@ export default function AddDeviceScreen() {
 
             <Text className="text-text font-semibold mb-1">ID del blower</Text>
             <TextInput
-              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-text"
+              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
               placeholder="Ej: blwr_abc123"
               value={blowerId}
               onChangeText={setBlowerId}
@@ -113,7 +119,7 @@ export default function AddDeviceScreen() {
               Nombre del blower
             </Text>
             <TextInput
-              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-text"
+              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
               placeholder="Ej: Ventilador 1"
               value={blowerName}
               onChangeText={setBlowerName}
@@ -129,7 +135,7 @@ export default function AddDeviceScreen() {
               </TouchableOpacity>
             </View>
             <TextInput
-              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-text"
+              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
               placeholder="Nombre de tu red WiFi"
               value={ssid}
               onChangeText={setSsid}
@@ -140,7 +146,7 @@ export default function AddDeviceScreen() {
               Contraseña WiFi
             </Text>
             <TextInput
-              className="border border-backgroundSelected rounded-lg px-4 py-3 mb-6 text-text"
+              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-6"
               placeholder="Contraseña de tu red"
               value={password}
               onChangeText={setPassword}
