@@ -3,7 +3,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { listDevices } from "@/services/iot.service";
 import type { DeviceInfo } from "@/types/blower";
 import type { PressureReadingData, ThresholdUpdateData } from "@/types/socket";
-import * as Notifications from "expo-notifications";
+import { sendNotification } from "@/utils/notifications";
 import {
   createContext,
   use,
@@ -112,14 +112,11 @@ export function SocketProvider({ children }: PropsWithChildren) {
         const lastNotified = lastNotifiedRef.current.get(data.blowerId) ?? 0;
         if (now - lastNotified > 60_000) {
           lastNotifiedRef.current.set(data.blowerId, now);
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: "Presión baja",
-              body: `${data.blowerId}: ${data.psi.toFixed(1)} PSI (umbral: ${threshold} PSI)`,
-              data: { blowerId: data.blowerId },
-            },
-            trigger: null,
-          });
+          sendNotification(
+            "Presión baja",
+            `${data.blowerId}: ${data.psi.toFixed(1)} PSI (umbral: ${threshold} PSI)`,
+            { blowerId: data.blowerId },
+          );
         }
       }
     }
