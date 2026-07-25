@@ -2,13 +2,13 @@ import BlowerCard from "@/components/blower-card";
 import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
-import { listDevices } from "@/services/iot.service";
-import type { DeviceInfo } from "@/types/blower";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useRouter, useFocusEffect } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  ScrollView,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -26,29 +26,36 @@ interface BlowerDisplay {
 }
 
 export default function SensorsScreen() {
-  const { signOut, token } = useSession();
+  const { signOut } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
-  const { lastReadingAt, latestReadings, thresholds, onlineDevices, sendSetThreshold, sendSetDeviceConfig } =
-    useSocket();
+  const {
+    lastReadingAt,
+    latestReadings,
+    thresholds,
+    onlineDevices,
+    devices,
+    devicesLoading,
+    refreshDevices,
+    sendSetThreshold,
+    sendSetDeviceConfig,
+  } = useSocket();
 
-  const [devices, setDevices] = useState<DeviceInfo[]>([]);
   const [, setTick] = useState(0);
 
   const iconSize = Math.round(width * 0.06);
   const margin = Math.round(width * 0.04);
 
-  useFocusEffect(() => {
-    if (!token) return;
-    listDevices(token)
-      .then(setDevices)
-      .catch(() => {});
-  });
-
   useEffect(() => {
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshDevices();
+    }, [refreshDevices])
+  );
 
   const blowers: BlowerDisplay[] = (() => {
     const deviceList = Array.isArray(devices) ? devices : [];
@@ -66,15 +73,15 @@ export default function SensorsScreen() {
           blowerId: d.blowerConfig.blowerId,
           name: d.blowerConfig.name ?? d.blowerConfig.blowerId,
           psi: reading?.psi ?? null,
-          threshold:
-            thresholds.get(d.blowerConfig.blowerId) ?? 2.0,
+          threshold: thresholds.get(d.blowerConfig.blowerId) ?? 2.0,
           firmwareVersion: d.blowerConfig.firmwareVersion,
           readIntervalMs: d.blowerConfig.readIntervalMs,
         };
       });
   })();
 
-  const deviceOnline = lastReadingAt !== null && Date.now() - lastReadingAt < 10_000;
+  const deviceOnline =
+    lastReadingAt !== null && Date.now() - lastReadingAt < 10_000;
 
   function handleLogout() {
     Alert.alert("Cerrar sesión", "¿Estás seguro?", [
@@ -135,8 +142,13 @@ export default function SensorsScreen() {
         </Text>
       </View>
 
-      <View className="flex-1 px-6" style={{ paddingTop: margin }}>
-        {blowers.length === 0 ? (
+      <ScrollView className="flex-1 px-6" style={{ paddingTop: margin }}>
+        {devicesLoading ? (
+          <View className="flex-1 items-center justify-center py-12">
+            <ActivityIndicator size="large" color={Colors.light.textSecondary} />
+            <Text className="text-textSecondary text-sm mt-3">Cargando dispositivos...</Text>
+          </View>
+        ) : blowers.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <MaterialCommunityIcons
               name="thermometer"
@@ -166,7 +178,7 @@ export default function SensorsScreen() {
             />
           ))
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

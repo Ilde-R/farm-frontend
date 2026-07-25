@@ -1,9 +1,12 @@
 import { socketService } from "@/api/socket";
 import { useSession } from "@/contexts/AuthContext";
+import { listDevices } from "@/services/iot.service";
+import type { DeviceInfo } from "@/types/blower";
 import type { PressureReadingData, ThresholdUpdateData } from "@/types/socket";
 import {
   createContext,
   use,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -16,6 +19,9 @@ interface SocketContextType {
   latestReadings: Map<string, PressureReadingData>;
   thresholds: Map<string, number>;
   onlineDevices: Set<string>;
+  devices: DeviceInfo[];
+  devicesLoading: boolean;
+  refreshDevices: () => Promise<void>;
   sendSetThreshold: (blowerId: string, threshold: number) => void;
   sendGetThreshold: (blowerId?: string) => void;
   sendSetDeviceConfig: (blowerId: string, config: { readIntervalMs?: number }) => void;
@@ -42,7 +48,21 @@ export function SocketProvider({ children }: PropsWithChildren) {
   );
   const [lastReadingAt, setLastReadingAt] = useState<number | null>(null);
   const [onlineDevices, setOnlineDevices] = useState<Set<string>>(new Set());
+  const [devices, setDevices] = useState<DeviceInfo[]>([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
   const prevTokenRef = useRef<string | null>(null);
+
+  const refreshDevices = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await listDevices(token);
+      setDevices(Array.isArray(data) ? data : []);
+    } catch {
+      // keep previous devices on error
+    } finally {
+      setDevicesLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
     const prevToken = prevTokenRef.current;
@@ -53,10 +73,14 @@ export function SocketProvider({ children }: PropsWithChildren) {
     if (!token) {
       socketService.disconnect();
       setIsConnected(false);
+      setDevices([]);
+      setDevicesLoading(false);
       return;
     }
 
     socketService.connect(token);
+    setDevicesLoading(true);
+    refreshDevices();
 
     function onConnected() {
       setIsConnected(true);
@@ -159,6 +183,9 @@ export function SocketProvider({ children }: PropsWithChildren) {
         latestReadings,
         thresholds,
         onlineDevices,
+        devices,
+        devicesLoading,
+        refreshDevices,
         sendSetThreshold,
         sendGetThreshold,
         sendSetDeviceConfig,
