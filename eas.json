@@ -10,17 +10,26 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://farm-backend-dev.fly.dev"
+      }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://farm-backend.fly.dev"
+      }
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://farm-backend.fly.dev"
+      }
     }
   }
 }

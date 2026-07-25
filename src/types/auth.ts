@@ -9,7 +9,20 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  tenantId: string;
+  tenantId?: string;
+}
+
+export interface ProfileResponse {
+  data: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
+export interface UpdateProfilePayload {
+  username?: string;
+  email?: string;
 }
 
 export interface AuthResponse {
