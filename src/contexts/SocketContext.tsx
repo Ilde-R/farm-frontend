@@ -3,6 +3,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { listDevices } from "@/services/iot.service";
 import type { DeviceInfo } from "@/types/blower";
 import type { PressureReadingData, ThresholdUpdateData } from "@/types/socket";
+import * as Notifications from "expo-notifications";
 import {
   createContext,
   use,
@@ -51,6 +52,12 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const prevTokenRef = useRef<string | null>(null);
+  const lastNotifiedRef = useRef<Map<string, number>>(new Map());
+  const thresholdsRef = useRef(thresholds);
+
+  useEffect(() => {
+    thresholdsRef.current = thresholds;
+  }, [thresholds]);
 
   const refreshDevices = useCallback(async () => {
     if (!token) return;
@@ -58,7 +65,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
       const data = await listDevices(token);
       setDevices(Array.isArray(data) ? data : []);
     } catch {
-      // keep previous devices on error
+      
     } finally {
       setDevicesLoading(false);
     }
@@ -98,6 +105,23 @@ export function SocketProvider({ children }: PropsWithChildren) {
         next.set(data.blowerId, data);
         return next;
       });
+
+      const threshold = thresholdsRef.current.get(data.blowerId) ?? 2.0;
+      if (data.psi <= threshold) {
+        const now = Date.now();
+        const lastNotified = lastNotifiedRef.current.get(data.blowerId) ?? 0;
+        if (now - lastNotified > 60_000) {
+          lastNotifiedRef.current.set(data.blowerId, now);
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Presión baja",
+              body: `${data.blowerId}: ${data.psi.toFixed(1)} PSI (umbral: ${threshold} PSI)`,
+              data: { blowerId: data.blowerId },
+            },
+            trigger: null,
+          });
+        }
+      }
     }
 
     function onUpdateThreshold(data: ThresholdUpdateData) {
