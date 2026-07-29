@@ -3,6 +3,7 @@ export interface PressureReadingData {
   blowerId: string;
   blowerConfigId?: string;
   tenantId: string;
+  deviceTs?: number;
 }
 
 export interface PressureReadingEvent {

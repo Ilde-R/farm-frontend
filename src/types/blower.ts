@@ -31,5 +31,27 @@ export interface DeviceInfo {
     freeHeap?: number;
     readIntervalMs?: number;
     scaleFactor?: number;
+    saveIntervalSeconds: number;
   };
+}
+
+export interface UpdateBlowerConfigPayload {
+  saveIntervalSeconds: number;
+}
+
+export interface BlowerConfigResponse {
+  id: string;
+  tenantId: string;
+  blowerId: string;
+  name: string;
+  currentThreshold: number;
+  firmwareVersion: string;
+  wifiRssi: number;
+  uptimeMs: number;
+  freeHeap: number;
+  readIntervalMs: number;
+  scaleFactor: number;
+  saveIntervalSeconds: number;
+  lastSaveAt: string;
+  lastAlertState: boolean;
 }

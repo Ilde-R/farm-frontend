@@ -2,7 +2,7 @@ import BlowerCard from "@/components/blower-card";
 import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
-import { deleteBlower } from "@/services/iot.service";
+import { deleteBlower, updateBlowerConfig } from "@/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -24,6 +24,7 @@ interface BlowerDisplay {
   threshold: number;
   firmwareVersion?: string;
   readIntervalMs?: number;
+  saveIntervalSeconds?: number;
 }
 
 export default function SensorsScreen() {
@@ -42,6 +43,9 @@ export default function SensorsScreen() {
     sendSetDeviceConfig,
   } = useSocket();
 
+  const [saveIntervals, setSaveIntervals] = useState<Map<string, number>>(
+    () => new Map(),
+  );
   const [, setTick] = useState(0);
 
   const iconSize = Math.round(width * 0.06);
@@ -57,6 +61,19 @@ export default function SensorsScreen() {
       refreshDevices();
     }, [refreshDevices])
   );
+
+  useEffect(() => {
+    const deviceList = Array.isArray(devices) ? devices : [];
+    setSaveIntervals((prev) => {
+      const next = new Map(prev);
+      for (const d of deviceList) {
+        if (d.blowerConfig?.saveIntervalSeconds) {
+          next.set(d.blowerConfig.blowerId, d.blowerConfig.saveIntervalSeconds);
+        }
+      }
+      return next;
+    });
+  }, [devices]);
 
   const blowers: BlowerDisplay[] = (() => {
     const deviceList = Array.isArray(devices) ? devices : [];
@@ -77,6 +94,7 @@ export default function SensorsScreen() {
           threshold: thresholds.get(d.blowerConfig.blowerId) ?? 2.0,
           firmwareVersion: d.blowerConfig.firmwareVersion,
           readIntervalMs: d.blowerConfig.readIntervalMs,
+          saveIntervalSeconds: saveIntervals.get(d.blowerConfig.blowerId) ?? d.blowerConfig.saveIntervalSeconds,
         };
       });
   })();
@@ -98,6 +116,21 @@ export default function SensorsScreen() {
       await refreshDevices();
     } catch (error: any) {
       Alert.alert("Error", error.message);
+    }
+  }
+
+  async function handleSaveConfig(blowerId: string, saveIntervalSeconds: number) {
+    if (!token) return;
+    setSaveIntervals((prev) => {
+      const next = new Map(prev);
+      next.set(blowerId, saveIntervalSeconds);
+      return next;
+    });
+    try {
+      await updateBlowerConfig(token, blowerId, { saveIntervalSeconds });
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+      refreshDevices();
     }
   }
 
@@ -184,8 +217,10 @@ export default function SensorsScreen() {
               isOnline={onlineDevices.has(b.blowerId)}
               firmwareVersion={b.firmwareVersion}
               readIntervalMs={b.readIntervalMs}
+              saveIntervalSeconds={b.saveIntervalSeconds}
               onSetThreshold={sendSetThreshold}
               onSetDeviceConfig={sendSetDeviceConfig}
+              onSaveConfig={handleSaveConfig}
               onDelete={handleDelete}
             />
           ))

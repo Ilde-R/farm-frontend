@@ -1,5 +1,12 @@
 import { API_URL } from "@/api/config";
-import type { ConfigureEspPayload, DeviceInfo, ProvisionPayload, ProvisionResponse } from "@/types/blower";
+import type {
+  BlowerConfigResponse,
+  ConfigureEspPayload,
+  DeviceInfo,
+  ProvisionPayload,
+  ProvisionResponse,
+  UpdateBlowerConfigPayload,
+} from "@/types/blower";
 
 const ESP32_BASE = "http://192.168.4.1";
 
@@ -28,9 +35,7 @@ export async function provisionBlower(
   return json.data;
 }
 
-export async function configureEsp32(
-  data: ConfigureEspPayload,
-): Promise<void> {
+export async function configureEsp32(data: ConfigureEspPayload): Promise<void> {
   const response = await fetch(`${ESP32_BASE}/configure`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -55,7 +60,10 @@ export async function listDevices(token: string): Promise<DeviceInfo[]> {
   return json.data;
 }
 
-export async function deleteBlower(token: string, blowerId: string): Promise<void> {
+export async function deleteBlower(
+  token: string,
+  blowerId: string,
+): Promise<void> {
   const response = await fetch(`${API_URL}/iot/blowers/${blowerId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
@@ -70,4 +78,28 @@ export async function deleteBlower(token: string, blowerId: string): Promise<voi
   }
 }
 
+export async function updateBlowerConfig(
+  token: string,
+  blowerId: string,
+  data: UpdateBlowerConfigPayload,
+): Promise<BlowerConfigResponse> {
+  const response = await fetch(`${API_URL}/iot/blowers/${blowerId}/config`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
 
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    const errorMsg = Array.isArray(error.message)
+      ? error.message.join("\n")
+      : (error.message ?? `Error ${response.status}: ${response.statusText}`);
+    throw new Error(errorMsg);
+  }
+
+  const json = await response.json();
+  return json.data;
+} 
