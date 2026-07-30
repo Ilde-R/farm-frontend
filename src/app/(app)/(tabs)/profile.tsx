@@ -1,5 +1,5 @@
-import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/use-theme";
 import { validateEmail, validateUsername } from "@/utils/validations";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useState } from "react";
@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type ViewMode = "view" | "edit";
 
 export default function ProfileScreen() {
+  const theme = useTheme();
   const { user, signOut, updateUser } = useSession();
   const { width } = useWindowDimensions();
   const iconSize = Math.round(width * 0.06);
@@ -81,7 +82,7 @@ export default function ProfileScreen() {
       >
         <Text
           style={{ fontSize: iconSize * 1.2 }}
-          className="font-bold text-text"
+          className="font-bold text-text dark:text-text-dark"
         >
           Perfil
         </Text>
@@ -95,20 +96,20 @@ export default function ProfileScreen() {
           <MaterialCommunityIcons
             name="account"
             size={48}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
         </View>
 
         {mode === "view" ? (
           <>
-            <Text className="text-text font-bold text-xl mb-1">
+            <Text className="text-text dark:text-text-dark font-bold text-xl mb-1">
               {user?.username}
             </Text>
-            <Text className="text-textSecondary text-base mb-1">
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mb-1">
               {user?.email}
             </Text>
             {user?.tenantId && (
-              <Text className="text-textSecondary text-xs mb-6">
+              <Text className="text-textSecondary dark:text-textSecondary-dark text-xs mb-6">
                 Tenant: {user.tenantId}
               </Text>
             )}
@@ -118,7 +119,7 @@ export default function ProfileScreen() {
               className="border border-backgroundSelected rounded-lg py-3 px-8 mb-3 w-full"
               onPress={handleEdit}
             >
-              <Text className="text-text font-semibold text-base text-center">
+              <Text className="text-text dark:text-text-dark font-semibold text-base text-center">
                 Editar perfil
               </Text>
             </TouchableOpacity>

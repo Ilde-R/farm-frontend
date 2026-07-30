@@ -1,6 +1,6 @@
 import QrScanner from "@/components/qr-scanner";
-import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/use-theme";
 import { configureEsp32, provisionBlower } from "@/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
@@ -25,6 +25,7 @@ type FlowStep =
   | "error";
 
 export default function AddDeviceScreen() {
+  const theme = useTheme();
   const { token } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
@@ -102,24 +103,26 @@ export default function AddDeviceScreen() {
       case "form":
         return (
           <View className="flex-1 px-6" style={{ paddingTop: margin }}>
-            <Text className="text-textSecondary text-base mb-6">
+            <Text className="text-textSecondary text-base mb-6 dark:text-textSecondary-dark">
               Configura un nuevo blower para tu granja.
             </Text>
 
-            <Text className="text-text font-semibold mb-1">ID del blower</Text>
+            <Text className="text-text font-semibold mb-1 dark:text-text-dark">
+              ID del blower
+            </Text>
             <TextInput
-              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
+              className="text-text placeholder:text-textSecondary  dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
               placeholder="Ej: blwr_abc123"
               value={blowerId}
               onChangeText={setBlowerId}
               autoCapitalize="none"
             />
 
-            <Text className="text-text font-semibold mb-1">
+            <Text className="text-text font-semibold mb-1 dark:text-text-dark">
               Nombre del blower
             </Text>
             <TextInput
-              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
+              className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
               placeholder="Ej: Ventilador 1"
               value={blowerName}
               onChangeText={setBlowerName}
@@ -127,26 +130,28 @@ export default function AddDeviceScreen() {
             />
 
             <View className="flex-row items-center justify-between mb-1">
-              <Text className="text-text font-semibold">Red WiFi</Text>
+              <Text className="text-text font-semibold dark:text-text-dark">
+                Red WiFi
+              </Text>
               <TouchableOpacity onPress={() => setShowScanner(true)}>
-                <Text className="text-textSecondary font-semibold">
+                <Text className="text-textSecondary font-semibold dark:text-textSecondary-dark">
                   Escanear QR
                 </Text>
               </TouchableOpacity>
             </View>
             <TextInput
-              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
+              className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
               placeholder="Nombre de tu red WiFi"
               value={ssid}
               onChangeText={setSsid}
               autoCapitalize="none"
             />
 
-            <Text className="text-text font-semibold mb-1">
+            <Text className="text-text font-semibold mb-1 dark:text-text-dark">
               Contraseña WiFi
             </Text>
             <TextInput
-              className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-6"
+              className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-6"
               placeholder="Contraseña de tu red"
               value={password}
               onChangeText={setPassword}
@@ -155,7 +160,7 @@ export default function AddDeviceScreen() {
             />
 
             <TouchableOpacity
-              className="bg-text rounded-lg py-3 items-center"
+              className="bg-text rounded-lg py-3 items-center dark:bg-text-dark"
               onPress={handleProvision}
             >
               <Text className="text-background font-semibold text-base">
@@ -168,7 +173,7 @@ export default function AddDeviceScreen() {
       case "provisioning":
         return (
           <View className="flex-1 items-center justify-center px-6">
-            <ActivityIndicator size="large" color={Colors.light.text} />
+            <ActivityIndicator size="large" color={theme.text} />
             <Text className="text-textSecondary mt-4 text-base">
               Conectando con el servidor...
             </Text>
@@ -181,11 +186,7 @@ export default function AddDeviceScreen() {
             className="flex-1 px-6 items-center"
             style={{ paddingTop: margin }}
           >
-            <MaterialCommunityIcons
-              name="wifi"
-              size={64}
-              color={Colors.light.text}
-            />
+            <MaterialCommunityIcons name="wifi" size={64} color={theme.text} />
             <Text className="text-text text-lg font-bold mt-6 text-center">
               Conéctate a la red del dispositivo
             </Text>
@@ -216,7 +217,7 @@ export default function AddDeviceScreen() {
       case "sending":
         return (
           <View className="flex-1 items-center justify-center px-6">
-            <ActivityIndicator size="large" color={Colors.light.text} />
+            <ActivityIndicator size="large" color={theme.text} />
             <Text className="text-textSecondary mt-4 text-base text-center">
               Configurando el dispositivo...
             </Text>
@@ -232,7 +233,7 @@ export default function AddDeviceScreen() {
             <MaterialCommunityIcons
               name="check-circle"
               size={64}
-              color={Colors.light.text}
+              color={theme.text}
             />
             <Text className="text-text text-lg font-bold mt-6 text-center">
               ¡Dispositivo configurado!
@@ -261,7 +262,7 @@ export default function AddDeviceScreen() {
             <MaterialCommunityIcons
               name="alert-circle"
               size={64}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
             />
             <Text className="text-textSecondary text-base mt-4 text-center">
               {errorMsg}
@@ -293,11 +294,11 @@ export default function AddDeviceScreen() {
           <MaterialCommunityIcons
             name="arrow-left"
             size={iconSize}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
           <Text
             style={{ fontSize: iconSize * 1.1 }}
-            className="font-bold text-text ml-2"
+            className="font-bold text-text ml-2 dark:text-text-dark"
           >
             Nuevo dispositivo
           </Text>

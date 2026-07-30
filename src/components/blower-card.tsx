@@ -1,31 +1,8 @@
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-
-const SAVE_INTERVAL_OPTIONS = [
-  { value: 1800, label: "30 minutos" },
-  { value: 3600, label: "1 hora" },
-  { value: 7200, label: "2 horas" },
-  { value: 10800, label: "3 horas" },
-];
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0 && m > 0) return `${h}h ${m}m`;
-  if (h > 0) return `${h}h`;
-  return `${m}m`;
-}
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import SaveIntervalPicker from "./ui/save-interval-picker";
 
 interface BlowerCardProps {
   blowerId: string;
@@ -59,6 +36,7 @@ export default function BlowerCard({
   onSaveConfig,
   onDelete,
 }: BlowerCardProps) {
+  const theme = useTheme();
   const [editing, setEditing] = useState(false);
   const [thresholdInput, setThresholdInput] = useState(threshold.toString());
   const [editingConfig, setEditingConfig] = useState(false);
@@ -66,8 +44,6 @@ export default function BlowerCard({
     ((readIntervalMs ?? 1000) / 1000).toString(),
   );
   const [selectingSave, setSelectingSave] = useState(false);
-  const [customMode, setCustomMode] = useState(false);
-  const [customInput, setCustomInput] = useState("");
 
   useEffect(() => {
     if (!editing) setThresholdInput(threshold.toString());
@@ -77,10 +53,6 @@ export default function BlowerCard({
     if (!editingConfig)
       setIntervalInput(((readIntervalMs ?? 1000) / 1000).toString());
   }, [readIntervalMs, editingConfig]);
-
-  useEffect(() => {
-    if (!selectingSave) setCustomMode(false);
-  }, [selectingSave]);
 
   const isAlert = psi !== null && psi <= threshold;
 
@@ -106,245 +78,93 @@ export default function BlowerCard({
     setEditingConfig(false);
   }
 
-  function handleSelectSaveInterval(value: number) {
-    onSaveConfig?.(blowerId, value);
-    setSelectingSave(false);
-  }
-
-  function handleCustomSave() {
-    const seconds = parseInt(customInput, 10);
-    if (isNaN(seconds) || seconds < 600 || seconds > 10800) {
-      Alert.alert("Error", "El intervalo debe estar entre 10 minutos y 3 horas");
-      return;
-    }
-    onSaveConfig?.(blowerId, seconds);
-    setSelectingSave(false);
-    setCustomMode(false);
-  }
-
   return (
-    <View className="bg-backgroundElement rounded-xl p-5 mb-4">
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center" style={{ gap: 6 }}>
-          <View
-            className="rounded-full"
-            style={{
-              width: 8,
-              height: 8,
-              backgroundColor: isOnline
-                ? "#22c55e"
-                : Colors.light.textSecondary,
-            }}
-          />
-          <View>
-            <Text className="text-text font-bold text-lg">{name}</Text>
-            <View className="flex-row items-center" style={{ gap: 4 }}>
-              <Text className="text-textSecondary text-xs">{blowerId}</Text>
-              {firmwareVersion && (
-                <Text className="text-textSecondary text-xs">
-                  · v{firmwareVersion}
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
-        {isAlert && (
-          <View className="flex-row items-center bg-backgroundSelected rounded-full px-3 py-1">
+    <View className="bg-[#313b59] rounded-3xl w-full flex-row relative overflow-hidden h-40 mb-6">
+      <View className="flex-1 p-3 justify-between ">
+        {/* Izquierda */}
+        <View className="flex-row justify-between items-center">
+          <TouchableOpacity onPress={() => setSelectingSave(true)}>
             <MaterialCommunityIcons
-              name="alert"
-              size={14}
-              color={Colors.light.textSecondary}
+              name="cog-outline"
+              size={20}
+              color={theme.textSecondary}
             />
-            <Text className="text-textSecondary text-xs ml-1">Alerta</Text>
-          </View>
-        )}
-        {onDelete && (
+          </TouchableOpacity>
+          <Text className="text-text dark:text-text-dark text-xs">{name}</Text>
           <TouchableOpacity
             onPress={() => {
               Alert.alert(
                 "Eliminar blower",
-                `¿Eliminar "${name}" (${blowerId})? Se borrarán el dispositivo y sus claves.`,
+                `¿Eliminar "${name}" (${blowerId})?`,
                 [
                   { text: "Cancelar", style: "cancel" },
                   {
                     text: "Eliminar",
                     style: "destructive",
-                    onPress: () => onDelete(blowerId),
+                    onPress: () => onDelete?.(blowerId),
                   },
                 ],
               );
             }}
-            hitSlop={8}
           >
             <MaterialCommunityIcons
               name="trash-can-outline"
               size={20}
-              color={Colors.light.textSecondary}
+              color={"#FF2B00"}
             />
           </TouchableOpacity>
-        )}
-      </View>
-
-      <View className="flex-row items-baseline mb-4">
-        <Text className="text-text font-bold" style={{ fontSize: 48 }}>
-          {psi !== null ? psi.toFixed(1) : "--"}
+        </View>
+        {/* PSI */}
+        <Text className="text-white text-4xl font-extrabold text-center tracking-tight">
+          {psi != null ? Number(psi).toFixed(2) : "--.--"}
         </Text>
-        <Text className="text-textSecondary text-lg ml-1">PSI</Text>
+        {/* Alto y Bajo */}
+        <View className="flex-row justify-center items-center mt-2 space-x-6">
+          <View className="items-center">
+            <Text className="text-white">Alto</Text>
+            <Text className="text-green-600">330.00</Text>
+          </View>
+
+          <View className="w-[2px] h-10 bg-gray-400 opacity-50 mx-4" />
+
+          <View className="items-center">
+            <Text className="text-white">Bajo</Text>
+            <Text className="text-red-600">00.00</Text>
+          </View>
+        </View>
       </View>
 
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-textSecondary text-sm">
-          Umbral: {editing ? "" : `${threshold} PSI`}
-        </Text>
+      {/* Primer intento fallido ;( */}
+      {/* Circulo arriba */}
+      {/* <View className="absolute top-[-25px] left-1/2 w-20 h-20 rounded-full bg-[#ffff] -ml-6 z-10" /> */}
+      {/* Circulo abajo */}
+      {/* <View className="absolute bottom-[-25px] left-1/2 w-20 h-20 rounded-full bg-[#ffff] -ml-6 z-10" /> */}
 
-        {editing ? (
-          <View className="flex-row items-center" style={{ gap: 8 }}>
-            <TextInput
-              className="bg-background border border-backgroundSelected rounded-lg px-3 py-1 text-text text-sm"
-              style={{ width: 60 }}
-              value={thresholdInput}
-              onChangeText={setThresholdInput}
-              keyboardType="numeric"
-              autoFocus
-            />
-            <TouchableOpacity onPress={handleSave}>
-              <Text className="text-text font-semibold text-sm">OK</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setEditing(false)}>
-              <Text className="text-textSecondary text-sm">Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity onPress={() => setEditing(true)}>
-            <Text className="text-textSecondary text-sm underline">Editar</Text>
-          </TouchableOpacity>
-        )}
+      <View className="absolute inset-y-0 left-1/2 w-0.5 bg-white" />
+
+      {/* Grafica */}
+      <View className="flex-1 p-4 justify-center items-center relative z -0">
+        <View className="absolute top-3 right-3">
+          <View
+            className={`h-4 w-4 rounded-full ${
+              isOnline ? "bg-green-400" : "bg-red-400"
+            }`}
+          />
+        </View>
+        <View className=" w-full h-full flex items-center justify-center">
+          <Text className="text-gray-400 text-xs text-center">
+            Libreria de grafica
+          </Text>
+        </View>
       </View>
 
-      {isOnline && (
-        <>
-          <View className="flex-row items-center justify-between">
-            <Text className="text-textSecondary text-sm">
-              Intervalo:{" "}
-              {editingConfig
-                ? ""
-                : `${((readIntervalMs ?? 1000) / 1000).toFixed(1)}s`}
-            </Text>
-
-            {editingConfig ? (
-              <View className="flex-row items-center" style={{ gap: 8 }}>
-                <TextInput
-                  className="bg-background border border-backgroundSelected rounded-lg px-3 py-1 text-text text-sm"
-                  style={{ width: 60 }}
-                  value={intervalInput}
-                  onChangeText={setIntervalInput}
-                  keyboardType="numeric"
-                  autoFocus
-                />
-                <TouchableOpacity onPress={handleSaveConfig}>
-                  <Text className="text-text font-semibold text-sm">OK</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEditingConfig(false)}>
-                  <Text className="text-textSecondary text-sm">Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity onPress={() => setEditingConfig(true)}>
-                <Text className="text-textSecondary text-sm underline">
-                  Config
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View className="flex-row items-center justify-between mt-2">
-            <Text className="text-textSecondary text-sm">
-              Intervalo de guardado: {formatDuration(saveIntervalSeconds ?? 60)}
-            </Text>
-
-            <TouchableOpacity onPress={() => { setSelectingSave(true); setCustomInput(""); }}>
-              <Text className="text-textSecondary text-sm underline">
-                Cambiar
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
-
-      <Modal
+      <SaveIntervalPicker
+        name={name}
         visible={selectingSave}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectingSave(false)}
-      >
-        <Pressable
-          className="flex-1 justify-end bg-black/40"
-          onPress={() => setSelectingSave(false)}
-        >
-          <Pressable className="bg-backgroundElement rounded-t-2xl pt-6 pb-10 px-6">
-            <Text className="text-text font-bold text-lg mb-4 text-center">
-              Intervalo de guardado
-            </Text>
-
-            {customMode ? (
-              <View>
-                <TextInput
-                  className="bg-background border border-backgroundSelected rounded-lg px-4 py-3 text-text text-base mb-4"
-                  placeholder="Segundos (600-10800)"
-                  value={customInput}
-                  onChangeText={setCustomInput}
-                  keyboardType="numeric"
-                  autoFocus
-                />
-                <View className="flex-row justify-end" style={{ gap: 12 }}>
-                  <TouchableOpacity
-                    className="rounded-lg px-4 py-2"
-                    onPress={() => setCustomMode(false)}
-                  >
-                    <Text className="text-textSecondary text-base">Volver</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    className="bg-text rounded-lg px-6 py-2"
-                    onPress={handleCustomSave}
-                  >
-                    <Text className="text-background font-semibold text-base">
-                      OK
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <View>
-                {SAVE_INTERVAL_OPTIONS.map((opt) => {
-                  const isSelected = (saveIntervalSeconds ?? 60) === opt.value;
-                  return (
-                    <TouchableOpacity
-                      key={opt.value}
-                      className={`rounded-lg px-4 py-3 mb-1 ${isSelected ? "bg-backgroundSelected" : ""}`}
-                      onPress={() => handleSelectSaveInterval(opt.value)}
-                    >
-                      <Text
-                        className={`text-base ${isSelected ? "text-text font-semibold" : "text-textSecondary"}`}
-                      >
-                        {opt.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-
-                <View className="border-t border-backgroundSelected mt-2 pt-2">
-                  <TouchableOpacity
-                    className="rounded-lg px-4 py-3"
-                    onPress={() => setCustomMode(true)}
-                  >
-                    <Text className="text-text text-base">Personalizado...</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
+        currentValue={saveIntervalSeconds ?? 1800}
+        onSelect={(value) => onSaveConfig?.(blowerId, value)}
+        onClose={() => setSelectingSave(false)}
+      />
     </View>
   );
 }

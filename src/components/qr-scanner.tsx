@@ -1,4 +1,3 @@
-import { Colors } from "@/constants/theme";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState } from "react";
 import {
@@ -71,7 +70,7 @@ export default function QrScanner({
     return (
       <Modal visible={visible} animationType="slide">
         <View className="flex-1 items-center justify-center bg-black">
-          <ActivityIndicator size="large" color={Colors.dark.text} />
+          <ActivityIndicator size="large" color="#ffffff" />
         </View>
       </Modal>
     );
@@ -81,11 +80,12 @@ export default function QrScanner({
     return (
       <Modal visible={visible} animationType="slide">
         <View className="flex-1 items-center justify-center bg-background px-6">
-          <Text className="text-text text-lg font-bold text-center mb-4">
+          <Text className="text-text dark:text-textSecondary-dark text-lg font-bold text-center mb-4">
             Permiso de cámara requerido
           </Text>
-          <Text className="text-textSecondary text-base text-center mb-8">
-            Necesitamos acceder a la cámara para escanear el código QR de tu red WiFi.
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-base text-center mb-8">
+            Necesitamos acceder a la cámara para escanear el código QR de tu red
+            WiFi.
           </Text>
           <TouchableOpacity
             className="bg-text rounded-lg py-3 px-8"
@@ -112,7 +112,7 @@ export default function QrScanner({
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         />
         <View className="absolute top-0 left-0 right-0 bg-black/60 pt-14 pb-4 px-6 items-center">
-          <Text className="text-white text-base font-semibold">
+          <Text className="text-text dark:text-text-dark text-base font-semibold">
             Apunta al código QR de tu red WiFi
           </Text>
         </View>
@@ -126,7 +126,7 @@ export default function QrScanner({
             className="bg-background/90 rounded-lg py-3 px-8"
             onPress={handleClose}
           >
-            <Text className="text-text font-semibold text-base">
+            <Text className="text-text dark:text-text-dark font-semibold text-base">
               Cancelar
             </Text>
           </TouchableOpacity>

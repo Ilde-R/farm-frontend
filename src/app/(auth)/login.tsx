@@ -1,4 +1,5 @@
 import { useSession } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/use-theme";
 import {
   validateEmail,
   validatePassword,
@@ -6,7 +7,7 @@ import {
 } from "@/utils/validations";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,6 +18,7 @@ import {
 } from "react-native";
 
 export default function LoginScreen() {
+  const theme = useTheme();
   const { login } = useSession();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -35,7 +37,6 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     const newErrors: Record<string, string> = {};
-
     const usernameErr = validateUsername(username);
     const emailErr = validateEmail(email);
     const passwordErr = validatePassword(password);
@@ -64,12 +65,12 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 justify-center bg-background px-8">
-      <Text className="text-2xl font-bold text-center text-text mb-8">
+      <Text className="text-text dark:text-text-dark text-2xl font-bold text-cente mb-8">
         Iniciar Sesión
       </Text>
 
       <TextInput
-        className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base "
+        className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark  border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base "
         placeholder="Nombre de usuario"
         value={username}
         onChangeText={(text) => {
@@ -83,7 +84,7 @@ export default function LoginScreen() {
       )}
 
       <TextInput
-        className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
+        className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
         placeholder="Email"
         value={email}
         onChangeText={(text) => {
@@ -98,7 +99,7 @@ export default function LoginScreen() {
       )}
       <View className="relative mb-4">
         <TextInput
-          className="border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base text-text"
+          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base"
           placeholder="Contraseña"
           placeholderTextColor="#60646C"
           value={password}
@@ -118,7 +119,7 @@ export default function LoginScreen() {
           <MaterialCommunityIcons
             name={showPassword ? "eye-off" : "eye"}
             size={20}
-            color="#60646C"
+            color={theme.textSecondary}
           />
         </TouchableOpacity>
       </View>
@@ -131,14 +132,14 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-background text-center font-bold text-lg">
+          <Text className="text-background dark:text-text-dark text-center font-bold text-lg">
             Iniciar sesión
           </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-        <Text className="text-textSecondary text-center pt-3">
+        <Text className="text-textSecondary dark:text-textSecondary-dark text-center pt-3">
           Crear cuenta
         </Text>
       </TouchableOpacity>

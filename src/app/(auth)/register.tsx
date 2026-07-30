@@ -1,4 +1,5 @@
 import { useSession } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/use-theme";
 import {
   validateEmail,
   validatePassword,
@@ -6,7 +7,7 @@ import {
 } from "@/utils/validations";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,6 +18,7 @@ import {
 } from "react-native";
 
 export default function RegisterScreen() {
+  const theme = useTheme();
   const { signIn } = useSession();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -64,12 +66,12 @@ export default function RegisterScreen() {
 
   return (
     <View className="flex-1 justify-center bg-background px-8">
-      <Text className="text-2xl font-bold text-center text-text mb-8">
+      <Text className="text-text dark:text-text-dark text-2xl font-bold text-center mb-8">
         Crear Cuenta
       </Text>
 
       <TextInput
-        className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base "
+        className="text-text placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
         placeholder="Nombre de usuario"
         value={username}
         onChangeText={(text) => {
@@ -83,7 +85,7 @@ export default function RegisterScreen() {
       )}
 
       <TextInput
-        className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base "
+        className="text-text placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
         placeholder="Email"
         value={email}
         onChangeText={(text) => {
@@ -99,7 +101,7 @@ export default function RegisterScreen() {
 
       <View className="relative mb-1">
         <TextInput
-          className="border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base text-text"
+          className="text-text placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base"
           placeholder="Contraseña"
           placeholderTextColor="#60646C"
           value={password}
@@ -116,7 +118,7 @@ export default function RegisterScreen() {
           <MaterialCommunityIcons
             name={showPassword ? "eye-off" : "eye"}
             size={20}
-            color="#60646C"
+            color={theme.textSecondary}
           />
         </TouchableOpacity>
       </View>
@@ -135,14 +137,14 @@ export default function RegisterScreen() {
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-background text-center font-bold text-lg">
+          <Text className="text-background dark:text-text-dark text-center font-bold text-lg">
             Registrarse
           </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-        <Text className="text-textSecondary text-center pt-3">
+        <Text className="text-textSecondary dark:text-textSecondary-dark text-center pt-3">
           Iniciar sesión
         </Text>
       </TouchableOpacity>

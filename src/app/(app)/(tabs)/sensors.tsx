@@ -1,7 +1,7 @@
 import BlowerCard from "@/components/blower-card";
-import { Colors } from "@/constants/theme";
 import { useSession } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
+import { useTheme } from "@/hooks/use-theme";
 import { deleteBlower, updateBlowerConfig } from "@/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -28,6 +28,7 @@ interface BlowerDisplay {
 }
 
 export default function SensorsScreen() {
+  const theme = useTheme();
   const { signOut, token } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function SensorsScreen() {
   useFocusEffect(
     useCallback(() => {
       refreshDevices();
-    }, [refreshDevices])
+    }, [refreshDevices]),
   );
 
   useEffect(() => {
@@ -94,7 +95,9 @@ export default function SensorsScreen() {
           threshold: thresholds.get(d.blowerConfig.blowerId) ?? 2.0,
           firmwareVersion: d.blowerConfig.firmwareVersion,
           readIntervalMs: d.blowerConfig.readIntervalMs,
-          saveIntervalSeconds: saveIntervals.get(d.blowerConfig.blowerId) ?? d.blowerConfig.saveIntervalSeconds,
+          saveIntervalSeconds:
+            saveIntervals.get(d.blowerConfig.blowerId) ??
+            d.blowerConfig.saveIntervalSeconds,
         };
       });
   })();
@@ -119,7 +122,10 @@ export default function SensorsScreen() {
     }
   }
 
-  async function handleSaveConfig(blowerId: string, saveIntervalSeconds: number) {
+  async function handleSaveConfig(
+    blowerId: string,
+    saveIntervalSeconds: number,
+  ) {
     if (!token) return;
     setSaveIntervals((prev) => {
       const next = new Map(prev);
@@ -142,7 +148,7 @@ export default function SensorsScreen() {
       >
         <Text
           style={{ fontSize: iconSize * 1.2 }}
-          className="font-bold text-text"
+          className="font-bold text-text dark:text-text-dark"
         >
           Sensores
         </Text>
@@ -154,50 +160,33 @@ export default function SensorsScreen() {
             <MaterialCommunityIcons
               name="plus"
               size={iconSize}
-              color={Colors.light.text}
+              color={theme.textSecondary}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} hitSlop={8}>
             <MaterialCommunityIcons
               name="logout"
               size={iconSize}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View
-        className="flex-row items-center mt-4 mb-2"
-        style={{ marginHorizontal: margin }}
-      >
-        <View
-          className="rounded-full"
-          style={{
-            width: 8,
-            height: 8,
-            backgroundColor: deviceOnline
-              ? Colors.light.text
-              : Colors.light.textSecondary,
-          }}
-        />
-        <Text className="text-textSecondary text-xs ml-2">
-          {deviceOnline ? "Conectado" : "Desconectado"}
-        </Text>
-      </View>
-
       <ScrollView className="flex-1 px-6" style={{ paddingTop: margin }}>
         {devicesLoading ? (
           <View className="flex-1 items-center justify-center py-12">
-            <ActivityIndicator size="large" color={Colors.light.textSecondary} />
-            <Text className="text-textSecondary text-sm mt-3">Cargando dispositivos...</Text>
+            <ActivityIndicator size="large" color={theme.textSecondary} />
+            <Text className="text-textSecondary text-sm mt-3">
+              Cargando dispositivos...
+            </Text>
           </View>
         ) : blowers.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <MaterialCommunityIcons
               name="thermometer"
               size={64}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
             />
             <Text className="text-textSecondary text-base mt-4 text-center">
               No hay blowers registrados.
