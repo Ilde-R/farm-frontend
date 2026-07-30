@@ -143,7 +143,7 @@ export default function BlowerCard({
       <View className="absolute inset-y-0 left-1/2 w-0.5 bg-white" />
 
       {/* Grafica */}
-      <View className="flex-1 p-4 justify-center items-center relative z -0">
+      <View className="flex-1 p-4 justify-center items-center relative z-0">
         <View className="absolute top-3 right-3">
           <View
             className={`h-4 w-4 rounded-full ${
@@ -155,6 +155,7 @@ export default function BlowerCard({
           <Text className="text-gray-400 text-xs text-center">
             Libreria de grafica
           </Text>
+          <Text className="text-text dark:text-text-dark">{threshold}</Text>
         </View>
       </View>
 
@@ -162,7 +163,9 @@ export default function BlowerCard({
         name={name}
         visible={selectingSave}
         currentValue={saveIntervalSeconds ?? 1800}
+        threshold={threshold}
         onSelect={(value) => onSaveConfig?.(blowerId, value)}
+        onSetThreshold={(value) => onSetThreshold(blowerId, value)}
         onClose={() => setSelectingSave(false)}
       />
     </View>
