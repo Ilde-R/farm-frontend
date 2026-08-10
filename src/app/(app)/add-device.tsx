@@ -194,12 +194,12 @@ export default function AddDeviceScreen() {
               Ve a la configuración de WiFi de tu celular y conéctate a:
             </Text>
             <View className="bg-backgroundElement border border-backgroundSelected rounded-lg px-6 py-4 mt-4 items-center">
-              <Text className="text-text font-bold text-lg">Blower_Setup</Text>
-              <Text className="text-textSecondary text-sm mt-1">
+              <Text className="text-text dark:text-text-dark font-bold text-lg">Blower_Setup</Text>
+              <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-1">
                 Contraseña: 12345678
               </Text>
             </View>
-            <Text className="text-textSecondary text-sm mt-4 text-center">
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-4 text-center">
               Una vez conectado, regresa a esta pantalla y toca "Enviar
               configuración".
             </Text>
@@ -218,7 +218,7 @@ export default function AddDeviceScreen() {
         return (
           <View className="flex-1 items-center justify-center px-6">
             <ActivityIndicator size="large" color={theme.text} />
-            <Text className="text-textSecondary mt-4 text-base text-center">
+            <Text className="text-textSecondary dark:text-textSecondary-dark mt-4 text-base text-center">
               Configurando el dispositivo...
             </Text>
           </View>
@@ -235,10 +235,10 @@ export default function AddDeviceScreen() {
               size={64}
               color={theme.text}
             />
-            <Text className="text-text text-lg font-bold mt-6 text-center">
+            <Text className="text-text dark:text-text-dark text-lg font-bold mt-6 text-center">
               ¡Dispositivo configurado!
             </Text>
-            <Text className="text-textSecondary text-base mt-3 text-center leading-6">
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-3 text-center leading-6">
               Reconéctate a tu red WiFi normal. El blower se conectará
               automáticamente al backend.
             </Text>

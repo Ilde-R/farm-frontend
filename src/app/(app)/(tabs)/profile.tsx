@@ -126,16 +126,17 @@ export default function ProfileScreen() {
           </>
         ) : (
           <>
-            <Text className="text-textSecondary text-base mb-6">
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mb-6">
               Editar tu información
             </Text>
 
             <View className="w-full">
-              <Text className="text-text font-semibold mb-1">Username</Text>
+              <Text className="text-text dark:text-text-dark font-semibold mb-1">
+                Username
+              </Text>
               <TextInput
-                className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-1 text-base"
+                className="text-text dark:text-text-dark placeholder:text-textSecondary dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-1 text-base"
                 placeholder="Username"
-                placeholderTextColor="#60646C"
                 value={username}
                 onChangeText={(text) => {
                   setUsername(text);
@@ -149,11 +150,12 @@ export default function ProfileScreen() {
                 </Text>
               )}
 
-              <Text className="text-text font-semibold mb-1 mt-3">Email</Text>
+              <Text className="text-text dark:text-text-dark font-semibold mb-1 mt-3">
+                Email
+              </Text>
               <TextInput
-                className="placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-1 text-base"
+                className="text-text dark:text-text-dark placeholder:text-textSecondary dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-1 text-base"
                 placeholder="Email"
-                placeholderTextColor="#60646C"
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
