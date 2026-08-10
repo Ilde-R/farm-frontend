@@ -171,7 +171,7 @@ export default function SaveIntervalPicker({
               </View>
               <View className="flex-row justify-between px-2 mb-4">
                 <Text className="text-gray-500 text-xs">0</Text>
-                <Text className="text-gray-500 text-xs">330</Text>
+                <Text className="text-gray-500 text-xs">10</Text>
               </View>
             </View>
           </View>

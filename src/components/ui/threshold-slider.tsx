@@ -12,7 +12,7 @@ interface ThresholdSliderProps {
 export default function ThresholdSlider({
   value,
   min = 0,
-  max = 330,
+  max = 10,
   onChange,
   onComplete,
 }: ThresholdSliderProps) {
