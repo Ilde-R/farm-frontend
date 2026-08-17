@@ -1,5 +1,5 @@
 {
-  "name": "farm-frontend",
+  "name": "biogestion",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
@@ -32,8 +32,10 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-svg": "^15.15.5",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.10.0"
+    "react-native-worklets": "0.10.0",
+    "victory-native": "^41.26.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "farm-frontend",
-    "slug": "farm-frontend",
+    "name": "BioGestión",
+    "slug": "biogestion",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -26,8 +26,6 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
@@ -77,7 +75,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "7d16614c-ccb8-46e8-a39a-7840afda7177"
+        "projectId": "5121418e-d9af-4853-ac16-92bb31f2e5a2"
       }
     },
     "owner": "ilderios",
