@@ -107,22 +107,9 @@ export default function EditTankScreen() {
                   className="bg-[#1b2338] text-white border border-white/10 rounded-xl px-3 py-3 mb-4"
                 />
 
-                <Text>
+                <Text className="text-text dark:text-text-dark">
                   TANQUE
                 </Text>
-
-                <Text className="text-gray-300 text-xs uppercase tracking-widest mb-2">
-                  Notas
-                </Text>
-                <TextInput
-                  value={dailyNotes}
-                  onChangeText={setDailyNotes}
-                  placeholder="Observaciones (opcional)"
-                  placeholderTextColor="#6b7280"
-                  multiline
-                  numberOfLines={3}
-                  className="bg-[#1b2338] text-white border border-white/10 rounded-xl px-3 py-3 mb-4"
-                />
 
                 <View className="flex-row gap-2">
                   <TouchableOpacity
