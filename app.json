@@ -27,6 +27,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -83,7 +85,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/7d16614c-ccb8-46e8-a39a-7840afda7177",
+      "url": "https://u.expo.dev/5121418e-d9af-4853-ac16-92bb31f2e5a2",
       "checkAutomatically": "ON_LOAD"
     },
     "expo-notifications": {
