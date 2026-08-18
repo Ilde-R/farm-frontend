@@ -55,17 +55,37 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const lastNotifiedRef = useRef<Map<string, number>>(new Map());
   const thresholdsRef = useRef(thresholds);
 
+  const updateDeviceConfig = useCallback(
+    (blowerId: string, patch: Partial<DeviceInfo["blowerConfig"]>) => {
+      setDevices((prev) =>
+        prev.map((device) => {
+          if (device.blowerConfig?.blowerId !== blowerId) return device;
+
+          return {
+            ...device,
+            blowerConfig: {
+              ...device.blowerConfig,
+              ...patch,
+            },
+          };
+        }),
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
     thresholdsRef.current = thresholds;
   }, [thresholds]);
 
   const refreshDevices = useCallback(async () => {
     if (!token) return;
+
     try {
       const data = await listDevices(token);
       setDevices(Array.isArray(data) ? data : []);
     } catch {
-      
+      setDevices([]);
     } finally {
       setDevicesLoading(false);
     }
@@ -185,6 +205,12 @@ export function SocketProvider({ children }: PropsWithChildren) {
   }, [token]);
 
   function sendSetThreshold(blowerId: string, threshold: number) {
+    setThresholds((prev) => {
+      const next = new Map(prev);
+      next.set(blowerId, threshold);
+      return next;
+    });
+
     socketService.send("set_new_threshold", { blowerId, threshold });
   }
 
@@ -192,7 +218,14 @@ export function SocketProvider({ children }: PropsWithChildren) {
     socketService.send("get_threshold", { blowerId });
   }
 
-  function sendSetDeviceConfig(blowerId: string, config: { readIntervalMs?: number }) {
+  function sendSetDeviceConfig(
+    blowerId: string,
+    config: { readIntervalMs?: number },
+  ) {
+    if (config.readIntervalMs !== undefined) {
+      updateDeviceConfig(blowerId, { readIntervalMs: config.readIntervalMs });
+    }
+
     socketService.send("set_device_config", { blowerId, ...config });
   }
 

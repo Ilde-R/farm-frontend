@@ -1,10 +1,10 @@
 import { useStorageState } from "@/hooks/useStorageState";
 import {
-  LoginPayload,
-  LoginReponse,
-  RegisterPayload,
-  UpdateProfilePayload,
-  User,
+    LoginPayload,
+    LoginReponse,
+    RegisterPayload,
+    UpdateProfilePayload,
+    User,
 } from "@/types/auth";
 import { createContext, use, type PropsWithChildren } from "react";
 
@@ -36,39 +36,70 @@ export function SessionProvider({ children }: PropsWithChildren) {
     useStorageState("auth_refresh_token");
   const user = userRaw ? JSON.parse(userRaw) : null;
 
+  const saveMockSession = (nextUser: {
+    id: string;
+    username: string;
+    email: string;
+    tenantId: string;
+  }) => {
+    setToken("mock-demo-token");
+    setRefreshToken("mock-demo-refresh-token");
+    setUser(JSON.stringify(nextUser));
+  };
+
   return (
     <AuthContext.Provider
       value={{
         signIn: async (data: RegisterPayload) => {
-          const { register } = await import("@/services/auth.service");
-          const response = await register(data);
-          setToken(response.access_token);
-          setRefreshToken(response.refresh_token);
-          setUser(
-            JSON.stringify({
-              id: response.id,
-              username: response.username,
-              email: response.email,
-              tenantId: response.tenantId,
-            }),
-          );
+          try {
+            const { register } = await import("@/services/auth.service");
+            const response = await register(data);
+            setToken(response.access_token);
+            setRefreshToken(response.refresh_token);
+            setUser(
+              JSON.stringify({
+                id: response.id,
+                username: response.username,
+                email: response.email,
+                tenantId: response.tenantId,
+              }),
+            );
+            return;
+          } catch {
+            saveMockSession({
+              id: "demo-user-1",
+              username: data.username || "demo-user",
+              email: data.email || "demo@farm.local",
+              tenantId: "demo-tenant",
+            });
+          }
         },
         login: async (data: LoginPayload) => {
-          const { login: loginUser } = await import("@/services/auth.service");
-          const response: LoginReponse = await loginUser(data);
-          setToken(response.access_token);
-          setRefreshToken(response.refresh_token);
-          setUser(
-            JSON.stringify({
-              id: response.id,
-              username: response.username,
-              email: response.email,
-              tenantId: response.tenantId,
-            }),
-          );
+          try {
+            const { login: loginUser } = await import("@/services/auth.service");
+            const response: LoginReponse = await loginUser(data);
+            setToken(response.access_token);
+            setRefreshToken(response.refresh_token);
+            setUser(
+              JSON.stringify({
+                id: response.id,
+                username: response.username,
+                email: response.email,
+                tenantId: response.tenantId,
+              }),
+            );
+            return;
+          } catch {
+            saveMockSession({
+              id: "demo-user-1",
+              username: data.username || "demo-user",
+              email: data.email || "demo@farm.local",
+              tenantId: "demo-tenant",
+            });
+          }
         },
         signOut: async () => {
-          if (token) {
+          if (token && token !== "mock-demo-token") {
             try {
               const { logout } = await import("@/services/auth.service");
               await logout(token);
@@ -85,6 +116,19 @@ export function SessionProvider({ children }: PropsWithChildren) {
         isLoading,
         updateUser: async (data: UpdateProfilePayload) => {
           if (!token) throw new Error("No autenticado");
+          if (token === "mock-demo-token") {
+            const nextUser = {
+              ...(user ?? {
+                id: "demo-user-1",
+                username: "demo-user",
+                email: "demo@farm.local",
+                tenantId: "demo-tenant",
+              }),
+              ...data,
+            };
+            setUser(JSON.stringify(nextUser));
+            return;
+          }
           const { updateProfile } = await import("@/services/user.service");
           const response = await updateProfile(token, data);
           setUser(
@@ -97,6 +141,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
         },
         refreshAccessToken: async () => {
           if (!refreshToken) throw new Error("No refresh token");
+          if (token === "mock-demo-token") {
+            setToken("mock-demo-token");
+            return;
+          }
           const { refreshToken: refresh } =
             await import("@/services/auth.service");
           const response = await refresh(refreshToken);

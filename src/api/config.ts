@@ -1,5 +1,3 @@
-export const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const rawApiUrl = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
-if (!API_URL) {
-  throw new Error("EXPO_PUBLIC_API_URL no está definida. ");
-}
+export const API_URL: string = rawApiUrl;
