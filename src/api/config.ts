@@ -1,3 +1,4 @@
-const rawApiUrl = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+const rawApiUrl =
+  process.env.EXPO_PUBLIC_API_URL ?? "https://farm-backend.fly.dev";
 
 export const API_URL: string = rawApiUrl;
