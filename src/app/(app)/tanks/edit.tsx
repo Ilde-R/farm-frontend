@@ -94,6 +94,17 @@ export default function EditTankScreen() {
                 <Text className="text-text dark:text-text-dark">
                   MOVIMIENTO
                 </Text>
+                  <View>
+                    <Picker 
+                      selectedValue={size}
+                      onValueChange={(itemValue) => setSize(itemValue)}
+                      style={{color: "#111827"}}
+                      >
+                        <Picker.Item label="Traslado"/>
+                        <Picker.Item label="Venta"/>
+                        <Picker.Item label="Mortandad"/>
+                      </Picker>
+                  </View>
                   
                 <Text className="text-gray-300 text-xs uppercase tracking-widest mb-2">
                   Cantidad de peces
@@ -110,6 +121,18 @@ export default function EditTankScreen() {
                 <Text className="text-text dark:text-text-dark">
                   TANQUE
                 </Text>
+                <View>
+                  <Picker
+                  selectedValue={size}
+                  onValueChange={(itemValue) => setSize (itemValue)}
+                  style = {{color:"#111827"}}
+                  >
+                    <Picker.Item label="1"/>
+                    <Picker.Item label="2"/>
+                    <Picker.Item label="3"/>
+                    <Picker.Item label="4"/>
+                  </Picker>
+                </View>
 
                 <View className="flex-row gap-2">
                   <TouchableOpacity
