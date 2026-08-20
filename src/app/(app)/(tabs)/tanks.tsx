@@ -42,7 +42,18 @@ export default function TanksScreen() {
         </View>
         <ScrollView className="flex-1 bg-background">
             <View className="flex-row flex-wrap justify-center gap-4 p-4">
-            <TankCard numero={1} piezas={10} onPress={() => router.push("/tanks/edit")} />
+                <TankCard
+                    numero={1}
+                    piezas={10}
+                    estado="Activo"
+                    onPress={() => router.push({ pathname: "/tanks/edit", params: { tankId: "1", tankStatus: "Activo" } })}
+                />
+                <TankCard
+                    numero={2}
+                    piezas={0}
+                    estado="Vacío"
+                    onPress={() => router.push({ pathname: "/tanks/edit", params: { tankId: "2", tankStatus: "Vacío" } })}
+                />
             </View>
         </ScrollView>
     </SafeAreaView>
