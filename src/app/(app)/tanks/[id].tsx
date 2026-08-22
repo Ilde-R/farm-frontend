@@ -1,6 +1,6 @@
 import TankCard from "@/components/tank-card";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, {
     useAnimatedProps,
     useFrameCallback,
@@ -37,6 +37,8 @@ type TankConnection = {
     bendReferenceId?: number;
 }
 
+type FlowDirection = "entrada" | "salida";
+
 const mockTanks: TankData[] = [
     { id: 1, piezas: 100 },
     { id: 2, piezas: 100 },
@@ -44,12 +46,14 @@ const mockTanks: TankData[] = [
     { id: 4, piezas: 100 },
     { id: 5, piezas: 100 },
     { id: 6, piezas: 100 },
+    { id: 7, piezas: 100 },
 ];
 
 const mockConnections: TankConnection[] = [
     { fromId: 1, toId: 2, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 } },
     { fromId: 1, toId: 3, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, route: "orthogonal", bendReferenceId: 4 },
     { fromId: 1, toId: 6, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 }, route: "orthogonal", bendReferenceId: 4 },
+    { fromId: 1, toId: 7, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, route: "orthogonal", bendReferenceId: 4 },
 ];
 
 const connectedTankIds = new Set(
@@ -105,6 +109,7 @@ function getOrthogonalLinePoints(
 
 export default function TankMapDetailScreen() {
     const [tankPositions, setTankPositions] = useState<Record<number, TankPosition>>({});
+    const [flowDirection, setFlowDirection] = useState<FlowDirection | null>(null);
     const flowOffset = useSharedValue(0);
 
     useFrameCallback(({ timeSincePreviousFrame }) => {
@@ -113,8 +118,16 @@ export default function TankMapDetailScreen() {
     });
 
     const animatedFlowProps = useAnimatedProps(() => ({
-        strokeDashoffset: flowOffset.value,
+        strokeDashoffset: flowDirection === "entrada"
+            ? flowOffset.value
+            : -flowOffset.value,
     }));
+
+    const toggleFlowDirection = (direction: FlowDirection) => {
+        setFlowDirection((currentDirection) =>
+            currentDirection === direction ? null : direction,
+        );
+    };
 
     const setTankPosition = (tankId: number) => ({ nativeEvent }: { nativeEvent: { layout: TankPosition } }) => {
         setTankPositions((currentPositions) => ({
@@ -130,15 +143,30 @@ export default function TankMapDetailScreen() {
             </View>
 
             <View className="flex-row gap-4">
-                <Text className="text-text dark:text-text-dark"> 
-                    Entrada
-                </Text>
-                <Text className="text-text dark:text-text-dark"> 
-                    Salida
-                </Text>
+                {(["entrada", "salida"] as const).map((direction) => {
+                    const isSelected = flowDirection === direction;
+
+                    return (
+                        <Pressable
+                            key={direction}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isSelected }}
+                            className={`rounded-lg border px-4 py-2 ${
+                                isSelected
+                                    ? "border-cyan-700 bg-cyan-700"
+                                    : "border-cyan-700 bg-transparent"
+                            }`}
+                            onPress={() => toggleFlowDirection(direction)}
+                        >
+                            <Text className={isSelected ? "font-semibold text-white" : "font-semibold text-cyan-700"}>
+                                {direction === "entrada" ? "Entrada" : "Salida"}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
             </View>
            <View className="flex-1 bg-background">
-        {mockConnections.every(
+        {flowDirection && mockConnections.every(
             ({ fromId, toId, bendReferenceId }) =>
                 tankPositions[fromId] &&
                 tankPositions[toId] &&
@@ -229,7 +257,7 @@ export default function TankMapDetailScreen() {
                     className="w-40"
                     onLayout={setTankPosition(tank.id)}
                 >
-                    {connectedTankIds.has(tank.id) && (
+                    {(!flowDirection || connectedTankIds.has(tank.id)) && (
                         <TankCard numero={tank.id} piezas={tank.piezas} showPiezas={false} />
                     )}
                     {tank.id !== 1 && (
