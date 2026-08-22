@@ -33,8 +33,7 @@ type TankConnection = {
     toId: number;
     fromPoint: CirclePoint;
     toPoint: CirclePoint;
-    route?: "direct" | "orthogonal";
-    bendReferenceId?: number;
+    direction: FlowDirection;
 }
 
 type FlowDirection = "entrada" | "salida";
@@ -47,18 +46,18 @@ const mockTanks: TankData[] = [
     { id: 5, piezas: 100 },
     { id: 6, piezas: 100 },
     { id: 7, piezas: 100 },
+    { id: 8, piezas: 100 },
 ];
 
 const mockConnections: TankConnection[] = [
-    { fromId: 1, toId: 2, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 } },
-    { fromId: 1, toId: 3, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, route: "orthogonal", bendReferenceId: 4 },
-    { fromId: 1, toId: 6, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 }, route: "orthogonal", bendReferenceId: 4 },
-    { fromId: 1, toId: 7, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, route: "orthogonal", bendReferenceId: 4 },
+    { fromId: 1, toId: 2, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 }, direction: "entrada" },
+    { fromId: 1, toId: 3, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, direction: "entrada" },
+    { fromId: 1, toId: 6, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 }, direction: "entrada" },
+    { fromId: 1, toId: 7, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, direction: "entrada" },
+    { fromId: 1, toId: 8, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 }, direction: "entrada" },
+    { fromId: 1, toId: 4, fromPoint: { x: 1, y: 0 }, toPoint: { x: -1, y: 0 }, direction: "salida" },
+    { fromId: 1, toId: 5, fromPoint: { x: 1, y: 0 }, toPoint: { x: 1, y: 0 }, direction: "salida" },
 ];
-
-const connectedTankIds = new Set(
-    mockConnections.flatMap(({ fromId, toId }) => [fromId, toId]),
-);
 
 function getCircleBorderPoint(position: TankPosition, point: CirclePoint) {
     const centerX = position.x + position.width / 2;
@@ -93,18 +92,15 @@ function getManualLinePoints(
     };
 }
 
-function getOrthogonalLinePoints(
-    from: TankPosition,
+function getBranchLinePoints(
     to: TankPosition,
-    fromPoint: CirclePoint,
     toPoint: CirclePoint,
-    bendX?: number,
+    centralX: number,
 ) {
-    const start = getCircleBorderPoint(from, fromPoint);
     const end = getCircleBorderPoint(to, toPoint);
-    const middleX = bendX ?? ((start.x + end.x) / 2);
+    const centerY = to.y + to.height / 2;
 
-    return `${start.x},${start.y} ${middleX},${start.y} ${middleX},${end.y} ${end.x},${end.y}`;
+    return `${centralX},${centerY} ${end.x},${end.y}`;
 }
 
 export default function TankMapDetailScreen() {
@@ -128,6 +124,14 @@ export default function TankMapDetailScreen() {
             currentDirection === direction ? null : direction,
         );
     };
+
+    const visibleConnections = flowDirection
+        ? mockConnections.filter(({ direction }) => direction === flowDirection)
+        : [];
+    const centralConnections = visibleConnections.filter(({ toId }) => toId !== 2);
+    const visibleTankIds = new Set(
+        visibleConnections.flatMap(({ fromId, toId }) => [fromId, toId]),
+    );
 
     const setTankPosition = (tankId: number) => ({ nativeEvent }: { nativeEvent: { layout: TankPosition } }) => {
         setTankPositions((currentPositions) => ({
@@ -166,11 +170,10 @@ export default function TankMapDetailScreen() {
                 })}
             </View>
            <View className="flex-1 bg-background">
-        {flowDirection && mockConnections.every(
-            ({ fromId, toId, bendReferenceId }) =>
+        {flowDirection && visibleConnections.every(
+            ({ fromId, toId }) =>
                 tankPositions[fromId] &&
-                tankPositions[toId] &&
-                (!bendReferenceId || tankPositions[bendReferenceId]),
+                tankPositions[toId],
         ) && (
             <Svg
                 pointerEvents="none"
@@ -182,24 +185,69 @@ export default function TankMapDetailScreen() {
                     left: 0,
                 }}
             >
-            {mockConnections.map(({ fromId, toId, fromPoint, toPoint, route, bendReferenceId }) => {
+            {(() => {
+                const sourcePosition = tankPositions[1];
+                const centralReferencePosition = tankPositions[4];
+                const sourcePoint = getCircleBorderPoint(sourcePosition, { x: 1, y: 0 });
+                const centralX = (
+                    sourcePoint.x +
+                    getCircleBorderPoint(centralReferencePosition, { x: -1, y: 0 }).x
+                ) / 2;
+                const lastConnectionY = Math.max(
+                    ...centralConnections.map(({ toId }) => {
+                        const position = tankPositions[toId];
+                        return position.y + position.height / 2;
+                    }),
+                );
+
+                return [
+                    <Line
+                        key="central-route-entry"
+                        x1={sourcePoint.x}
+                        y1={sourcePoint.y}
+                        x2={centralX}
+                        y2={sourcePoint.y}
+                        stroke="#0891b2"
+                        strokeWidth={4}
+                    />,
+                    <AnimatedLine
+                        key="central-route-entry-flow"
+                        animatedProps={animatedFlowProps}
+                        x1={sourcePoint.x}
+                        y1={sourcePoint.y}
+                        x2={centralX}
+                        y2={sourcePoint.y}
+                        stroke="#67e8f9"
+                        strokeWidth={3}
+                        strokeDasharray="4 16"
+                        strokeLinecap="round"
+                    />,
+                    <Line
+                        key="central-route"
+                        x1={centralX}
+                        y1={sourcePoint.y}
+                        x2={centralX}
+                        y2={lastConnectionY}
+                        stroke="#0891b2"
+                        strokeWidth={4}
+                    />,
+                    <AnimatedLine
+                        key="central-route-flow"
+                        animatedProps={animatedFlowProps}
+                        x1={centralX}
+                        y1={sourcePoint.y}
+                        x2={centralX}
+                        y2={lastConnectionY}
+                        stroke="#67e8f9"
+                        strokeWidth={3}
+                        strokeDasharray="4 16"
+                        strokeLinecap="round"
+                    />,
+                    ...visibleConnections.map(({ fromId, toId, fromPoint, toPoint }) => {
                 const fromPosition = tankPositions[fromId];
                 const toPosition = tankPositions[toId];
-                const bendReferencePosition = bendReferenceId
-                    ? tankPositions[bendReferenceId]
-                    : undefined;
-                const bendX = bendReferencePosition
-                    ? (getCircleBorderPoint(fromPosition, fromPoint).x +
-                        getCircleBorderPoint(bendReferencePosition, { x: -1, y: 0 }).x) / 2
-                    : undefined;
-                if (route === "orthogonal") {
-                    const points = getOrthogonalLinePoints(
-                        fromPosition,
-                        toPosition,
-                        fromPoint,
-                        toPoint,
-                        bendX,
-                    );
+                if (toId !== 2) {
+                    const points = getBranchLinePoints(toPosition, toPoint, centralX);
 
                     return [
                         <Polyline
@@ -246,7 +294,9 @@ export default function TankMapDetailScreen() {
                         strokeLinecap="round"
                     />,
                 ];
-            })}
+                    })
+                ];
+            })()}
             </Svg>
         )}
 
@@ -254,13 +304,13 @@ export default function TankMapDetailScreen() {
             {mockTanks.map((tank) => (
                 <View
                     key={tank.id}
-                    className="w-40"
+                    className="h-40 w-40"
                     onLayout={setTankPosition(tank.id)}
                 >
-                    {(!flowDirection || connectedTankIds.has(tank.id)) && (
+                    {(!flowDirection || visibleTankIds.has(tank.id)) && (
                         <TankCard numero={tank.id} piezas={tank.piezas} showPiezas={false} />
                     )}
-                    {tank.id !== 1 && (
+                    {tank.id !== 1 && (!flowDirection || visibleTankIds.has(tank.id)) && (
                         <Text className="absolute -bottom-7 w-full text-center text-xs font-bold text-cyan-700">
                             T{tank.id}: {tank.piezas}
                         </Text>
