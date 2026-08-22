@@ -346,9 +346,19 @@ export default function EditTankScreen() {
 
             {statusConfig.form === "daily" && (
               <>
-                <Text className="text-text dark:text-text-dark font-semibold mb-2">
-                  Mapa de traslado
-                </Text>
+                <TouchableOpacity
+                  className="mb-2"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/tanks/[id]",
+                      params: { id: String(tankNumber) },
+                    })
+                  }
+                >
+                  <Text className="text-text dark:text-text-dark font-semibold">
+                    Mapa de traslado
+                  </Text>
+                </TouchableOpacity>
 
                 <View className="flex-row items-center justify-between mb-4" style={{ gap: 10 }}>
               
