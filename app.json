@@ -17,6 +17,7 @@
       }
     },
     "android": {
+      "usesCleartextTraffic": true,
       "package": "com.ilderios.farm",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

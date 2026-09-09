@@ -12,7 +12,7 @@
       },
       "channel": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://farm-backend-dev.fly.dev"
+        "EXPO_PUBLIC_API_URL": "http://78.13.219.157:3000"
       }
     },
     "preview": {
@@ -22,13 +22,13 @@
       },
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://farm-backend.fly.dev"
+        "EXPO_PUBLIC_API_URL": "http://78.13.219.157:3000"
       }
     },
     "production": {
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://farm-backend.fly.dev"
+        "EXPO_PUBLIC_API_URL": "http://78.13.219.157:3000"
       }
     }
   }
