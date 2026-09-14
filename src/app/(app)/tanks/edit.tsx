@@ -1,20 +1,20 @@
-import TankCard from "@/components/tank-card";
-import TankStatusPicker from "@/components/tank-status-picker";
-import { useTheme } from "@/hooks/use-theme";
-import { isTankStatus, TANK_STATUS_CONFIG, type TankStatus } from "@/types/tank";
+import TankCard from "@/core/components/tank-card";
+import TankStatusPicker from "@/core/components/tank-status-picker";
+import { useTheme } from "@/core/theme/use-theme";
+import { isTankStatus, TANK_STATUS_CONFIG, type TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Picker } from "@react-native-picker/picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useWindowDimensions,
-  View
+    Alert,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

@@ -1,11 +1,11 @@
-import { useStorageState } from "@/hooks/useStorageState";
+import { useStorageState } from "@/core/hooks/useStorageState";
 import {
-    LoginPayload,
-    LoginReponse,
-    RegisterPayload,
-    UpdateProfilePayload,
-    User,
-} from "@/types/auth";
+  LoginPayload,
+  LoginReponse,
+  RegisterPayload,
+  UpdateProfilePayload,
+  User,
+} from "@/features/auth/types/auth";
 import { createContext, use, type PropsWithChildren } from "react";
 
 interface AuthContextType {
@@ -40,7 +40,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     <AuthContext.Provider
       value={{
         signIn: async (data: RegisterPayload) => {
-          const { register } = await import("@/services/auth.service");
+          const { register } = await import("@/features/auth/services/auth.service");
           const response = await register(data);
           setToken(response.access_token);
           setRefreshToken(response.refresh_token);
@@ -54,7 +54,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           );
         },
         login: async (data: LoginPayload) => {
-          const { login: loginUser } = await import("@/services/auth.service");
+          const { login: loginUser } = await import("@/features/auth/services/auth.service");
           const response: LoginReponse = await loginUser(data);
           setToken(response.access_token);
           setRefreshToken(response.refresh_token);
@@ -70,7 +70,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         signOut: async () => {
           if (token) {
             try {
-              const { logout } = await import("@/services/auth.service");
+              const { logout } = await import("@/features/auth/services/auth.service");
               await logout(token);
             } catch {
               // limpiar local aunque el backend falle
@@ -86,7 +86,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         updateUser: async (data: UpdateProfilePayload) => {
           if (!token) throw new Error("No autenticado");
 
-          const { updateProfile } = await import("@/services/user.service");
+          const { updateProfile } = await import("@/features/users/services/user.service");
           const response = await updateProfile(token, data);
           setUser(
             JSON.stringify({
@@ -100,7 +100,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           if (!refreshToken) throw new Error("No refresh token");
 
           const { refreshToken: refresh } =
-            await import("@/services/auth.service");
+            await import("@/features/auth/services/auth.service");
           const response = await refresh(refreshToken);
           setToken(response.access_token);
           setRefreshToken(response.refresh_token);

@@ -1,4 +1,4 @@
-import { TANK_STATUS_CONFIG, type TankStatus } from "@/types/tank";
+import { TANK_STATUS_CONFIG, type TankStatus } from "@/features/tanks/types/tank";
 import { Text, TouchableOpacity, View } from "react-native";
 
 type TankCardProps = {

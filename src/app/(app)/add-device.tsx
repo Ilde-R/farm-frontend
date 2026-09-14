@@ -1,18 +1,18 @@
-import QrScanner from "@/components/qr-scanner";
-import { useSession } from "@/contexts/AuthContext";
-import { useTheme } from "@/hooks/use-theme";
-import { configureEsp32, provisionBlower } from "@/services/iot.service";
+import QrScanner from "@/core/components/qr-scanner";
+import { useTheme } from "@/core/theme/use-theme";
+import { useSession } from "@/features/auth/contexts/AuthContext";
+import { configureEsp32, provisionBlower } from "@/features/iot/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
+    ActivityIndicator,
+    Alert,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useWindowDimensions,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

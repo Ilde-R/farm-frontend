@@ -1,9 +1,9 @@
-import { socketService } from "@/api/socket";
-import { useSession } from "@/contexts/AuthContext";
-import { listDevices } from "@/services/iot.service";
-import type { DeviceInfo } from "@/types/blower";
-import type { PressureReadingData, ThresholdUpdateData } from "@/types/socket";
-import { sendNotification } from "@/utils/notifications";
+import { socketService } from "@/core/api/socket";
+import { sendNotification } from "@/core/utils/notifications";
+import { useSession } from "@/features/auth/contexts/AuthContext";
+import type { DeviceInfo } from "@/features/blowers/types/blower";
+import { listDevices } from "@/features/iot/services/iot.service";
+import type { PressureReadingData, ThresholdUpdateData } from "@/features/iot/types/socket";
 import {
   createContext,
   use,

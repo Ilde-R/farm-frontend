@@ -1,12 +1,12 @@
-import { API_URL } from "@/api/config";
+import { API_URL } from "@/core/api/config";
 import type {
-  BlowerConfigResponse,
-  ConfigureEspPayload,
-  DeviceInfo,
-  ProvisionPayload,
-  ProvisionResponse,
-  UpdateBlowerConfigPayload,
-} from "@/types/blower";
+    BlowerConfigResponse,
+    ConfigureEspPayload,
+    DeviceInfo,
+    ProvisionPayload,
+    ProvisionResponse,
+    UpdateBlowerConfigPayload,
+} from "@/features/blowers/types/blower";
 
 const ESP32_BASE = "http://192.168.4.1";
 

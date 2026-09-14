@@ -1,6 +1,6 @@
-import TankCard from "@/components/tank-card";
-import { useTheme } from "@/hooks/use-theme";
-import { TANK_STATUS_OPTIONS, type TankStatus } from "@/types/tank";
+import TankCard from "@/core/components/tank-card";
+import { useTheme } from "@/core/theme/use-theme";
+import { TANK_STATUS_OPTIONS, type TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";

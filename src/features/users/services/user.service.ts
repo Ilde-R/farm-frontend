@@ -1,5 +1,5 @@
-import { API_URL } from "@/api/config";
-import { UpdateProfilePayload } from "@/types/auth";
+import { API_URL } from "@/core/api/config";
+import { UpdateProfilePayload } from "@/features/auth/types/auth";
 
 export async function getProfile(token: string) {
   const response = await fetch(`${API_URL}/users/profile`, {

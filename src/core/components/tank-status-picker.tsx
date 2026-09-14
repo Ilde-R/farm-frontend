@@ -1,4 +1,4 @@
-import { TANK_STATUS_OPTIONS, type TankStatus } from "@/types/tank";
+import { TANK_STATUS_OPTIONS, type TankStatus } from "@/features/tanks/types/tank";
 import { Picker } from "@react-native-picker/picker";
 import { View } from "react-native";
 

@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/theme";
+import { Colors } from "@/core/constants/theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router/js-tabs";
 import { useColorScheme } from "react-native";

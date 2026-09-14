@@ -1,4 +1,4 @@
-import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { AnimatedSplashOverlay } from "@/core/components/animated-icon";
 import { Stack } from "expo-router";
 
 export default function AppLayout() {

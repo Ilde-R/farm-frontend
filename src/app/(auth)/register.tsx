@@ -1,10 +1,6 @@
-import { useSession } from "@/contexts/AuthContext";
-import { useTheme } from "@/hooks/use-theme";
-import {
-  validateEmail,
-  validatePassword,
-  validateUsername,
-} from "@/utils/validations";
+import { useTheme } from "@/core/theme/use-theme";
+import { validateEmail, validatePassword, validateUsername } from "@/core/utils/validations";
+import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { useState } from "react";

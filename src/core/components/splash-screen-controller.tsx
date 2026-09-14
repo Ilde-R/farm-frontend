@@ -1,5 +1,5 @@
+import { useSession } from "@/features/auth/contexts/AuthContext";
 import * as SplashScreen from "expo-splash-screen";
-import { useSession } from "@/contexts/AuthContext";
 import { useEffect, useRef } from "react";
 
 SplashScreen.preventAutoHideAsync();

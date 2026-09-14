@@ -1,8 +1,8 @@
-import BlowerCard from "@/components/blower-card";
-import { useSession } from "@/contexts/AuthContext";
-import { useSocket } from "@/contexts/SocketContext";
-import { useTheme } from "@/hooks/use-theme";
-import { deleteBlower, updateBlowerConfig } from "@/services/iot.service";
+import BlowerCard from "@/core/components/blower-card";
+import { useTheme } from "@/core/theme/use-theme";
+import { useSession } from "@/features/auth/contexts/AuthContext";
+import { useSocket } from "@/features/iot/contexts/SocketContext";
+import { deleteBlower, updateBlowerConfig } from "@/features/iot/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";

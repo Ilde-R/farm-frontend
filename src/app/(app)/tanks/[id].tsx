@@ -1,4 +1,4 @@
-import TankCard from "@/components/tank-card";
+import TankCard from "@/core/components/tank-card";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, {

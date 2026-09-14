@@ -1,7 +1,7 @@
-import { SplashScreenController } from "@/components/splash-screen-controller";
-import { SessionProvider, useSession } from "@/contexts/AuthContext";
-import { SocketProvider } from "@/contexts/SocketContext";
-import { setupNotifications } from "@/utils/notifications";
+import { SplashScreenController } from "@/core/components/splash-screen-controller";
+import { setupNotifications } from "@/core/utils/notifications";
+import { SessionProvider, useSession } from "@/features/auth/contexts/AuthContext";
+import { SocketProvider } from "@/features/iot/contexts/SocketContext";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import "../../global.css";

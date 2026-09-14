@@ -1,11 +1,11 @@
-import { API_URL } from "@/api/config";
+import { API_URL } from "@/core/api/config";
 import type {
   AuthResponse,
   LoginPayload,
   LoginReponse,
   RefreshTokenResponse,
   RegisterPayload,
-} from "@/types/auth";
+} from "@/features/auth/types/auth";
 
 export async function register(data: RegisterPayload): Promise<AuthResponse> {
   const response = await fetch(`${API_URL}/auth/register`, {

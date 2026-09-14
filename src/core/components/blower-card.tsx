@@ -1,9 +1,9 @@
-import { useTheme } from "@/hooks/use-theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import SaveIntervalPicker from "./ui/save-interval-picker";
+import { useTheme } from "../theme/use-theme";
 
 interface BlowerCardProps {
   blowerId: string;
