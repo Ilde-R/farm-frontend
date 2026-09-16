@@ -108,12 +108,6 @@ export default function ProfileScreen() {
             <Text className="text-textSecondary dark:text-textSecondary-dark text-base mb-1">
               {user?.email}
             </Text>
-            {user?.tenantId && (
-              <Text className="text-textSecondary dark:text-textSecondary-dark text-xs mb-6">
-                Tenant: {user.tenantId}
-              </Text>
-            )}
-            {!user?.tenantId && <View className="h-6" />}
 
             <TouchableOpacity
               className="border border-backgroundSelected rounded-lg py-3 px-8 mb-3 w-full"
