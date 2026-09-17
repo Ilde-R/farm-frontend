@@ -75,7 +75,6 @@ export function SocketProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
-    // 1. Validamos el token directamente
     if (!token) {
       socketService.disconnect();
       setIsConnected(false);
@@ -84,7 +83,6 @@ export function SocketProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    // 2. Iniciamos conexión y carga
     socketService.connect(token);
     setDevicesLoading(true);
     refreshDevices();
@@ -99,7 +97,6 @@ export function SocketProvider({ children }: PropsWithChildren) {
     }
 
     function onPressureReading(data: PressureReadingData) {
-      // ¡Este log te confirmará que el dato llegó a la pantalla!
       setLastReadingAt(Date.now());
       setLatestReadings((prev) => {
         const next = new Map(prev);
@@ -164,7 +161,6 @@ export function SocketProvider({ children }: PropsWithChildren) {
       setOnlineDevices(new Set(data.devices.map((d) => d.blowerId)));
     }
 
-    // Registramos todos los escuchadores
     socketService.on("connected", onConnected);
     socketService.on("disconnected", onDisconnected);
     socketService.on("pressure_reading", onPressureReading);
@@ -174,7 +170,6 @@ export function SocketProvider({ children }: PropsWithChildren) {
     socketService.on("device_offline", onDeviceOffline);
     socketService.on("devices_online", onDevicesOnline);
 
-    // Limpieza estricta: Se borrarán SOLO si el token cambia o la pantalla se destruye
     return () => {
       socketService.off("connected", onConnected);
       socketService.off("disconnected", onDisconnected);
