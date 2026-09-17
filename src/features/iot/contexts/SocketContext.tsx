@@ -75,8 +75,117 @@ export function SocketProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
-    thresholdsRef.current = thresholds;
-  }, [thresholds]);
+    // 1. Validamos el token directamente
+    if (!token) {
+      socketService.disconnect();
+      setIsConnected(false);
+      setDevices([]);
+      setDevicesLoading(false);
+      return;
+    }
+
+    // 2. Iniciamos conexión y carga
+    socketService.connect(token);
+    setDevicesLoading(true);
+    refreshDevices();
+
+    function onConnected() {
+      setIsConnected(true);
+      socketService.send("get_threshold", {});
+    }
+
+    function onDisconnected() {
+      setIsConnected(false);
+    }
+
+    function onPressureReading(data: PressureReadingData) {
+      // ¡Este log te confirmará que el dato llegó a la pantalla!
+      setLastReadingAt(Date.now());
+      setLatestReadings((prev) => {
+        const next = new Map(prev);
+        next.set(data.blowerId, data);
+        return next;
+      });
+
+      const threshold = thresholdsRef.current.get(data.blowerId) ?? 2.0;
+      if (data.psi <= threshold) {
+        const now = Date.now();
+        const lastNotified = lastNotifiedRef.current.get(data.blowerId) ?? 0;
+        if (now - lastNotified > 60_000) {
+          lastNotifiedRef.current.set(data.blowerId, now);
+          sendNotification(
+            "Presión baja",
+            `${data.blowerId}: ${data.psi.toFixed(1)} PSI (umbral: ${threshold} PSI)`,
+            { blowerId: data.blowerId },
+          );
+        }
+      }
+    }
+
+    function onUpdateThreshold(data: ThresholdUpdateData) {
+      setThresholds((prev) => {
+        const next = new Map(prev);
+        next.set(data.blowerId, data.threshold);
+        return next;
+      });
+    }
+
+    function onCurrentThreshold(data: {
+      threshold: number;
+      blowerId?: string;
+      thresholds?: { blowerId: string; threshold: number }[];
+    }) {
+      setThresholds((prev) => {
+        const next = new Map(prev);
+        if (data.thresholds) {
+          for (const t of data.thresholds) {
+            next.set(t.blowerId, t.threshold);
+          }
+        } else if (data.blowerId) {
+          next.set(data.blowerId, data.threshold);
+        }
+        return next;
+      });
+    }
+
+    function onDeviceOnline(data: { blowerId: string }) {
+      setOnlineDevices((prev) => new Set(prev).add(data.blowerId));
+    }
+
+    function onDeviceOffline(data: { blowerId: string }) {
+      setOnlineDevices((prev) => {
+        const next = new Set(prev);
+        next.delete(data.blowerId);
+        return next;
+      });
+    }
+
+    function onDevicesOnline(data: { devices: { blowerId: string }[] }) {
+      setOnlineDevices(new Set(data.devices.map((d) => d.blowerId)));
+    }
+
+    // Registramos todos los escuchadores
+    socketService.on("connected", onConnected);
+    socketService.on("disconnected", onDisconnected);
+    socketService.on("pressure_reading", onPressureReading);
+    socketService.on("update_threshold", onUpdateThreshold);
+    socketService.on("current_threshold", onCurrentThreshold);
+    socketService.on("device_online", onDeviceOnline);
+    socketService.on("device_offline", onDeviceOffline);
+    socketService.on("devices_online", onDevicesOnline);
+
+    // Limpieza estricta: Se borrarán SOLO si el token cambia o la pantalla se destruye
+    return () => {
+      socketService.off("connected", onConnected);
+      socketService.off("disconnected", onDisconnected);
+      socketService.off("pressure_reading", onPressureReading);
+      socketService.off("update_threshold", onUpdateThreshold);
+      socketService.off("current_threshold", onCurrentThreshold);
+      socketService.off("device_online", onDeviceOnline);
+      socketService.off("device_offline", onDeviceOffline);
+      socketService.off("devices_online", onDevicesOnline);
+    };
+  }, [token]);
 
   const refreshDevices = useCallback(async () => {
     if (!token) return;

@@ -17,6 +17,9 @@ class SocketService {
   }
 
   connect(token: string) {
+    let baseUrl = API_URL!.trim();
+    baseUrl = baseUrl.replace('api/v1', "");
+
     if (this._isConnecting || (this._isConnected && this._token === token)) {
       return;
     }
@@ -31,7 +34,7 @@ class SocketService {
 
     this._token = token;
     this._isConnecting = true;
-    const wsUrl = API_URL.replace(/^http/, "ws") + `?token=${token}`;
+    const wsUrl = baseUrl.replace(/^http/, "ws") + `?token=${token}`;
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
@@ -46,10 +49,23 @@ class SocketService {
     };
 
     this.ws.onmessage = (event) => {
+      let raw;
+      
       try {
-        const raw = JSON.parse(event.data);
-        this.emit(raw.event, raw.data);
-      } catch {}
+        raw = JSON.parse(event.data);
+      } catch (err) {
+        console.warn("Ignorando mensaje no-JSON o trama de control:", event.data);
+        return;
+      }
+
+      if (raw && raw.event) {
+        try {
+          this.emit(raw.event, raw.data);
+          console.log(`✅ [WS] Evento procesado: ${raw.event}`, raw.data);
+        } catch (err) {
+          console.error(`❌ [WS] Error en el componente al procesar el evento ${raw.event}:`, err);
+        }
+      }
     };
 
     this.ws.onclose = (e) => {
