@@ -1,5 +1,5 @@
 import { useStorageState } from "@/core/hooks/useStorageState";
-import { loginService, logoutService, refreshTokenService, registerService } from "@/features/auth/services/auth.service";
+import { loginService, logoutService, registerService } from "@/features/auth/services/auth.service";
 import {
   LoginPayload,
   LoginReponse,
@@ -15,7 +15,6 @@ interface AuthContextType {
   login: (data: LoginPayload) => Promise<void>;
   signOut: () => Promise<void>;
   updateUser: (data: UpdateProfilePayload) => Promise<void>;
-  refreshAccessToken: () => Promise<void>;
   token: string | null;
   user: User | null;
   isLoading: boolean;
@@ -34,44 +33,43 @@ export function useSession() {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, token], setToken] = useStorageState("auth_token");
   const [[, userRaw], setUser] = useStorageState("auth_user");
-  const [[, refreshToken], setRefreshToken] =
-    useStorageState("auth_refresh_token");
+  
+  const [[, refreshToken], setRefreshToken] = useStorageState("auth_refresh_token");
+  
   const user = userRaw ? JSON.parse(userRaw) : null;
 
   return (
     <AuthContext.Provider
       value={{
-        //Iniciar sesion
+        //Registrarse
         signIn: async (data: RegisterPayload) => {
           const response = await registerService(data);
           setToken(response.access_token);
           setRefreshToken(response.refresh_token);
-          setUser(
-            JSON.stringify({
+          setUser(JSON.stringify({
               id: response.id,
               username: response.username,
               email: response.email,
               tenantId: response.tenantId,
-            }),
-          );
+          }));
         },
+        //Iniciar sesion
         login: async (data: LoginPayload) => {
           const response: LoginReponse = await loginService(data);
           setToken(response.access_token);
           setRefreshToken(response.refresh_token);
-          setUser(
-            JSON.stringify({
+          setUser(JSON.stringify({
               id: response.id,
               username: response.username,
               email: response.email,
               tenantId: response.tenantId,
-            }),
-          );
+          }));
         },
+        //Cerrar sesion
         signOut: async () => {
           if (token) {
             try {
-              await logoutService(token);
+              await logoutService();
             } catch {
               // limpiar local aunque el backend falle
             }
@@ -80,29 +78,19 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setUser(null);
           setRefreshToken(null);
         },
-        token,
-        user,
-        isLoading,
-        //Actualizar user
+        //Actiualizar usuario
         updateUser: async (data: UpdateProfilePayload) => {
           if (!token) throw new Error("No autenticado");
-
-          const response = await updateProfile(token, data);
-          setUser(
-            JSON.stringify({
+          const response = await updateProfile(data);
+          setUser(JSON.stringify({
               id: response.id,
               username: response.username,
               email: response.email,
-            }),
-          );
+          }));
         },
-        refreshAccessToken: async () => {
-          if (!refreshToken) throw new Error("No refresh token");
-
-          const response = await refreshTokenService({refreshToken});
-          setToken(response.access_token);
-          setRefreshToken(response.refresh_token);
-        },
+        token,
+        user,
+        isLoading,
       }}
     >
       {children}

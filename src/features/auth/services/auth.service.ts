@@ -1,4 +1,6 @@
+import { api } from "@/core/api/axios.config";
 import { API_URL } from "@/core/api/config";
+import { handleApiError } from "@/core/api/errors";
 import type {
   AuthResponse,
   LoginPayload,
@@ -7,78 +9,39 @@ import type {
   RefreshTokenResponse,
   RegisterPayload,
 } from "@/features/auth/types/auth";
+import axios from "axios";
 
 export async function registerService(data: RegisterPayload): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-      ? error.message.join("\n")
-      : (error.message ?? "Error al registrar");
-    throw new Error(errorMsg);
+  try {
+    const response = await api.post("/auth/register", data);
+    return response.data.data; 
+  } catch (error) {
+    handleApiError(error, "Error al registrar");
   }
-
-  const json = await response.json();
-  return json.data;
 }
 
 export async function loginService(data: LoginPayload): Promise<LoginReponse> {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-      ? error.message.join("\n")
-      : (error.message ?? "Error al iniciar sesión");
-    throw new Error(errorMsg);
-  }
-
-  const json = await response.json();
-  return json.data;
-}
-
-export async function logoutService(token: string): Promise<void> {
-  const response = await fetch(`${API_URL}/auth/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-      ? error.message.join("\n")
-      : (error.message ?? "Error al cerrar sesión");
-    throw new Error(errorMsg);
+  try {
+    const response = await api.post("/auth/login", data);
+    return response.data.data;
+  } catch (error) {
+    handleApiError(error, "Error al iniciar sesión");
   }
 }
 
-export async function refreshTokenService(
-  data: RefreshTokenPayload,
-): Promise<RefreshTokenResponse> {
-  const response = await fetch(`${API_URL}/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-      ? error.message.join("\n")
-      : (error.message ?? "Error al renovar token");
-    throw new Error(errorMsg);
+export async function logoutService(): Promise<void> {
+  try {
+    await api.post("/auth/logout");
+  } catch (error) {
+    handleApiError(error, "Error al cerrar sesión");
   }
+}
 
-  const json = await response.json();
-  return json.data;
+export async function refreshTokenService(data: RefreshTokenPayload): Promise<RefreshTokenResponse> {
+  try {
+    const response = await axios.post(`${API_URL}/auth/refresh`, data);
+    return response.data.data;
+  } catch (error) {
+    handleApiError(error, "Error al renovar token");
+  }
 }

@@ -1,46 +1,22 @@
-import { API_URL } from "@/core/api/config";
+import { api } from "@/core/api/axios.config";
+import { handleApiError } from "@/core/api/errors";
 import { UpdateProfilePayload } from "@/features/auth/types/auth";
 
-export async function getProfile(token: string) {
-  const response = await fetch(`${API_URL}/users/profile`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-      ? error.message.join("\n")
-      : (error.message ?? `Error ${response.status}: ${response.statusText}`);
-    throw new Error(errorMsg);
+export async function getProfile() {
+  try {
+    const response = await api.get("/users/profile");
+    return response.data; 
+  } catch (error) {
+    handleApiError(error, "Error al obtener el perfil");
   }
-
-  return response.json();
 }
 
-export async function updateProfile(
-  token: string,
-  data: UpdateProfilePayload,
-) {
-  const response = await fetch(`${API_URL}/users/profile`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      username: data.username,
-      email: data.email,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-      ? error.message.join("\n")
-      : (error.message ?? "Error al actualizar");
-    throw new Error(errorMsg);
+export async function updateProfile(data: UpdateProfilePayload) {
+  try {
+    const response = await api.patch("/users/profile", data);
+    
+    return response.data.data; 
+  } catch (error) {
+    handleApiError(error, "Error al actualizar el perfil");
   }
-
-  const json = await response.json();
-  return json.data;
 }

@@ -1,0 +1,3 @@
+// interface UserContextType {
+//     getProfile: () => Promise
+// }
