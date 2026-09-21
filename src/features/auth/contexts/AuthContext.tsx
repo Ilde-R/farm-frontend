@@ -39,6 +39,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   return (
     <AuthContext.Provider
       value={{
+        //Iniciar sesion
         signIn: async (data: RegisterPayload) => {
           const { register } = await import("@/features/auth/services/auth.service");
           const response = await register(data);
@@ -83,6 +84,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         token,
         user,
         isLoading,
+        //Actualizar user
         updateUser: async (data: UpdateProfilePayload) => {
           if (!token) throw new Error("No autenticado");
 

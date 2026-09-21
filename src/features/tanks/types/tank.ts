@@ -1,6 +1,8 @@
 export enum TankStatus {
   ACTIVE = 'isActive',
-} // falta agregar mas estados
+  EMPTY =  'empty',
+  MAINTENANCE = 'maintenance',
+}
 
 export interface CreateTankPayload {
   tankNumber: number;
@@ -21,4 +23,18 @@ export interface GetTankResponse {
     items: TankResponse[],
     total: number
   }
+}
+
+export type UpdateTankPayload = Partial<CreateTankPayload>;
+
+export interface TankPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface CirclePoint {
+  x: number;
+  y: number;
 }

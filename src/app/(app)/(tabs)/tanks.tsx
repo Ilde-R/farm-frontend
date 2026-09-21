@@ -1,5 +1,6 @@
-import TankCard from "@/core/components/tank-card";
 import { useTheme } from "@/core/theme/use-theme";
+import TankCard from "@/features/tanks/components/tank-card";
+import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
 import { TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -19,17 +20,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const STATUS_LABELS: Record<TankStatus, string> = {
-  [TankStatus.ACTIVE]: "Activo",
-  // Se agregaram mas estados
-};
-
 export default function TanksScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const router = useRouter();
   
-  const { create, tanks, isLoading, fetchTanks } = useTank();
+  const { createTank, tanks, isLoading, fetchTanks } = useTank();
   useEffect(()=> {
     fetchTanks();
   }, [fetchTanks]);
@@ -78,7 +74,7 @@ export default function TanksScreen() {
     setLoading(true);
 
     try {
-      await create({
+      await createTank({
         tankNumber: number,
         tankStatus: tankStatus,
       });
@@ -127,7 +123,10 @@ export default function TanksScreen() {
               key={tank.id}
               tankNumber={tank.tankNumber} 
               tankStatus={tank.tankStatus} 
-              // onPress={() => ())} <-- mandara a otra pantalla
+              onPress={() => router.push({
+                  pathname: "/tanks/[id]/edit",
+                  params: { id: tank.id }
+              })}
             />
           ))}
         </View>
@@ -189,7 +188,7 @@ export default function TanksScreen() {
                 {Object.values(TankStatus).map((statusValue) => (
                   <Picker.Item 
                     key={statusValue} 
-                    label={STATUS_LABELS[statusValue as TankStatus] || statusValue} 
+                    label={TANK_STATUS_LABELS[statusValue as TankStatus] || statusValue} 
                     value={statusValue} 
                   />
                 ))}
