@@ -1,54 +1,30 @@
-import { API_URL } from "@/core/api/config";
-import { CreateTankPayload, GetTankResponse, TankResponse, UpdateTankPayload } from "../types/tank";
+import { api } from "@/core/api/axios.config";
+import { handleApiError } from "@/core/api/errors";
+import { CreateTankPayload, GetTankResponse, Tank, UpdateTankPayload } from "../types/tank";
 
-export async function createTankService(data: CreateTankPayload, token: string): Promise<TankResponse> {
-  const response = await fetch(`${API_URL}/tanks`, {
-    method: "POST",
-    headers: {  "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-     },
-    body: JSON.stringify(data),
-  });
-
-  if(!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = Array.isArray(error.message)
-        ? error.message.join("\n")
-        : (error.message ?? "Error al registrar");
-    throw new Error(errorMsg);
+export async function createTankService(data: CreateTankPayload): Promise<Tank> {
+  try {
+    const response = await api.post('/tanks', data)
+    return response.data.data;
+  } catch (error) {
+    handleApiError(error, 'Error al registrar tanque')
   }
-
-  const json = await response.json();
-  return json.data;
 }
 
-export async function getTanksService(token: string): Promise <GetTankResponse> {
-  const response = await fetch(`${API_URL}/tanks`, {
-    method: "GET",
-    headers: {"Context-Type":"application/json",
-              "Authorization": `Bearer ${token}`
-    },
-  });
-  if(!response.ok){
-    const errorData = await response.json().catch(()=> ({}));
-    throw new Error(errorData.message || "Error al cargar los tanques")
+export async function getTanksService(): Promise <GetTankResponse> {
+  try {
+    const response = await api.get('/tanks');
+    return response.data
+  } catch (error) {
+    handleApiError(error, 'Error al obtener los tanques');
   }
-  const json = await response.json();
-  return json;
 }
 
-export async function updateTankService(tankId: string, data: UpdateTankPayload, token: string): Promise<TankResponse>{
-  const response = await fetch(`${API_URL}/tanks/${tankId}`, {
-    method: "PATCH",
-    headers: {  "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify(data),
-  });
-  if(!response.ok){
-    const errorData = await response.json().catch(() => ({}));
-     throw new Error(errorData.message || "Error al actualizar el tanque")
+export async function updateTankService(tankId: string, data: UpdateTankPayload): Promise<Tank> {
+  try {
+    const response = await api.patch(`/tanks/${tankId}`, data);
+    return response.data.data;
+  } catch (error) {
+    handleApiError(error, 'Error al actualizar el tanque')
   }
-  const json = await response.json();
-  return json;
 }

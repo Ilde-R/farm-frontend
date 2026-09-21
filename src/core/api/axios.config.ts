@@ -37,8 +37,8 @@ api.interceptors.response.use(
           refreshToken: refreshToken
         });
 
-        const newAccessToken = response.data.access_token;
-        const newRefreshToken = response.data.refresh_token;
+        const newAccessToken = response.data.data.access_token;
+        const newRefreshToken = response.data.data.refresh_token;
 
         await SecureStore.setItemAsync('accessToken', newAccessToken);
         await SecureStore.setItemAsync('refreshToken', newRefreshToken);

@@ -2,12 +2,10 @@ import { useStorageState } from "@/core/hooks/useStorageState";
 import { loginService, logoutService, registerService } from "@/features/auth/services/auth.service";
 import {
   LoginPayload,
-  LoginReponse,
-  RegisterPayload,
-  UpdateProfilePayload,
-  User,
+  RegisterPayload
 } from "@/features/auth/types/auth";
 import { updateProfile } from "@/features/users/services/user.service";
+import { UpdateProfilePayload, User } from "@/features/users/types/users";
 import { createContext, use, type PropsWithChildren } from "react";
 
 interface AuthContextType {
@@ -33,7 +31,6 @@ export function useSession() {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, token], setToken] = useStorageState("auth_token");
   const [[, userRaw], setUser] = useStorageState("auth_user");
-  
   const [[, refreshToken], setRefreshToken] = useStorageState("auth_refresh_token");
   
   const user = userRaw ? JSON.parse(userRaw) : null;
@@ -41,31 +38,34 @@ export function SessionProvider({ children }: PropsWithChildren) {
   return (
     <AuthContext.Provider
       value={{
-        //Registrarse
         signIn: async (data: RegisterPayload) => {
-          const response = await registerService(data);
-          setToken(response.access_token);
-          setRefreshToken(response.refresh_token);
-          setUser(JSON.stringify({
-              id: response.id,
-              username: response.username,
-              email: response.email,
-              tenantId: response.tenantId,
-          }));
+          try {
+            const response = await registerService(data);
+            const { access_token, refresh_token, ...userData } = response;
+              
+            setToken(access_token);
+            setRefreshToken(refresh_token);
+            setUser(JSON.stringify(userData));
+          } catch (error) {
+             console.error('Error al registrarse', error);
+             throw error;
+          }
         },
-        //Iniciar sesion
+        // Iniciar sesion
         login: async (data: LoginPayload) => {
-          const response: LoginReponse = await loginService(data);
-          setToken(response.access_token);
-          setRefreshToken(response.refresh_token);
-          setUser(JSON.stringify({
-              id: response.id,
-              username: response.username,
-              email: response.email,
-              tenantId: response.tenantId,
-          }));
+          try {
+            const response = await loginService(data);
+            const { access_token, refresh_token, ...userData} = response;
+
+            setToken(access_token);
+            setRefreshToken(refresh_token);
+            setUser(JSON.stringify(userData));
+          } catch (error) {
+            console.error('Error al iniciar sesion', error);
+            throw error;
+          }
         },
-        //Cerrar sesion
+        // Cerrar sesion
         signOut: async () => {
           if (token) {
             try {
@@ -78,15 +78,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setUser(null);
           setRefreshToken(null);
         },
-        //Actiualizar usuario
+        // Actualizar usuario
         updateUser: async (data: UpdateProfilePayload) => {
-          if (!token) throw new Error("No autenticado");
-          const response = await updateProfile(data);
-          setUser(JSON.stringify({
-              id: response.id,
-              username: response.username,
-              email: response.email,
-          }));
+          try {
+            const updatedUser = await updateProfile(data);
+            setUser(JSON.stringify(updatedUser));
+          } catch (error) {
+            console.error('Error al actualizar el perfil', error);
+            throw error;
+          }
         },
         token,
         user,

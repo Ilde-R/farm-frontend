@@ -4,25 +4,29 @@ export enum TankStatus {
   MAINTENANCE = 'maintenance',
 }
 
-export interface CreateTankPayload {
+export interface Tank {
+  id: string;
+  tenantId: string;
   tankNumber: number;
   tankStatus: TankStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TankResponse {
-  id: string,
-  tenantId: string,
-  tankNumber: number,
-  tankStatus: TankStatus,
-  createdAt: string,
-  updatedAt: string,
+  data: Tank;
 }
 
 export interface GetTankResponse {
   data: {
-    items: TankResponse[],
-    total: number
-  }
+    items: Tank[];
+    total: number;
+  };
+}
+
+export interface CreateTankPayload {
+  tankNumber: number;
+  tankStatus: TankStatus;
 }
 
 export type UpdateTankPayload = Partial<CreateTankPayload>;

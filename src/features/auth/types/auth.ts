@@ -1,38 +1,21 @@
+import { User } from "@/features/users/types/users"
+
+export interface Auth extends User {
+  tenantId: string
+  access_token: string
+  refresh_token: string
+}
+
+export interface AuthResponse {
+  data:Auth
+}
+
 export interface RegisterPayload {
   username: string;
   email: string;
   password: string;
-  tenantId?: string;
 }
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  tenantId?: string;
-}
-
-export interface ProfileResponse {
-  data: {
-    id: string;
-    username: string;
-    email: string;
-  };
-}
-
-export interface UpdateProfilePayload {
-  username?: string;
-  email?: string;
-}
-
-export interface AuthResponse {
-  id: string;
-  username: string;
-  email: string;
-  tenantId: string;
-  access_token: string;
-  refresh_token: string;
-}
 
 export interface LoginPayload {
   username: string;
@@ -40,19 +23,12 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface LoginReponse {
-  id: string;
-  username: string;
-  email: string;
-  tenantId: string;
-  access_token: string;
-  refresh_token: string;
-}
-
 export interface RefreshTokenPayload {
   refreshToken: string;
 }
 export interface RefreshTokenResponse {
-  access_token: string;
-  refresh_token: string;
+  data: {
+    access_token: string;
+    refresh_token: string;
+  }
 }
