@@ -3,20 +3,16 @@ import type {
   AuthResponse,
   LoginPayload,
   LoginReponse,
+  RefreshTokenPayload,
   RefreshTokenResponse,
   RegisterPayload,
 } from "@/features/auth/types/auth";
 
-export async function register(data: RegisterPayload): Promise<AuthResponse> {
+export async function registerService(data: RegisterPayload): Promise<AuthResponse> {
   const response = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      ...(data.tenantId ? { tenantId: data.tenantId } : {}),
-    }),
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {
@@ -31,7 +27,7 @@ export async function register(data: RegisterPayload): Promise<AuthResponse> {
   return json.data;
 }
 
-export async function login(data: LoginPayload): Promise<LoginReponse> {
+export async function loginService(data: LoginPayload): Promise<LoginReponse> {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -50,7 +46,7 @@ export async function login(data: LoginPayload): Promise<LoginReponse> {
   return json.data;
 }
 
-export async function logout(token: string): Promise<void> {
+export async function logoutService(token: string): Promise<void> {
   const response = await fetch(`${API_URL}/auth/logout`, {
     method: "POST",
     headers: {
@@ -67,13 +63,13 @@ export async function logout(token: string): Promise<void> {
   }
 }
 
-export async function refreshToken(
-  refreshToken: string,
+export async function refreshTokenService(
+  data: RefreshTokenPayload,
 ): Promise<RefreshTokenResponse> {
   const response = await fetch(`${API_URL}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
+    body: JSON.stringify(data),
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
