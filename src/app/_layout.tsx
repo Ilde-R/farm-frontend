@@ -2,6 +2,7 @@ import { SplashScreenController } from "@/core/components/splash-screen-controll
 import { setupNotifications } from "@/core/utils/notifications";
 import { SessionProvider, useSession } from "@/features/auth/contexts/AuthContext";
 import { SocketProvider } from "@/features/iot/contexts/SocketContext";
+import { TankProvider } from "@/features/tanks/contexts/TankContext";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import "../../global.css";
@@ -31,8 +32,10 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <SocketProvider>
-        <SplashScreenController />
-        <RootNavigator />
+        <TankProvider>
+          <SplashScreenController />
+          <RootNavigator />
+        </TankProvider>
       </SocketProvider>
     </SessionProvider>
   );

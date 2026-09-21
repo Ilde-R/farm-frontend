@@ -1,27 +1,24 @@
-export const TANK_STATUS_OPTIONS = ["Activo", "Vacío"] as const;
+export enum TankStatus {
+  ACTIVE = 'isActive',
+} // falta agregar mas estados
 
-export type TankStatus = (typeof TANK_STATUS_OPTIONS)[number];
-export type TankStatusForm = "daily" | "sowing";
+export interface CreateTankPayload {
+  tankNumber: number;
+  tankStatus: TankStatus;
+}
 
-export type TankStatusConfig = {
-  label: TankStatus;
-  form: TankStatusForm;
-  cardTextClass: string;
-};
+export interface TankResponse {
+  id: string,
+  tenantId: string,
+  tankNumber: number,
+  tankStatus: TankStatus,
+  createdAt: string,
+  updatedAt: string,
+}
 
-export const TANK_STATUS_CONFIG: Record<TankStatus, TankStatusConfig> = {
-  Activo: {
-    label: "Activo",
-    form: "daily",
-    cardTextClass: "text-emerald-400",
-  },
-  Vacío: {
-    label: "Vacío",
-    form: "sowing",
-    cardTextClass: "text-gray-400",
-  },
-};
-
-export function isTankStatus(value: string | undefined): value is TankStatus {
-  return value !== undefined && TANK_STATUS_OPTIONS.includes(value as TankStatus);
+export interface GetTankResponse {
+  data: {
+    items: TankResponse[],
+    total: number
+  }
 }

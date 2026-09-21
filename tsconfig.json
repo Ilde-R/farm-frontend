@@ -19,5 +19,5 @@
     "expo-env.d.ts",
     "app.d.ts",
     "nativewind-env.d.ts"
-  ]
+, "src/features/tanks/contexts/TankContext.txs"  ]
 }

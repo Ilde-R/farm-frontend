@@ -5,101 +5,57 @@ type Listener = (data: any) => void;
 class SocketService {
   private ws: WebSocket | null = null;
   private listeners = new Map<string, Set<Listener>>();
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectTimer?: NodeJS.Timeout;
   private reconnectDelay = 1000;
-  private maxDelay = 30000;
-  private _isConnected = false;
-  private _isConnecting = false;
-  private _token: string | null = null;
+  private readonly MAX_DELAY = 30000;
+  private token: string | null = null;
 
-  get isConnected() {
-    return this._isConnected;
+  get isConnected(): boolean {
+    return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  get isConnecting(): boolean {
+    return this.ws?.readyState === WebSocket.CONNECTING;
   }
 
   connect(token: string) {
-    let baseUrl = API_URL!.trim();
-    baseUrl = baseUrl.replace('api/v1', "");
-
-    if (this._isConnecting || (this._isConnected && this._token === token)) {
+    if (this.isConnecting || (this.isConnected && this.token === token)) {
       return;
     }
 
-    if (this.ws) {
-      this._isConnected = false;
-      this._isConnecting = false;
-      this.ws.onclose = null;
-      this.ws.close();
-      this.ws = null;
-    }
+    this.cleanupCurrentConnection();
 
-    this._token = token;
-    this._isConnecting = true;
-    const wsUrl = baseUrl.replace(/^http/, "ws") + `?token=${token}`;
-    this.ws = new WebSocket(wsUrl);
+    this.token = token;
+    this.ws = new WebSocket(this.buildWsUrl(token));
 
     this.ws.onopen = () => {
-      this._isConnected = true;
-      this._isConnecting = false;
       this.reconnectDelay = 1000;
-      if (this.reconnectTimer) {
-        clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = null;
-      }
+      this.clearReconnectTimer();
       this.emit("connected", null);
     };
 
-    this.ws.onmessage = (event) => {
-      let raw;
-      
-      try {
-        raw = JSON.parse(event.data);
-      } catch (err) {
-        console.warn("Ignorando mensaje no-JSON o trama de control:", event.data);
-        return;
-      }
-
-      if (raw && raw.event) {
-        try {
-          this.emit(raw.event, raw.data);
-          console.log(`✅ [WS] Evento procesado: ${raw.event}`, raw.data);
-        } catch (err) {
-          console.error(`❌ [WS] Error en el componente al procesar el evento ${raw.event}:`, err);
-        }
-      }
-    };
+    this.ws.onmessage = (event) => this.handleMessage(event.data);
 
     this.ws.onclose = (e) => {
-      this._isConnected = false;
-      this._isConnecting = false;
       this.emit("disconnected", null);
-      if (this._token && e.code !== 1000) {
+      if (this.token && e.code !== 1000) {
         this.scheduleReconnect();
       }
     };
 
-    this.ws.onerror = () => {
-      this._isConnecting = false;
-    };
+    this.ws.onerror = () => {};
   }
 
   disconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-    this._token = null;
-    if (this.ws) {
-      this.ws.onclose = null;
-      this.ws.close();
-      this.ws = null;
-    }
-    this._isConnected = false;
-    this._isConnecting = false;
+    this.clearReconnectTimer();
+    this.token = null;
+    this.cleanupCurrentConnection();
+    this.emit("disconnected", null);
   }
 
   send(event: string, data: Record<string, unknown>) {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ event, data }));
+    if (this.isConnected) {
+      this.ws!.send(JSON.stringify({ event, data }));
     }
   }
 
@@ -118,17 +74,46 @@ class SocketService {
     this.listeners.get(event)?.forEach((listener) => listener(data));
   }
 
+  private handleMessage(rawData: any) {
+    try {
+      const { event, data } = JSON.parse(rawData);
+      if (event) {
+        this.emit(event, data);
+      }
+    } catch {
+    }
+  }
+
+  private buildWsUrl(token: string): string {
+    const baseUrl = (API_URL || "").trim().replace(/\/api\/v1\/?$/, "");
+    return `${baseUrl.replace(/^http/, "ws")}/?token=${token}`;
+  }
+
+  private cleanupCurrentConnection() {
+    if (this.ws) {
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+      this.ws.close(1000);
+      this.ws = null;
+    }
+  }
+
   private scheduleReconnect() {
-    if (this.reconnectTimer || !this._token) return;
+    if (this.reconnectTimer || !this.token) return;
 
     this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      if (this._token) {
-        this.connect(this._token);
-      }
+      this.reconnectTimer = undefined;
+      if (this.token) this.connect(this.token);
     }, this.reconnectDelay);
 
-    this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxDelay);
+    this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.MAX_DELAY);
+  }
+
+  private clearReconnectTimer() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
   }
 }
 
