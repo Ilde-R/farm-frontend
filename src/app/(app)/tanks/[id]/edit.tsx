@@ -68,16 +68,13 @@ export default function EditTankScreen() {
         }
 
         try {
-            console.log("Intentando actualizar el tanque con ID:", id);
             const payload = {
                 tankNumber: currentTank.tankNumber, // Usamos el número real del tanque
                 tankStatus: status,
             };
-            console.log("Datos a enviar:", payload);
 
             await updateTank(payload, id);
 
-            console.log("¡Tanque actualizado con éxito!");
             Alert.alert("Guardado", "Los cambios del tanque fueron guardados.");
             router.back();
         } catch (error) {
