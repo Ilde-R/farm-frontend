@@ -1,19 +1,19 @@
 import BlowerCard from "@/core/components/blower-card";
 import { useTheme } from "@/core/theme/use-theme";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
-import { deleteBlower, updateBlowerConfig } from "@/features/aeration/services/aeration.service";
+import { deleteAerationDeviceService, updateAerationConfigService } from "@/features/aeration/services/aeration.service";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -115,7 +115,7 @@ export default function SensorsScreen() {
   async function handleDelete(blowerId: string) {
     if (!token) return;
     try {
-      await deleteBlower(token, blowerId);
+      await deleteAerationDeviceService( blowerId);
       await refreshDevices();
     } catch (error: any) {
       Alert.alert("Error", error.message);
@@ -133,7 +133,7 @@ export default function SensorsScreen() {
       return next;
     });
     try {
-      await updateBlowerConfig(token, blowerId, { saveIntervalSeconds });
+      await updateAerationConfigService( blowerId, { saveIntervalSeconds });
     } catch (error: any) {
       Alert.alert("Error", error.message);
       refreshDevices();

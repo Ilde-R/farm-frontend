@@ -42,7 +42,7 @@ export async function configureEsp32Service(data: ConfigureEspPayload): Promise<
 
 export async function getAerationDevicesService(): Promise<Aeration[]> {
   try {
-    const response = await api.get<{ data: Aeration[] }>('/aeration/devices');
+    const response = await api.get<{ data: Aeration[] }>('/aerations/devices');
     return response.data.data;
   } catch (error) {
     handleApiError(error, "Error al obtener la lista de dispositivos");
@@ -66,7 +66,7 @@ export async function updateAerationConfigService(
 
 export async function deleteAerationDeviceService(blowerId: string): Promise<void> {
   try {
-    await api.delete(`/aeration/blowers/${blowerId}`);
+    await api.delete(`/aerations/blowers/${blowerId}`);
   } catch (error) {
     handleApiError(error, "Error al eliminar el equipo");
   }

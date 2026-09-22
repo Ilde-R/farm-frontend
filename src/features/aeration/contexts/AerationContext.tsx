@@ -1,8 +1,8 @@
 import { sendNotification } from "@/core/utils/notifications";
-import { getAerationDevicesService } from "@/features/aeration/services/aeration.service";
 import { aerationSocketService } from "@/features/aeration/services/aeration-socket.service";
-import { WsEventType, type PressureReading } from "@/features/aeration/types/aeration-socket";
+import { getAerationDevicesService } from "@/features/aeration/services/aeration.service";
 import type { Aeration } from "@/features/aeration/types/aeration";
+import { WsEventType, type PressureReading } from "@/features/aeration/types/aeration-socket";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import {
   createContext,
@@ -58,10 +58,19 @@ export function AerationSocketProvider({ children }: PropsWithChildren) {
   const refreshDevices = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await getAerationDevicesService();
-      setDevices(Array.isArray(data) ? data : []);
-    } catch {
-      setDevices([]);
+      const result = await getAerationDevicesService();
+
+    const raw = result as any;
+
+    const deviceList: Aeration[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.data?.data)
+          ? raw.data.data
+          : [];
+
+    setDevices(deviceList);
     } finally {
       setDevicesLoading(false);
     }

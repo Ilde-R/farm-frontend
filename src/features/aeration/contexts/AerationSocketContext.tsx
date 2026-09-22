@@ -1,5 +1,4 @@
 import { sendNotification } from "@/core/utils/notifications";
-import { listDevices } from "@/features/aeration/services/aeration.service";
 import { WsEventType, type PressureReading } from "@/features/aeration/types/aeration-socket";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import {
@@ -12,7 +11,8 @@ import {
   type PropsWithChildren,
 } from "react";
 import { aerationSocketService } from "../services/aeration-socket.service";
-import { DeviceInfo } from "../types/aeration";
+import { getAerationDevicesService } from "../services/aeration.service";
+import { Aeration, AerationConfig } from "../types/aeration";
 
 interface SocketContextType {
   isConnected: boolean;
@@ -20,7 +20,7 @@ interface SocketContextType {
   latestReadings: Map<string, PressureReading>;
   thresholds: Map<string, number>;
   onlineDevices: Set<string>;
-  devices: DeviceInfo[];
+  devices: Aeration[];
   devicesLoading: boolean;
   refreshDevices: () => Promise<void>;
   sendSetThreshold: (blowerId: string, threshold: number) => void;
@@ -45,7 +45,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const [thresholds, setThresholds] = useState(() => new Map<string, number>());
   const [lastReadingAt, setLastReadingAt] = useState<number | null>(null);
   const [onlineDevices, setOnlineDevices] = useState<Set<string>>(new Set());
-  const [devices, setDevices] = useState<DeviceInfo[]>([]);
+  const [devices, setDevices] = useState<Aeration[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   
   const lastNotifiedRef = useRef<Map<string, number>>(new Map());
@@ -58,7 +58,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const refreshDevices = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await listDevices(token);
+      const data = await getAerationDevicesService();
       setDevices(Array.isArray(data) ? data : []);
     } catch {
       setDevices([]);
@@ -68,7 +68,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   }, [token]);
 
   const updateDeviceConfig = useCallback(
-    (blowerId: string, patch: Partial<DeviceInfo["blowerConfig"]>) => {
+    (blowerId: string, patch: Partial<AerationConfig>) => { // <-- CORRECCIÓN AQUÍ
       setDevices((prev) =>
         prev.map((device) => {
           if (device.blowerConfig?.blowerId !== blowerId) return device;
