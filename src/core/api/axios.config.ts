@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
 export const api = axios.create({
@@ -49,6 +50,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         await SecureStore.deleteItemAsync('accessToken');
         await SecureStore.deleteItemAsync('refreshToken');
+        
+        router.replace('/(auth)/login');
         
         return Promise.reject(refreshError);
       }

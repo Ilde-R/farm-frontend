@@ -29,9 +29,9 @@ export function useSession() {
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
-  const [[isLoading, token], setToken] = useStorageState("auth_token");
-  const [[, userRaw], setUser] = useStorageState("auth_user");
-  const [[, refreshToken], setRefreshToken] = useStorageState("auth_refresh_token");
+  const [[isLoading, token], setToken] = useStorageState("accessToken");
+  const [[, userRaw], setUser] = useStorageState("authUser");
+  const [[, refreshToken], setRefreshToken] = useStorageState("refreshToken");
   
   const user = userRaw ? JSON.parse(userRaw) : null;
 

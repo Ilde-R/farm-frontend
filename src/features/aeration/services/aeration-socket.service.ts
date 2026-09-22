@@ -1,10 +1,11 @@
-import { API_URL } from "./config";
+import { API_URL } from "@/core/api/config";
+import { WsEventType } from "@/features/aeration/types/aeration-socket";
 
-type Listener = (data: any) => void;
+type Listener<T = any> = (data: T) => void;
 
-class SocketService {
+class AerationSocketService {
   private ws: WebSocket | null = null;
-  private listeners = new Map<string, Set<Listener>>();
+  private listeners = new Map<WsEventType, Set<Listener>>();
   private reconnectTimer?: NodeJS.Timeout;
   private reconnectDelay = 1000;
   private readonly MAX_DELAY = 30000;
@@ -31,56 +32,64 @@ class SocketService {
     this.ws.onopen = () => {
       this.reconnectDelay = 1000;
       this.clearReconnectTimer();
-      this.emit("connected", null);
+      this.emit(WsEventType.CONNECTED, null);
     };
 
     this.ws.onmessage = (event) => this.handleMessage(event.data);
 
     this.ws.onclose = (e) => {
-      this.emit("disconnected", null);
+      this.emit(WsEventType.DISCONNECTED, null);
       if (this.token && e.code !== 1000) {
         this.scheduleReconnect();
       }
     };
 
-    this.ws.onerror = () => {};
+    this.ws.onerror = (error) => {
+      console.warn("[WebSocket] Error de conexión:", error);
+    };
   }
 
   disconnect() {
     this.clearReconnectTimer();
     this.token = null;
     this.cleanupCurrentConnection();
-    this.emit("disconnected", null);
+    this.emit(WsEventType.DISCONNECTED, null);
   }
 
-  send(event: string, data: Record<string, unknown>) {
+  send<T = Record<string, unknown>>(event: WsEventType, data: T) {
     if (this.isConnected) {
       this.ws!.send(JSON.stringify({ event, data }));
+    } else {
+      console.warn(`[WebSocket] Intento de enviar evento ${event} sin conexión.`);
     }
   }
 
-  on(event: string, listener: Listener) {
+  on<T = any>(event: WsEventType, listener: Listener<T>) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(listener);
+    this.listeners.get(event)!.add(listener as Listener);
   }
 
-  off(event: string, listener: Listener) {
-    this.listeners.get(event)?.delete(listener);
+  off<T = any>(event: WsEventType, listener: Listener<T>) {
+    this.listeners.get(event)?.delete(listener as Listener);
   }
 
-  private emit(event: string, data: any) {
+  private emit(event: WsEventType, data: any) {
     this.listeners.get(event)?.forEach((listener) => listener(data));
   }
 
   private handleMessage(rawData: any) {
     try {
-      const { event, data } = JSON.parse(rawData);
+      const parsed = JSON.parse(rawData);
+      const event = parsed.event as WsEventType;
+      const data = parsed.data;
+
       if (event) {
         this.emit(event, data);
       }
-    } catch {
+    } catch (error) {
+      console.warn("[WebSocket] Error al parsear mensaje JSON:", error);
     }
   }
 
@@ -117,4 +126,4 @@ class SocketService {
   }
 }
 
-export const socketService = new SocketService();
+export const aerationSocketService = new AerationSocketService();

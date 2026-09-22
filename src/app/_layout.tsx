@@ -1,7 +1,7 @@
 import { SplashScreenController } from "@/core/components/splash-screen-controller";
 import { setupNotifications } from "@/core/utils/notifications";
+import { SocketProvider } from "@/features/aeration/contexts/AerationSocketContext";
 import { SessionProvider, useSession } from "@/features/auth/contexts/AuthContext";
-import { SocketProvider } from "@/features/iot/contexts/SocketContext";
 import { TankProvider } from "@/features/tanks/contexts/TankContext";
 import { Stack } from "expo-router";
 import { useEffect } from "react";

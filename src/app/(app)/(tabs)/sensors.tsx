@@ -1,19 +1,19 @@
 import BlowerCard from "@/core/components/blower-card";
 import { useTheme } from "@/core/theme/use-theme";
+import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
+import { deleteBlower, updateBlowerConfig } from "@/features/aeration/services/aeration.service";
 import { useSession } from "@/features/auth/contexts/AuthContext";
-import { useSocket } from "@/features/iot/contexts/SocketContext";
-import { deleteBlower, updateBlowerConfig } from "@/features/iot/services/iot.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
