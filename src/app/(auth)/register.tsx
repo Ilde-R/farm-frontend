@@ -1,3 +1,4 @@
+import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import { validateEmail, validatePassword, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
@@ -61,89 +62,91 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View className="flex-1 justify-center bg-background px-8">
-      <Text className="text-text dark:text-text-dark text-2xl font-bold text-center mb-8">
-        Crear Cuenta
-      </Text>
+    <ScreenLayout isScrollable={false}>
+      <View className="flex-1 justify-center px-5">
+        <Text className="text-text dark:text-text-dark text-3xl font-bold text-center mb-10">
+          Crear Cuenta
+        </Text>
 
-      <TextInput
-        className="text-text placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
-        placeholder="Nombre de usuario"
-        value={username}
-        onChangeText={(text) => {
-          setUsername(text);
-          clearError("username");
-        }}
-        autoCapitalize="none"
-      />
-      {errors.username && (
-        <Text className="text-textError text-xs mb-2">{errors.username}</Text>
-      )}
-
-      <TextInput
-        className="text-text placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
-        placeholder="Email"
-        value={email}
-        onChangeText={(text) => {
-          setEmail(text);
-          clearError("email");
-        }}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      {errors.email && (
-        <Text className="text-textError text-xs mb-2">{errors.email}</Text>
-      )}
-
-      <View className="relative mb-1">
         <TextInput
-          className="text-text placeholder:text-textSecondary border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base"
-          placeholder="Contraseña"
-          placeholderTextColor="#60646C"
-          value={password}
+          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
+          placeholder="Nombre de usuario"
+          value={username}
           onChangeText={(text) => {
-            setPassword(text);
-            clearError("password");
+            setUsername(text);
+            clearError("username");
           }}
-          secureTextEntry={!showPassword}
+          autoCapitalize="none"
         />
-        <TouchableOpacity
-          className="absolute right-3 top-3"
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <MaterialCommunityIcons
-            name={showPassword ? "eye-off" : "eye"}
-            size={20}
-            color={theme.textSecondary}
+        {errors.username && (
+          <Text className="text-textError text-xs mb-2">{errors.username}</Text>
+        )}
+
+        <TextInput
+          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
+          placeholder="Email"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            clearError("email");
+          }}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        {errors.email && (
+          <Text className="text-textError text-xs mb-2">{errors.email}</Text>
+        )}
+
+        <View className="relative mb-1">
+          <TextInput
+            className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base"
+            placeholder="Contraseña"
+            placeholderTextColor="#60646C"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              clearError("password");
+            }}
+            secureTextEntry={!showPassword}
           />
+          <TouchableOpacity
+            className="absolute right-3 top-3"
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <MaterialCommunityIcons
+              name={showPassword ? "eye-off" : "eye"}
+              size={24}
+              color={theme.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
+        {errors.password && (
+          <Text className="text-textError text-xs mb-2">{errors.password}</Text>
+        )}
+        <Text className="text-xs text-textSecondary dark:text-textSecondary-dark mb-6">
+          Mín. 8 caracteres, mayúscula, minúscula, número y carácter especial
+        </Text>
+
+        <TouchableOpacity
+          className="bg-text rounded-lg py-4 mt-2"
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-background dark:text-text-dark text-center font-bold text-lg">
+              Registrarse
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/(auth)/login")} className="mt-4">
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-center py-3 text-base">
+            Iniciar sesión
+          </Text>
         </TouchableOpacity>
       </View>
-      {errors.password && (
-        <Text className="text-textError text-xs mb-2">{errors.password}</Text>
-      )}
-      <Text className="text-xs text-textSecondary mb-6">
-        Mín. 8 caracteres, mayúscula, minúscula, número y carácter especial
-      </Text>
-
-      <TouchableOpacity
-        className="bg-text rounded-lg py-4"
-        onPress={handleRegister}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-background dark:text-text-dark text-center font-bold text-lg">
-            Registrarse
-          </Text>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-        <Text className="text-textSecondary dark:text-textSecondary-dark text-center pt-3">
-          Iniciar sesión
-        </Text>
-      </TouchableOpacity>
-    </View>
+    </ScreenLayout>
   );
 }

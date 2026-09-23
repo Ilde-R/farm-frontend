@@ -1,3 +1,4 @@
+import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import TankCard from "@/features/tanks/components/tank-card";
 import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
@@ -11,14 +12,12 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TanksScreen() {
   const theme = useTheme();
@@ -26,7 +25,7 @@ export default function TanksScreen() {
   const router = useRouter();
   
   const { createTank, tanks, isLoading, fetchTanks } = useTank();
-  useEffect(()=> {
+  useEffect(() => {
     fetchTanks();
   }, [fetchTanks]);
 
@@ -38,7 +37,6 @@ export default function TanksScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const iconSize = Math.round(width * 0.06);
-  const margin = Math.round(width * 0.04);
 
   function clearError(field: string) {
     setErrors((prev) => {
@@ -89,30 +87,25 @@ export default function TanksScreen() {
     }
   }
 
+  const HeaderButtons = (
+    <>
+      <TouchableOpacity onPress={() => setShowAddModal(true)} hitSlop={8}>
+        <MaterialCommunityIcons
+          name="plus"
+          size={iconSize}
+          color={theme.textSecondary}
+        />
+      </TouchableOpacity>
+    </>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View
-        className="flex-row items-center justify-between"
-        style={{ paddingHorizontal: margin, paddingTop: margin }}
+    <>
+      <ScreenLayout
+        title="Tanques"
+        headerRight={HeaderButtons}
+        isScrollable={true}
       >
-        <Text
-          style={{ fontSize: iconSize * 1.2 }}
-          className="font-bold text-text dark:text-text-dark"
-        >
-          Tanques
-        </Text>
-        <View className="flex-row items-center" style={{ gap: margin }}>
-          <TouchableOpacity onPress={() => setShowAddModal(true)} hitSlop={8}>
-            <MaterialCommunityIcons
-              name="plus"
-              size={iconSize}
-              color={theme.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <ScrollView className="flex-1 bg-background">
         <View className="flex-row flex-wrap justify-center gap-4 p-4">
           {isLoading && (
             <ActivityIndicator size="large" color={theme.text} className="mt-10"/>
@@ -130,7 +123,7 @@ export default function TanksScreen() {
             />
           ))}
         </View>
-      </ScrollView>
+      </ScreenLayout>
 
       <Modal
         visible={showAddModal}
@@ -223,6 +216,6 @@ export default function TanksScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }

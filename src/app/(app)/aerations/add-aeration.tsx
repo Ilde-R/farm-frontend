@@ -1,3 +1,4 @@
+import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import QrScanner from "@/core/components/qr-scanner";
 import { useTheme } from "@/core/theme/use-theme";
 import { configureEsp32Service, createAerationDeviceService } from "@/features/aeration/services/aeration.service";
@@ -11,10 +12,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 type FlowStep =
   | "form"
@@ -24,14 +23,10 @@ type FlowStep =
   | "done"
   | "error";
 
-export default function AddDeviceScreen() {
+export default function AddAerationScreen() {
   const theme = useTheme();
   const { token } = useSession();
-  const { width } = useWindowDimensions();
   const router = useRouter();
-
-  const iconSize = Math.round(width * 0.06);
-  const margin = Math.round(width * 0.04);
 
   const [step, setStep] = useState<FlowStep>("form");
   const [blowerId, setBlowerId] = useState("");
@@ -102,7 +97,7 @@ export default function AddDeviceScreen() {
     switch (step) {
       case "form":
         return (
-          <View className="flex-1 px-6" style={{ paddingTop: margin }}>
+          <View className="flex-1 px-6 pt-4">
             <Text className="text-textSecondary text-base mb-6 dark:text-textSecondary-dark">
               Configura un nuevo blower para tu granja.
             </Text>
@@ -182,10 +177,7 @@ export default function AddDeviceScreen() {
 
       case "instructions":
         return (
-          <View
-            className="flex-1 px-6 items-center"
-            style={{ paddingTop: margin }}
-          >
+          <View className="flex-1 px-6 items-center pt-4">
             <MaterialCommunityIcons name="wifi" size={64} color={theme.text} />
             <Text className="text-text text-lg font-bold mt-6 text-center">
               Conéctate a la red del dispositivo
@@ -200,8 +192,7 @@ export default function AddDeviceScreen() {
               </Text>
             </View>
             <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-4 text-center">
-              Una vez conectado, regresa a esta pantalla y toca "Enviar
-              configuración".
+              Una vez conectado, regresa a esta pantalla y toca "Enviar configuración".
             </Text>
             <TouchableOpacity
               className="bg-text rounded-lg py-3 px-8 mt-8"
@@ -226,10 +217,7 @@ export default function AddDeviceScreen() {
 
       case "done":
         return (
-          <View
-            className="flex-1 px-6 items-center"
-            style={{ paddingTop: margin }}
-          >
+          <View className="flex-1 px-6 items-center pt-4">
             <MaterialCommunityIcons
               name="check-circle"
               size={64}
@@ -239,8 +227,7 @@ export default function AddDeviceScreen() {
               ¡Dispositivo configurado!
             </Text>
             <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-3 text-center leading-6">
-              Reconéctate a tu red WiFi normal. El blower se conectará
-              automáticamente al backend.
+              Reconéctate a tu red WiFi normal. El blower se conectará automáticamente al backend.
             </Text>
             <TouchableOpacity
               className="bg-text rounded-lg py-3 px-8 mt-8"
@@ -255,10 +242,7 @@ export default function AddDeviceScreen() {
 
       case "error":
         return (
-          <View
-            className="flex-1 px-6 items-center"
-            style={{ paddingTop: margin }}
-          >
+          <View className="flex-1 px-6 items-center pt-4">
             <MaterialCommunityIcons
               name="alert-circle"
               size={64}
@@ -281,35 +265,20 @@ export default function AddDeviceScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View
-        className="flex-row items-center justify-between"
-        style={{ paddingHorizontal: margin, paddingTop: margin }}
+    <>
+      <ScreenLayout
+        title="Nuevo dispositivo"
+        isScrollable={false}
+        showBackButton={true} // <-- Asumo que tu ScreenLayout maneja el botón de retroceso con una prop así, o lo hace automáticamente por Expo Router.
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={8}
-          className="flex-row items-center"
-        >
-          <MaterialCommunityIcons
-            name="arrow-left"
-            size={iconSize}
-            color={theme.textSecondary}
-          />
-          <Text
-            style={{ fontSize: iconSize * 1.1 }}
-            className="font-bold text-text ml-2 dark:text-text-dark"
-          >
-            Nuevo dispositivo
-          </Text>
-        </TouchableOpacity>
-      </View>
-      {renderContent()}
+        {renderContent()}
+      </ScreenLayout>
+
       <QrScanner
         visible={showScanner}
         onScanned={handleQrScanned}
         onClose={() => setShowScanner(false)}
       />
-    </SafeAreaView>
+    </>
   );
 }

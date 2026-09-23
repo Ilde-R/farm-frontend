@@ -1,4 +1,5 @@
 import BlowerCard from "@/core/components/blower-card";
+import ScreenLayout from "@/core/components/layout/ScreenLayout"; // <-- NUEVO IMPORT
 import { useTheme } from "@/core/theme/use-theme";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
 import { deleteAerationDeviceService, updateAerationConfigService } from "@/features/aeration/services/aeration.service";
@@ -9,13 +10,11 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  ScrollView,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 interface BlowerDisplay {
   blowerId: string;
@@ -50,7 +49,6 @@ export default function SensorsScreen() {
   const [, setTick] = useState(0);
 
   const iconSize = Math.round(width * 0.06);
-  const margin = Math.round(width * 0.04);
 
   useEffect(() => {
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
@@ -102,9 +100,6 @@ export default function SensorsScreen() {
       });
   })();
 
-  const deviceOnline =
-    lastReadingAt !== null && Date.now() - lastReadingAt < 10_000;
-
   function handleLogout() {
     Alert.alert("Cerrar sesión", "¿Estás seguro?", [
       { text: "Cancelar", style: "cancel" },
@@ -115,7 +110,7 @@ export default function SensorsScreen() {
   async function handleDelete(blowerId: string) {
     if (!token) return;
     try {
-      await deleteAerationDeviceService( blowerId);
+      await deleteAerationDeviceService(blowerId);
       await refreshDevices();
     } catch (error: any) {
       Alert.alert("Error", error.message);
@@ -133,72 +128,66 @@ export default function SensorsScreen() {
       return next;
     });
     try {
-      await updateAerationConfigService( blowerId, { saveIntervalSeconds });
+      await updateAerationConfigService(blowerId, { saveIntervalSeconds });
     } catch (error: any) {
       Alert.alert("Error", error.message);
       refreshDevices();
     }
   }
 
-  return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View
-        className="flex-row items-center justify-between"
-        style={{ paddingHorizontal: margin, paddingTop: margin }}
+  const HeaderButtons = (
+    <>
+      <TouchableOpacity
+        onPress={() => router.push("/aerations/add-aeration")}
+        hitSlop={8}
       >
-        <Text
-          style={{ fontSize: iconSize * 1.2 }}
-          className="font-bold text-text dark:text-text-dark"
-        >
-          Sensores
-        </Text>
-        <View className="flex-row items-center" style={{ gap: margin }}>
-          <TouchableOpacity
-            onPress={() => router.push("/add-device")}
-            hitSlop={8}
-          >
-            <MaterialCommunityIcons
-              name="plus"
-              size={iconSize}
-              color={theme.textSecondary}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleLogout} hitSlop={8}>
-            <MaterialCommunityIcons
-              name="logout"
-              size={iconSize}
-              color={theme.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+        <MaterialCommunityIcons
+          name="plus"
+          size={iconSize}
+          color={theme.textSecondary}
+        />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleLogout} hitSlop={8}>
+        <MaterialCommunityIcons
+          name="logout"
+          size={iconSize}
+          color={theme.textSecondary}
+        />
+      </TouchableOpacity>
+    </>
+  );
 
-      <ScrollView className="flex-1 px-6" style={{ paddingTop: margin }}>
-        {devicesLoading ? (
-          <View className="flex-1 items-center justify-center py-12">
-            <ActivityIndicator size="large" color={theme.textSecondary} />
-            <Text className="text-textSecondary text-sm mt-3">
-              Cargando dispositivos...
-            </Text>
-          </View>
-        ) : blowers.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <MaterialCommunityIcons
-              name="thermometer"
-              size={64}
-              color={theme.textSecondary}
-            />
-            <Text className="text-textSecondary text-base mt-4 text-center">
-              No hay blowers registrados.
-            </Text>
-            <Text className="text-textSecondary text-sm mt-2 text-center">
-              Agrega un dispositivo para comenzar.
-            </Text>
-          </View>
-        ) : (
-          blowers.map((b, i) => (
+  return (
+    <ScreenLayout
+      title="Sensores"
+      headerRight={HeaderButtons}
+      isScrollable={true}
+    >
+      {devicesLoading ? (
+        <View className="flex-1 items-center justify-center py-12">
+          <ActivityIndicator size="large" color={theme.textSecondary} />
+          <Text className="text-textSecondary text-sm mt-3">
+            Cargando dispositivos...
+          </Text>
+        </View>
+      ) : blowers.length === 0 ? (
+        <View className="flex-1 items-center justify-center py-12">
+          <MaterialCommunityIcons
+            name="thermometer"
+            size={64}
+            color={theme.textSecondary}
+          />
+          <Text className="text-textSecondary text-base mt-4 text-center">
+            No hay blowers registrados.
+          </Text>
+          <Text className="text-textSecondary text-sm mt-2 text-center">
+            Agrega un dispositivo para comenzar.
+          </Text>
+        </View>
+      ) : (
+        blowers.map((b, i) => (
+          <View key={b.blowerId || i} style={{ marginBottom: 16 }}>
             <BlowerCard
-              key={b.blowerId || i}
               blowerId={b.blowerId}
               name={b.name}
               psi={b.psi}
@@ -212,9 +201,9 @@ export default function SensorsScreen() {
               onSaveConfig={handleSaveConfig}
               onDelete={handleDelete}
             />
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          </View>
+        ))
+      )}
+    </ScreenLayout>
   );
 }

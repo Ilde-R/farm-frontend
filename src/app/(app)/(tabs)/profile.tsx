@@ -1,3 +1,4 @@
+import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import { validateEmail, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
@@ -12,7 +13,6 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 type ViewMode = "view" | "edit";
 
@@ -20,7 +20,6 @@ export default function ProfileScreen() {
   const theme = useTheme();
   const { user, signOut, updateUser } = useSession();
   const { width } = useWindowDimensions();
-  const iconSize = Math.round(width * 0.06);
   const margin = Math.round(width * 0.04);
 
   const [mode, setMode] = useState<ViewMode>("view");
@@ -75,19 +74,10 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View
-        className="flex-row items-center justify-between"
-        style={{ paddingHorizontal: margin, paddingTop: margin }}
-      >
-        <Text
-          style={{ fontSize: iconSize * 1.2 }}
-          className="font-bold text-text dark:text-text-dark"
-        >
-          Perfil
-        </Text>
-      </View>
-
+    <ScreenLayout
+      title="Perfil"
+      isScrollable={true}
+    >
       <View
         className="flex-1 items-center pt-8"
         style={{ paddingHorizontal: margin }}
@@ -110,7 +100,7 @@ export default function ProfileScreen() {
             </Text>
 
             <TouchableOpacity
-              className="border border-backgroundSelected rounded-lg py-3 px-8 mb-3 w-full"
+              className="border border-backgroundSelected rounded-lg py-3 px-8 mb-3 w-full mt-4"
               onPress={handleEdit}
             >
               <Text className="text-text dark:text-text-dark font-semibold text-base text-center">
@@ -193,6 +183,6 @@ export default function ProfileScreen() {
           </>
         )}
       </View>
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }
