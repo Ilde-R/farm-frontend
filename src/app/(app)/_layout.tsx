@@ -7,7 +7,7 @@ export default function AppLayout() {
       <AnimatedSplashOverlay />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="add-device" />
+        <Stack.Screen name="aerations/add-aeration" />
       </Stack>
     </>
   );

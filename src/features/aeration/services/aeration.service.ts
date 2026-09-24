@@ -1,13 +1,14 @@
 
 import { api } from "@/core/api/axios.config";
 import { handleApiError } from "@/core/api/errors";
-import type {
-  Aeration,
-  ConfigureEspPayload,
-  CreateAerationPayload,
-  CreateAerationResponse,
-  UpdateAerationPayload,
-  UpdateAerationResponse,
+import {
+  GetThresholdResponse,
+  type Aeration,
+  type ConfigureEspPayload,
+  type CreateAerationPayload,
+  type CreateAerationResponse,
+  type UpdateAerationPayload,
+  type UpdateAerationResponse,
 } from "../types/aeration";
 
 const ESP32_BASE = "http://192.168.4.1";
@@ -55,7 +56,7 @@ export async function updateAerationConfigService(
 ): Promise<UpdateAerationResponse['data']> {
   try {
     const response = await api.patch<UpdateAerationResponse>(
-      `/aeration/blowers/${blowerId}/config`, 
+      `/aerations/blowers/${blowerId}/config`, 
       data
     );
     return response.data.data;
@@ -69,5 +70,14 @@ export async function deleteAerationDeviceService(blowerId: string): Promise<voi
     await api.delete(`/aerations/blowers/${blowerId}`);
   } catch (error) {
     handleApiError(error, "Error al eliminar el equipo");
+  }
+}
+
+export async function getAerationThresholdService(blowerId: string): Promise<number> {
+  try {
+    const response = await api.get<GetThresholdResponse>(`aerations/blowers/${blowerId}/threshold`);
+    return response.data.data.currentThreshold;
+  } catch (error) {
+    handleApiError(error, 'Error al obtener el umbral');
   }
 }

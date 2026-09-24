@@ -60,17 +60,27 @@ export function AerationSocketProvider({ children }: PropsWithChildren) {
     try {
       const result = await getAerationDevicesService();
 
-    const raw = result as any;
-
-    const deviceList: Aeration[] = Array.isArray(raw)
-      ? raw
-      : Array.isArray(raw?.data)
+      const raw = result as any;
+      const deviceList: Aeration[] = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.data)
         ? raw.data
         : Array.isArray(raw?.data?.data)
-          ? raw.data.data
-          : [];
+        ? raw.data.data
+        : [];
 
-    setDevices(deviceList);
+      setDevices(deviceList);
+
+      setThresholds((prev) => {
+        const next = new Map(prev);
+        deviceList.forEach((device) => {
+          if (device.blowerConfig?.blowerId && device.blowerConfig?.currentThreshold !== undefined) {
+            next.set(device.blowerConfig.blowerId, device.blowerConfig.currentThreshold);
+          }
+        });
+        return next;
+      });
+
     } finally {
       setDevicesLoading(false);
     }

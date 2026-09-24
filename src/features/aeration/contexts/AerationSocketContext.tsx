@@ -68,7 +68,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   }, [token]);
 
   const updateDeviceConfig = useCallback(
-    (blowerId: string, patch: Partial<AerationConfig>) => { // <-- CORRECCIÓN AQUÍ
+    (blowerId: string, patch: Partial<AerationConfig>) => {
       setDevices((prev) =>
         prev.map((device) => {
           if (device.blowerConfig?.blowerId !== blowerId) return device;

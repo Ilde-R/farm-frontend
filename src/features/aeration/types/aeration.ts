@@ -1,6 +1,7 @@
 export interface AerationConfig {
     blowerId: string;
     name: string;
+    currentThreshold: number;
     firmwareVersion?: string;
     wifiRssi?: number;
     uptimeMs?: number;
@@ -61,6 +62,13 @@ export interface UpdateAerationResponse {
         lastSaveAt?: string;
         lastAlertState?: boolean;
     };
+}
+
+export interface GetThresholdResponse {
+    data: {
+        blowerId: string
+        currentThreshold: number
+    }
 }
 
 export interface ConfigureEspPayload {
