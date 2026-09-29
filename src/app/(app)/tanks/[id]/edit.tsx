@@ -1,7 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
-import DayPickerModal from "@/features/tanks/components/DayPickerModal";
-import MovementForm from "@/features/tanks/components/MovementForm";
+import DayPickerModal from "@/features/tanks/components/day-picker-modal";
+import MovementForm from "@/features/tanks/components/movement-form";
 import TankCard from "@/features/tanks/components/tank-card";
 import TankStatusPicker from "@/features/tanks/components/tank-status-picker";
 import { TANK_STATUS_CONFIG } from "@/features/tanks/constants/tank.constants";

@@ -1,6 +1,6 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import TankCard from "@/features/tanks/components/tank-card";
-import TankFlowOverlay from "@/features/tanks/components/TankFlowOverlay";
+import TankFlowOverlay from "@/features/tanks/components/tank-flow-overlay";
 import { TankPosition, TankStatus } from "@/features/tanks/types/tank";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -120,7 +120,7 @@ export default function MapDetailScreen() {
         
         <View className="relative">
           {flowDirection && (
-            <TankFlowOverlay 
+            <TankFlowOverlay
               tankPositions={tankPositions}
               visibleConnections={visibleConnections}
               centralConnections={centralConnections}

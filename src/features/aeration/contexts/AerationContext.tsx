@@ -1,7 +1,7 @@
 import { sendNotification } from "@/core/utils/notifications";
 import { aerationSocketService } from "@/features/aeration/services/aeration-socket.service";
 import { getAerationDevicesService } from "@/features/aeration/services/aeration.service";
-import type { Aeration } from "@/features/aeration/types/aeration";
+import type { Aeration, UpdateAerationPayload, UpdateAerationResponse } from "@/features/aeration/types/aeration";
 import { WsEventType, type PressureReading } from "@/features/aeration/types/aeration-socket";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import {
@@ -25,7 +25,7 @@ interface AerationSocketContextType {
   refreshDevices: () => Promise<void>;
   sendSetThreshold: (blowerId: string, threshold: number) => void;
   sendGetThreshold: (blowerId?: string) => void;
-  sendSetDeviceConfig: (blowerId: string, config: { readIntervalMs?: number }) => void;
+  updateSetDeviceConfig: (data:UpdateAerationPayload, blowerId: string) => Promise<UpdateAerationResponse>;
 }
 
 const AerationSocketContext = createContext<AerationSocketContextType | null>(null);
@@ -222,11 +222,28 @@ export function AerationSocketProvider({ children }: PropsWithChildren) {
     aerationSocketService.send(WsEventType.GET_THRESHOLD, { blowerId });
   }
 
-  function sendSetDeviceConfig(blowerId: string, config: { readIntervalMs?: number }) {
-    if (config.readIntervalMs !== undefined) {
-      updateDeviceConfig(blowerId, { readIntervalMs: config.readIntervalMs });
+  function updateSetDeviceConfig(data: UpdateAerationPayload, blowerId: string): Promise<UpdateAerationResponse> {
+    // 🔍 1. Verificamos qué datos le llegaron a la función
+    console.log("💡 updateSetDeviceConfig recibió data:", data);
+
+    if (data.saveIntervalSeconds !== undefined) {
+      updateDeviceConfig(blowerId, { readIntervalMs: data.saveIntervalSeconds });
     }
-    aerationSocketService.send(WsEventType.SET_DEVICE_CONFIG, { blowerId, ...config });
+
+    // (Opcional) Si necesitas que el frontend recuerde la nueva escala localmente:
+    // if (data.scaleFactor !== undefined) {
+    //   updateDeviceConfig(blowerId, { scaleFactor: data.scaleFactor });
+    // }
+    
+    return new Promise((resolve) => {
+      // 🔍 2. Verificamos cómo se armó el paquete final que va al socket
+      const payloadParaSocket = { blowerId, ...data };
+      console.log("🚀 Enviando al socket:", payloadParaSocket);
+
+      aerationSocketService.send(WsEventType.SET_DEVICE_CONFIG, payloadParaSocket);
+      
+      resolve({} as UpdateAerationResponse);
+    });
   }
 
   return (
@@ -242,7 +259,7 @@ export function AerationSocketProvider({ children }: PropsWithChildren) {
         refreshDevices,
         sendSetThreshold,
         sendGetThreshold,
-        sendSetDeviceConfig,
+        updateSetDeviceConfig,
       }}
     >
       {children}

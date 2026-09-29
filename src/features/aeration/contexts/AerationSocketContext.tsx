@@ -12,7 +12,7 @@ import {
 } from "react";
 import { aerationSocketService } from "../services/aeration-socket.service";
 import { getAerationDevicesService } from "../services/aeration.service";
-import { Aeration, AerationConfig } from "../types/aeration";
+import { Aeration, AerationConfig, UpdateAerationPayload, UpdateAerationResponse } from "../types/aeration";
 
 interface SocketContextType {
   isConnected: boolean;
@@ -25,7 +25,7 @@ interface SocketContextType {
   refreshDevices: () => Promise<void>;
   sendSetThreshold: (blowerId: string, threshold: number) => void;
   sendGetThreshold: (blowerId?: string) => void;
-  sendSetDeviceConfig: (blowerId: string, config: { readIntervalMs?: number }) => void;
+  updateSetDeviceConfig: (data:UpdateAerationPayload, blowerId: string) => Promise<UpdateAerationResponse>;
 }
 
 const SocketContext = createContext<SocketContextType | null>(null);
@@ -203,12 +203,22 @@ export function SocketProvider({ children }: PropsWithChildren) {
     aerationSocketService.send(WsEventType.GET_THRESHOLD, { blowerId });
   }
 
-  function sendSetDeviceConfig(blowerId: string, config: { readIntervalMs?: number }) {
-    if (config.readIntervalMs !== undefined) {
-      updateDeviceConfig(blowerId, { readIntervalMs: config.readIntervalMs });
-    }
-    aerationSocketService.send(WsEventType.SET_DEVICE_CONFIG, { blowerId, ...config });
+  function updateSetDeviceConfig(data: UpdateAerationPayload, blowerId: string): Promise<UpdateAerationResponse> {
+  if (data.saveIntervalSeconds !== undefined) {
+    updateDeviceConfig(blowerId, { readIntervalMs: data.saveIntervalSeconds });
   }
+
+  return new Promise((resolve) => {
+    
+    const payloadParaSocket = { blowerId, ...data };
+    
+    console.log("🚀 Enviando configuración al socket:", payloadParaSocket);
+    
+    aerationSocketService.send(WsEventType.SET_DEVICE_CONFIG, payloadParaSocket);
+    
+    resolve({} as UpdateAerationResponse);
+  });
+}
 
   return (
     <SocketContext.Provider
@@ -223,7 +233,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
         refreshDevices,
         sendSetThreshold,
         sendGetThreshold,
-        sendSetDeviceConfig,
+        updateSetDeviceConfig,
       }}
     >
       {children}

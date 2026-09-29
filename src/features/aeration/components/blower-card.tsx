@@ -1,9 +1,10 @@
+import SaveIntervalPicker from "@/core/components/ui/save-interval-picker";
+import { useTheme } from "@/core/theme/use-theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import SaveIntervalPicker from "./ui/save-interval-picker";
-import { useTheme } from "../theme/use-theme";
+import { UpdateAerationPayload } from "../types/aeration";
 
 interface BlowerCardProps {
   blowerId: string;
@@ -15,12 +16,14 @@ interface BlowerCardProps {
   readIntervalMs?: number;
   saveIntervalSeconds?: number;
   onSetThreshold: (blowerId: string, threshold: number) => void;
-  onSetDeviceConfig?: (
-    blowerId: string,
-    config: { readIntervalMs?: number },
-  ) => void;
+  
+  onSetDeviceConfig?: (data: UpdateAerationPayload, blowerId: string) => void;
+  
   onDelete?: (blowerId: string) => void;
+  
   onSaveConfig?: (blowerId: string, saveIntervalSeconds: number) => void;
+  
+  onSetScale?: (scale: number) => void; 
 }
 
 export default function BlowerCard({
@@ -36,6 +39,7 @@ export default function BlowerCard({
   onSetDeviceConfig,
   onSaveConfig,
   onDelete,
+  onSetScale, 
 }: BlowerCardProps) {
   const theme = useTheme();
   const [editing, setEditing] = useState(false);
@@ -101,9 +105,9 @@ export default function BlowerCard({
       Alert.alert("Error", "Intervalo debe ser entre 0.5 y 60 segundos");
       return;
     }
-    onSetDeviceConfig?.(blowerId, {
-      readIntervalMs: Math.round(seconds * 1000),
-    });
+    onSetDeviceConfig?.({
+      saveIntervalSeconds: seconds
+    }, blowerId);
     setEditingConfig(false);
   }
 
@@ -141,11 +145,7 @@ export default function BlowerCard({
               );
             }}
           >
-            <MaterialCommunityIcons
-              name="trash-can-outline"
-              size={18}
-              color="#FF6B5F"
-            />
+            <MaterialCommunityIcons name="trash-can-outline" size={18} color="#FF6B5F" />
           </TouchableOpacity>
         </View>
       </View>
@@ -177,17 +177,8 @@ export default function BlowerCard({
 
           <View className="rounded-2xl bg-[#1b2338] p-2 border border-white/5">
             <Svg width={120} height={78} viewBox="0 0 120 78">
-              <Path
-                d={`${chartPath} L 110 78 L 0 78 Z`}
-                fill={chartColor}
-                opacity={0.12}
-              />
-              <Path
-                d={`M 0 ${thresholdY} L 110 ${thresholdY}`}
-                stroke="#f8fafc"
-                strokeDasharray="4 4"
-                opacity={0.5}
-              />
+              <Path d={`${chartPath} L 110 78 L 0 78 Z`} fill={chartColor} opacity={0.12} />
+              <Path d={`M 0 ${thresholdY} L 110 ${thresholdY}`} stroke="#f8fafc" strokeDasharray="4 4" opacity={0.5} />
               <Path d={chartPath} stroke={chartColor} strokeWidth={2.2} fill="none" />
             </Svg>
           </View>
@@ -217,8 +208,17 @@ export default function BlowerCard({
         visible={selectingSave}
         currentValue={saveIntervalSeconds ?? 1800}
         threshold={threshold}
-        onSelect={(value) => onSaveConfig?.(blowerId, value)}
+        // 4. Tu guardado de intervalo queda exactamente como lo tenías
+        onSelect={(value) => {
+          onSaveConfig?.(blowerId, value);
+          // (Opcional) Si quieres que el intervalo se mande también al socket al instante:
+          onSetDeviceConfig?.({ saveIntervalSeconds: value }, blowerId);
+        }}
         onSetThreshold={(value) => onSetThreshold(blowerId, value)}
+        
+        // 5. Conectamos la escala
+        onSetScale={onSetScale}
+        
         onClose={() => setSelectingSave(false)}
       />
     </View>

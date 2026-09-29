@@ -1,6 +1,6 @@
-import BlowerCard from "@/core/components/blower-card";
-import ScreenLayout from "@/core/components/layout/ScreenLayout"; // <-- NUEVO IMPORT
+import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
+import BlowerCard from "@/features/aeration/components/blower-card";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
 import { deleteAerationDeviceService, updateAerationConfigService } from "@/features/aeration/services/aeration.service";
 import { useSession } from "@/features/auth/contexts/AuthContext";
@@ -31,6 +31,7 @@ export default function SensorsScreen() {
   const { signOut, token } = useSession();
   const { width } = useWindowDimensions();
   const router = useRouter();
+  
   const {
     lastReadingAt,
     latestReadings,
@@ -40,7 +41,7 @@ export default function SensorsScreen() {
     devicesLoading,
     refreshDevices,
     sendSetThreshold,
-    sendSetDeviceConfig,
+    updateSetDeviceConfig, 
   } = useSocket();
 
   const [saveIntervals, setSaveIntervals] = useState<Map<string, number>>(
@@ -197,9 +198,22 @@ export default function SensorsScreen() {
               readIntervalMs={b.readIntervalMs}
               saveIntervalSeconds={b.saveIntervalSeconds}
               onSetThreshold={sendSetThreshold}
-              onSetDeviceConfig={sendSetDeviceConfig}
+              
+              onSetDeviceConfig={updateSetDeviceConfig}
+              
               onSaveConfig={handleSaveConfig}
               onDelete={handleDelete}
+              
+              onSetScale={(escala) => {
+                if(updateSetDeviceConfig) {
+                  updateSetDeviceConfig(
+                    { scaleFactor: escala }, 
+                    b.blowerId
+                  );
+                } else {
+                   console.error("updateSetDeviceConfig no está disponible en el hook");
+                }
+              }}
             />
           </View>
         ))
