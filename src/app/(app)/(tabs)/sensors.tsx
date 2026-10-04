@@ -2,8 +2,13 @@ import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import BlowerCard from "@/features/aeration/components/blower-card";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
-import { deleteAerationDeviceService, updateAerationConfigService } from "@/features/aeration/services/aeration.service";
-import { UpdateAerationPayload } from "@/features/aeration/types/aeration";
+import {
+  deleteAerationDeviceService,
+  updateAerationConfigService,
+} from "@/features/aeration/services/aeration.service";
+import type {
+  UpdateAerationPayload,
+} from "@/features/aeration/types/aeration";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -20,6 +25,7 @@ import {
 interface BlowerDisplay {
   blowerId: string;
   name: string;
+  blowerConfigId: string;
   psi: number | null;
   threshold: number;
   firmwareVersion?: string;
@@ -38,6 +44,7 @@ export default function SensorsScreen() {
     devices,
     devicesLoading,
     refreshDevices,
+    applyDeviceConfig,
   } = useSocket();
 
   const iconSize = Math.round(width * 0.06);
@@ -63,6 +70,7 @@ export default function SensorsScreen() {
         return {
           blowerId: d.blowerConfig.blowerId,
           name: d.blowerConfig.name ?? d.blowerConfig.blowerId,
+          blowerConfigId: d.blowerConfigId,
           psi: reading?.psi ?? null,
           threshold:
             thresholds.get(d.blowerConfig.blowerId) ??
@@ -98,11 +106,10 @@ export default function SensorsScreen() {
     if (!token) return;
 
     try {
-      await updateAerationConfigService(blowerId, updates);
-      await refreshDevices();
+      const savedConfig = await updateAerationConfigService(blowerId, updates);
+      applyDeviceConfig(blowerId, savedConfig);
     } catch (error: any) {
       Alert.alert("Error", error.message);
-      await refreshDevices();
     }
   }
 
@@ -164,6 +171,7 @@ export default function SensorsScreen() {
           <View key={b.blowerId || i} style={{ marginBottom: 16 }}>
             <BlowerCard
               blowerId={b.blowerId}
+              blowerConfigId={b.blowerConfigId}
               name={b.name}
               psi={b.psi}
               threshold={b.threshold}

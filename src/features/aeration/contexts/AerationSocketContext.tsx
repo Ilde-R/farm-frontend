@@ -11,11 +11,8 @@ import {
   type PropsWithChildren,
 } from "react";
 import { aerationSocketService } from "../services/aeration-socket.service";
-import {
-  getAerationDevicesService,
-  getAerationThresholdService,
-} from "../services/aeration.service";
-import { Aeration } from "../types/aeration";
+import { getAerationDevicesService } from "../services/aeration.service";
+import type { Aeration, AerationConfig } from "../types/aeration";
 
 interface SocketContextType {
   lastReadingAt: number | null;
@@ -24,6 +21,10 @@ interface SocketContextType {
   devices: Aeration[];
   devicesLoading: boolean;
   refreshDevices: () => Promise<void>;
+  applyDeviceConfig: (
+    blowerId: string,
+    config: Partial<AerationConfig>,
+  ) => void;
 }
 
 const SocketContext = createContext<SocketContextType | null>(null);
@@ -57,28 +58,8 @@ export function SocketProvider({ children }: PropsWithChildren) {
       const data = await getAerationDevicesService();
       const deviceList = Array.isArray(data) ? data : [];
       setDevices(deviceList);
-      const missingThresholds = deviceList.filter(
-        (device) =>
-          device.blowerConfig?.blowerId &&
-          (typeof device.blowerConfig.currentThreshold !== "number" ||
-            !Number.isFinite(device.blowerConfig.currentThreshold)),
-      );
-      const fetchedThresholds = await Promise.all(
-        missingThresholds.map(async (device) => {
-          const blowerId = device.blowerConfig.blowerId;
-          try {
-            return [blowerId, await getAerationThresholdService(blowerId)] as const;
-          } catch (error) {
-            console.error(
-              `[Aeration] No se pudo obtener el umbral guardado para ${blowerId}:`,
-              error,
-            );
-            return null;
-          }
-        }),
-      );
       setThresholds((prev) => {
-        const next = new Map(prev);
+        const next = new Map<string, number>();
         for (const device of deviceList) {
           const config = device.blowerConfig;
           if (
@@ -89,9 +70,6 @@ export function SocketProvider({ children }: PropsWithChildren) {
             next.set(config.blowerId, config.currentThreshold);
           }
         }
-        for (const result of fetchedThresholds) {
-          if (result) next.set(result[0], result[1]);
-        }
         return next;
       });
     } catch {
@@ -100,6 +78,30 @@ export function SocketProvider({ children }: PropsWithChildren) {
       setDevicesLoading(false);
     }
   }, [token]);
+
+  const applyDeviceConfig = useCallback(
+    (blowerId: string, config: Partial<AerationConfig>) => {
+      setDevices((prev) =>
+        prev.map((device) =>
+          device.blowerConfig?.blowerId === blowerId
+            ? {
+                ...device,
+                blowerConfig: { ...device.blowerConfig, ...config },
+              }
+            : device,
+        ),
+      );
+      const currentThreshold = config.currentThreshold;
+      if (typeof currentThreshold === "number") {
+        setThresholds((prev) => {
+          const next = new Map(prev);
+          next.set(blowerId, currentThreshold);
+          return next;
+        });
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!token) {
@@ -153,6 +155,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
         devices,
         devicesLoading,
         refreshDevices,
+        applyDeviceConfig,
       }}
     >
       {children}

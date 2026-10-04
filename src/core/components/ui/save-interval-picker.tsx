@@ -61,11 +61,15 @@ export default function SaveIntervalPicker({
   );
 
   function handleCustomSave() {
-    const seconds = parseInt(customInput, 10);
-    if (isNaN(seconds) || seconds < 600 || seconds > 10800) {
+    const seconds = Number(customInput);
+    if (
+      !Number.isInteger(seconds) ||
+      seconds < 60 ||
+      seconds > 10800
+    ) {
       Alert.alert(
         "Error",
-        "El intervalo debe estar entre 10 minutos y 3 horas"
+        "El intervalo debe estar entre 60 segundos y 3 horas"
       );
       return;
     }
@@ -115,7 +119,7 @@ export default function SaveIntervalPicker({
                 <View>
                   <TextInput
                     className="text-white bg-gray-700 border border-gray-500 rounded-lg px-4 py-3 text-base mb-4"
-                    placeholder="Segundos (600-10800)"
+                    placeholder="Segundos (60-10800)"
                     placeholderTextColor="#9CA3AF"
                     value={customInput}
                     onChangeText={setCustomInput}

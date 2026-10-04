@@ -2,8 +2,9 @@
 import { api } from "@/core/api/axios.config";
 import { handleApiError } from "@/core/api/errors";
 import {
-  GetThresholdResponse,
   type Aeration,
+  type AerationChartReading,
+  type AerationReadingPeriod,
   type ConfigureEspPayload,
   type CreateAerationPayload,
   type CreateAerationResponse,
@@ -50,6 +51,21 @@ export async function getAerationDevicesService(): Promise<Aeration[]> {
   }
 }
 
+export async function getAerationReadingsChartService(
+  period: AerationReadingPeriod = "today",
+  blowerConfigId?: string,
+): Promise<AerationChartReading[]> {
+  try {
+    const response = await api.get<{ data: AerationChartReading[] }>(
+      "/aerations/readings/chart",
+      { params: { period, blowerConfigId } },
+    );
+    return response.data.data;
+  } catch (error) {
+    handleApiError(error, "Error al obtener el historial de presión");
+  }
+}
+
 export async function updateAerationConfigService(
   blowerId: string,
   data: UpdateAerationPayload
@@ -70,14 +86,5 @@ export async function deleteAerationDeviceService(blowerId: string): Promise<voi
     await api.delete(`/aerations/blowers/${blowerId}`);
   } catch (error) {
     handleApiError(error, "Error al eliminar el equipo");
-  }
-}
-
-export async function getAerationThresholdService(blowerId: string): Promise<number> {
-  try {
-    const response = await api.get<GetThresholdResponse>(`aerations/blowers/${blowerId}/threshold`);
-    return response.data.data.currentThreshold;
-  } catch (error) {
-    handleApiError(error, 'Error al obtener el umbral');
   }
 }

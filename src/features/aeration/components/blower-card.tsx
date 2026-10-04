@@ -1,13 +1,15 @@
 import SaveIntervalPicker from "@/core/components/ui/save-interval-picker";
 import { useTheme } from "@/core/theme/use-theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
-import { UpdateAerationPayload } from "../types/aeration";
+import Svg, { Circle, Path } from "react-native-svg";
+import { getAerationReadingsChartService } from "../services/aeration.service";
+import type { AerationChartReading, UpdateAerationPayload } from "../types/aeration";
 
 interface BlowerCardProps {
   blowerId: string;
+  blowerConfigId: string;
   name: string;
   psi: number | null;
   threshold: number;
@@ -20,6 +22,7 @@ interface BlowerCardProps {
 
 export default function BlowerCard({
   blowerId,
+  blowerConfigId,
   name,
   psi,
   threshold,
@@ -31,6 +34,37 @@ export default function BlowerCard({
 }: BlowerCardProps) {
   const theme = useTheme();
   const [selectingSave, setSelectingSave] = useState(false);
+  const [chartReadings, setChartReadings] = useState<AerationChartReading[]>([]);
+  const [chartError, setChartError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadChartReadings() {
+      setChartError(false);
+      try {
+        const readings = await getAerationReadingsChartService(
+          "today",
+          blowerConfigId,
+        );
+        if (active) setChartReadings(readings);
+      } catch (error) {
+        console.error(
+          `[Aeration] No se pudo cargar el historial de ${blowerId}:`,
+          error,
+        );
+        if (active) {
+          setChartReadings([]);
+          setChartError(true);
+        }
+      }
+    }
+
+    void loadChartReadings();
+    return () => {
+      active = false;
+    };
+  }, [blowerConfigId, blowerId]);
 
   const isAlert = psi !== null && psi <= threshold;
   const statusLabel =
@@ -41,14 +75,9 @@ export default function BlowerCard({
     psi == null ? "bg-slate-500" : isAlert ? "bg-red-500" : "bg-emerald-500";
   const pillColor =
     psi == null ? "bg-slate-600/60" : isAlert ? "bg-red-500/15" : "bg-emerald-500/15";
-  const trendValues = [
-    Math.max(0.2, (psi ?? threshold) - 0.8),
-    Math.max(0.2, (psi ?? threshold) - 0.4),
-    Math.max(0.2, psi ?? threshold),
-    Math.max(0.2, (psi ?? threshold) + 0.2),
-    Math.max(0.2, (psi ?? threshold) - 0.2),
-    Math.max(0.2, psi ?? threshold),
-  ];
+  const trendValues = chartReadings
+    .map((reading) => reading.psi)
+    .filter(Number.isFinite);
   const chartColor = isAlert ? "#f87171" : "#34d399";
   const chartMax = Math.max(...trendValues, threshold + 1, 2.5);
   const chartMin = Math.min(...trendValues, 0, threshold - 0.5);
@@ -56,7 +85,10 @@ export default function BlowerCard({
 
   const chartPath = trendValues
     .map((value, index) => {
-      const x = (index / (trendValues.length - 1)) * 110;
+      const x =
+        trendValues.length === 1
+          ? 55
+          : (index / (trendValues.length - 1)) * 110;
       const y = 70 - ((value - chartMin) / (chartMax - chartMin || 1)) * 56;
       return `${index === 0 ? "M" : "L"}${x},${y}`;
     })
@@ -126,11 +158,48 @@ export default function BlowerCard({
           </Text>
 
           <View className="rounded-2xl bg-[#1b2338] p-2 border border-white/5">
-            <Svg width={120} height={78} viewBox="0 0 120 78">
-              <Path d={`${chartPath} L 110 78 L 0 78 Z`} fill={chartColor} opacity={0.12} />
-              <Path d={`M 0 ${thresholdY} L 110 ${thresholdY}`} stroke="#f8fafc" strokeDasharray="4 4" opacity={0.5} />
-              <Path d={chartPath} stroke={chartColor} strokeWidth={2.2} fill="none" />
-            </Svg>
+            {trendValues.length > 0 ? (
+              <Svg width={120} height={78} viewBox="0 0 120 78">
+                {trendValues.length > 1 && (
+                  <Path
+                    d={`${chartPath} L 110 78 L 0 78 Z`}
+                    fill={chartColor}
+                    opacity={0.12}
+                  />
+                )}
+                <Path
+                  d={`M 0 ${thresholdY} L 110 ${thresholdY}`}
+                  stroke="#f8fafc"
+                  strokeDasharray="4 4"
+                  opacity={0.5}
+                />
+                <Path
+                  d={chartPath}
+                  stroke={chartColor}
+                  strokeWidth={2.2}
+                  fill="none"
+                />
+                {trendValues.length === 1 && (
+                  <Circle
+                    cx={55}
+                    cy={
+                      70 -
+                      ((trendValues[0] - chartMin) /
+                        (chartMax - chartMin || 1)) *
+                        56
+                    }
+                    r={3}
+                    fill={chartColor}
+                  />
+                )}
+              </Svg>
+            ) : (
+              <View className="h-[78px] items-center justify-center">
+                <Text className="text-gray-400 text-xs">
+                  {chartError ? "No se pudo cargar" : "Sin lecturas de hoy"}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View className="mt-2 rounded-2xl bg-white/5 px-3 py-2">

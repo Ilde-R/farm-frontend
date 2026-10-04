@@ -65,11 +65,14 @@ export interface UpdateAerationResponse {
     };
 }
 
-export interface GetThresholdResponse {
-    data: {
-        blowerId: string
-        currentThreshold: number
-    }
+export type AerationReadingPeriod = "today" | "month" | "year" | "all";
+
+export interface AerationChartReading {
+    date: string;
+    psi: number;
+    isAlert: boolean;
+    blowerId: string;
+    blowerName: string;
 }
 
 export interface ConfigureEspPayload {
