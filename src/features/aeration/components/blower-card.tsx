@@ -1,7 +1,7 @@
 import SaveIntervalPicker from "@/core/components/ui/save-interval-picker";
 import { useTheme } from "@/core/theme/use-theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { UpdateAerationPayload } from "../types/aeration";
@@ -11,19 +11,11 @@ interface BlowerCardProps {
   name: string;
   psi: number | null;
   threshold: number;
-  isOnline: boolean;
   firmwareVersion?: string;
-  readIntervalMs?: number;
   saveIntervalSeconds?: number;
   onSetThreshold: (blowerId: string, threshold: number) => void;
-  
-  onSetDeviceConfig?: (data: UpdateAerationPayload, blowerId: string) => void;
-  
   onDelete?: (blowerId: string) => void;
-  
-  onSaveConfig?: (blowerId: string, saveIntervalSeconds: number) => void;
-  
-  onSetScale?: (scale: number) => void; 
+  onSaveConfig?: (blowerId: string, updates: UpdateAerationPayload) => void;
 }
 
 export default function BlowerCard({
@@ -31,33 +23,14 @@ export default function BlowerCard({
   name,
   psi,
   threshold,
-  isOnline,
   firmwareVersion,
-  readIntervalMs,
   saveIntervalSeconds,
   onSetThreshold,
-  onSetDeviceConfig,
   onSaveConfig,
   onDelete,
-  onSetScale, 
 }: BlowerCardProps) {
   const theme = useTheme();
-  const [editing, setEditing] = useState(false);
-  const [thresholdInput, setThresholdInput] = useState(threshold.toString());
-  const [editingConfig, setEditingConfig] = useState(false);
-  const [intervalInput, setIntervalInput] = useState(
-    ((readIntervalMs ?? 1000) / 1000).toString(),
-  );
   const [selectingSave, setSelectingSave] = useState(false);
-
-  useEffect(() => {
-    if (!editing) setThresholdInput(threshold.toString());
-  }, [threshold, editing]);
-
-  useEffect(() => {
-    if (!editingConfig)
-      setIntervalInput(((readIntervalMs ?? 1000) / 1000).toString());
-  }, [readIntervalMs, editingConfig]);
 
   const isAlert = psi !== null && psi <= threshold;
   const statusLabel =
@@ -89,33 +62,10 @@ export default function BlowerCard({
     })
     .join(" ");
 
-  function handleSave() {
-    const value = parseFloat(thresholdInput);
-    if (isNaN(value) || value < 0) {
-      Alert.alert("Error", "Ingresa un número válido");
-      return;
-    }
-    onSetThreshold(blowerId, value);
-    setEditing(false);
-  }
-
-  function handleSaveConfig() {
-    const seconds = parseFloat(intervalInput);
-    if (isNaN(seconds) || seconds < 0.5 || seconds > 60) {
-      Alert.alert("Error", "Intervalo debe ser entre 0.5 y 60 segundos");
-      return;
-    }
-    onSetDeviceConfig?.({
-      saveIntervalSeconds: seconds
-    }, blowerId);
-    setEditingConfig(false);
-  }
-
   return (
     <View className="bg-[#313b59] rounded-3xl w-full overflow-hidden mb-6 border border-white/10 shadow-xl shadow-black/20">
       <View className="flex-row items-center justify-between px-4 pt-4 pb-3">
         <View className="flex-row items-center gap-2">
-          <View className={`h-2.5 w-2.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-red-400"}`} />
           <Text className="text-text dark:text-text-dark text-sm font-semibold">
             {name}
           </Text>
@@ -198,9 +148,6 @@ export default function BlowerCard({
         <Text className="text-gray-300 text-[10px] uppercase tracking-[1.3px]">
           {firmwareVersion ? `FW ${firmwareVersion}` : "Sensor activo"}
         </Text>
-        <Text className="text-gray-300 text-[10px] uppercase tracking-[1.3px]">
-          {isOnline ? "Online" : "Offline"}
-        </Text>
       </View>
 
       <SaveIntervalPicker
@@ -208,17 +155,10 @@ export default function BlowerCard({
         visible={selectingSave}
         currentValue={saveIntervalSeconds ?? 1800}
         threshold={threshold}
-        // 4. Tu guardado de intervalo queda exactamente como lo tenías
         onSelect={(value) => {
-          onSaveConfig?.(blowerId, value);
-          // (Opcional) Si quieres que el intervalo se mande también al socket al instante:
-          onSetDeviceConfig?.({ saveIntervalSeconds: value }, blowerId);
+          onSaveConfig?.(blowerId, { saveIntervalSeconds: value });
         }}
         onSetThreshold={(value) => onSetThreshold(blowerId, value)}
-        
-        // 5. Conectamos la escala
-        onSetScale={onSetScale}
-        
         onClose={() => setSelectingSave(false)}
       />
     </View>

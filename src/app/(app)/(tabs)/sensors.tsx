@@ -3,10 +3,11 @@ import { useTheme } from "@/core/theme/use-theme";
 import BlowerCard from "@/features/aeration/components/blower-card";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
 import { deleteAerationDeviceService, updateAerationConfigService } from "@/features/aeration/services/aeration.service";
+import { UpdateAerationPayload } from "@/features/aeration/types/aeration";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,7 +23,6 @@ interface BlowerDisplay {
   psi: number | null;
   threshold: number;
   firmwareVersion?: string;
-  readIntervalMs?: number;
   saveIntervalSeconds?: number;
 }
 
@@ -33,47 +33,20 @@ export default function SensorsScreen() {
   const router = useRouter();
   
   const {
-    lastReadingAt,
     latestReadings,
     thresholds,
-    onlineDevices,
     devices,
     devicesLoading,
     refreshDevices,
-    sendSetThreshold,
-    updateSetDeviceConfig, 
   } = useSocket();
 
-  const [saveIntervals, setSaveIntervals] = useState<Map<string, number>>(
-    () => new Map(),
-  );
-  const [, setTick] = useState(0);
-
   const iconSize = Math.round(width * 0.06);
-
-  useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
       refreshDevices();
     }, [refreshDevices]),
   );
-
-  useEffect(() => {
-    const deviceList = Array.isArray(devices) ? devices : [];
-    setSaveIntervals((prev) => {
-      const next = new Map(prev);
-      for (const d of deviceList) {
-        if (d.blowerConfig?.saveIntervalSeconds) {
-          next.set(d.blowerConfig.blowerId, d.blowerConfig.saveIntervalSeconds);
-        }
-      }
-      return next;
-    });
-  }, [devices]);
 
   const blowers: BlowerDisplay[] = (() => {
     const deviceList = Array.isArray(devices) ? devices : [];
@@ -91,12 +64,12 @@ export default function SensorsScreen() {
           blowerId: d.blowerConfig.blowerId,
           name: d.blowerConfig.name ?? d.blowerConfig.blowerId,
           psi: reading?.psi ?? null,
-          threshold: thresholds.get(d.blowerConfig.blowerId) ?? 2.0,
+          threshold:
+            thresholds.get(d.blowerConfig.blowerId) ??
+            d.blowerConfig.currentThreshold ??
+            2.0,
           firmwareVersion: d.blowerConfig.firmwareVersion,
-          readIntervalMs: d.blowerConfig.readIntervalMs,
-          saveIntervalSeconds:
-            saveIntervals.get(d.blowerConfig.blowerId) ??
-            d.blowerConfig.saveIntervalSeconds,
+          saveIntervalSeconds: d.blowerConfig.saveIntervalSeconds,
         };
       });
   })();
@@ -120,20 +93,21 @@ export default function SensorsScreen() {
 
   async function handleSaveConfig(
     blowerId: string,
-    saveIntervalSeconds: number,
+    updates: UpdateAerationPayload
   ) {
     if (!token) return;
-    setSaveIntervals((prev) => {
-      const next = new Map(prev);
-      next.set(blowerId, saveIntervalSeconds);
-      return next;
-    });
+
     try {
-      await updateAerationConfigService(blowerId, { saveIntervalSeconds });
+      await updateAerationConfigService(blowerId, updates);
+      await refreshDevices();
     } catch (error: any) {
       Alert.alert("Error", error.message);
-      refreshDevices();
+      await refreshDevices();
     }
+  }
+
+  async function handleSetThreshold(blowerId: string, currentThreshold: number) {
+    await handleSaveConfig(blowerId, { currentThreshold });
   }
 
   const HeaderButtons = (
@@ -193,27 +167,11 @@ export default function SensorsScreen() {
               name={b.name}
               psi={b.psi}
               threshold={b.threshold}
-              isOnline={onlineDevices.has(b.blowerId)}
               firmwareVersion={b.firmwareVersion}
-              readIntervalMs={b.readIntervalMs}
               saveIntervalSeconds={b.saveIntervalSeconds}
-              onSetThreshold={sendSetThreshold}
-              
-              onSetDeviceConfig={updateSetDeviceConfig}
-              
+              onSetThreshold={handleSetThreshold}
               onSaveConfig={handleSaveConfig}
               onDelete={handleDelete}
-              
-              onSetScale={(escala) => {
-                if(updateSetDeviceConfig) {
-                  updateSetDeviceConfig(
-                    { scaleFactor: escala }, 
-                    b.blowerId
-                  );
-                } else {
-                   console.error("updateSetDeviceConfig no está disponible en el hook");
-                }
-              }}
             />
           </View>
         ))

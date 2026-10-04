@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard
+  View
 } from "react-native";
 import ThresholdSlider from "./threshold-slider";
 
@@ -28,7 +28,6 @@ interface SaveIntervalPickerProps {
   currentValue: number;
   onSelect: (value: number) => void;
   onSetThreshold?: (threshold: number) => void;
-  onSetScale?: (scale: number) => void;
   onClose: () => void;
 }
 
@@ -39,14 +38,12 @@ export default function SaveIntervalPicker({
   currentValue,
   onSelect,
   onSetThreshold,
-  onSetScale,
   onClose,
 }: SaveIntervalPickerProps) {
   
   const [customMode, setCustomMode] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const [editingThreshold, setEditingThreshold] = useState(threshold);
-  const [scaleFactor, setScaleFactor] = useState("");
 
   useEffect(() => {
     if (visible) {
@@ -58,6 +55,10 @@ export default function SaveIntervalPicker({
     onSelect(value);
     onClose();
   }
+
+  const isCustomValue = !SAVE_INTERVAL_OPTIONS.some(
+    (option) => option.value === currentValue,
+  );
 
   function handleCustomSave() {
     const seconds = parseInt(customInput, 10);
@@ -76,34 +77,12 @@ export default function SaveIntervalPicker({
   function handleClose() {
     setCustomMode(false);
     setCustomInput("");
-    setScaleFactor("");
     onClose();
   }
 
   function handleThresholdComplete(value: number) {
     onSetThreshold?.(value);
     onClose();
-  }
-
-  function handleScaleSubmit() {
-    console.log("¡Botón presionado! Validando escala:", scaleFactor);
-    const scaleValue = parseFloat(scaleFactor);
-    if (isNaN(scaleValue) || scaleValue <= 0) {
-      Alert.alert("Error", "Ingrese un valor numérico válido mayor a 0");
-      return;
-    }
-    
-    // Verificamos si onSetScale existe
-    if (onSetScale) {
-        console.log("Llamando a onSetScale con el valor:", scaleValue);
-        onSetScale(scaleValue);
-        setScaleFactor("");
-        Keyboard.dismiss(); // Ocultamos el teclado después de enviar
-        Alert.alert("Éxito", "Comando de calibración enviado");
-    } else {
-        console.warn("ADVERTENCIA: La propiedad onSetScale no se definió en el componente padre");
-        Alert.alert("Error de conexión", "La función para guardar la escala no está configurada.");
-    }
   }
 
   return (
@@ -179,43 +158,28 @@ export default function SaveIntervalPicker({
                     );
                   })}
                   <TouchableOpacity
-                    className="rounded-lg px-5 py-3 bg-gray-700/50"
-                    onPress={() => setCustomMode(true)}
+                    className={`rounded-lg px-5 py-3 ${
+                      isCustomValue
+                        ? "bg-gray-600 border border-green-500"
+                        : "bg-gray-700/50 border border-transparent"
+                    }`}
+                    onPress={() => {
+                      setCustomInput(isCustomValue ? String(currentValue) : "");
+                      setCustomMode(true);
+                    }}
                   >
-                    <Text className="text-gray-400 text-base">
+                    <Text
+                      className={`text-base ${
+                        isCustomValue
+                          ? "text-white font-bold"
+                          : "text-gray-400"
+                      }`}
+                    >
                       Personalizado
                     </Text>
                   </TouchableOpacity>
                 </View>
               )}
-
-              <View className="border-t border-gray-600 my-4" />
-              
-              {/* --- SECCIÓN DE ESCALA INTEGRADA --- */}
-              <View>
-                <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mb-3 text-center">
-                  Configurar escala de calibración
-                </Text>
-                
-                <View className="flex-row items-center justify-center gap-3 px-2">
-                  <TextInput
-                    className="text-white bg-gray-700 border border-gray-500 rounded-lg px-4 py-2 text-base flex-1"
-                    placeholder="Ej. 1.05"
-                    placeholderTextColor="#9CA3AF"
-                    value={scaleFactor}
-                    onChangeText={setScaleFactor}
-                    keyboardType="numeric"
-                  />
-                  {/* Este es el botón que debe imprimir el log */}
-                  <TouchableOpacity
-                    className="bg-green-600 rounded-lg px-5 py-3 active:opacity-70"
-                    onPress={handleScaleSubmit}
-                  >
-                    <Text className="text-white font-bold">Enviar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              {/* ----------------------------------- */}
 
               <View className="border-t border-gray-600 my-4" />
 

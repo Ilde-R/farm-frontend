@@ -41,6 +41,7 @@ export interface CreateAerationResponse {
 }
 
 export interface UpdateAerationPayload {
+    currentThreshold?: number;
     saveIntervalSeconds?: number;
     scaleFactor?: number;
 }

@@ -1,7 +1,10 @@
 import { API_URL } from "@/core/api/config";
-import { WsEventType } from "@/features/aeration/types/aeration-socket";
+import {
+  WsEventType,
+  type PressureReading,
+} from "@/features/aeration/types/aeration-socket";
 
-type Listener<T = any> = (data: T) => void;
+type Listener = (data: PressureReading) => void;
 
 class AerationSocketService {
   private ws: WebSocket | null = null;
@@ -32,13 +35,11 @@ class AerationSocketService {
     this.ws.onopen = () => {
       this.reconnectDelay = 1000;
       this.clearReconnectTimer();
-      this.emit(WsEventType.CONNECTED, null);
     };
 
     this.ws.onmessage = (event) => this.handleMessage(event.data);
 
     this.ws.onclose = (e) => {
-      this.emit(WsEventType.DISCONNECTED, null);
       if (this.token && e.code !== 1000) {
         this.scheduleReconnect();
       }
@@ -53,40 +54,28 @@ class AerationSocketService {
     this.clearReconnectTimer();
     this.token = null;
     this.cleanupCurrentConnection();
-    this.emit(WsEventType.DISCONNECTED, null);
   }
 
-  send<T = Record<string, unknown>>(event: WsEventType, data: T) {
-    if (this.isConnected) {
-      this.ws!.send(JSON.stringify({ event, data }));
-    } else {
-      console.warn(`[WebSocket] Intento de enviar evento ${event} sin conexión.`);
-    }
-  }
-
-  on<T = any>(event: WsEventType, listener: Listener<T>) {
+  on(event: WsEventType, listener: Listener) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(listener as Listener);
+    this.listeners.get(event)!.add(listener);
   }
 
-  off<T = any>(event: WsEventType, listener: Listener<T>) {
-    this.listeners.get(event)?.delete(listener as Listener);
+  off(event: WsEventType, listener: Listener) {
+    this.listeners.get(event)?.delete(listener);
   }
 
-  private emit(event: WsEventType, data: any) {
+  private emit(event: WsEventType, data: PressureReading) {
     this.listeners.get(event)?.forEach((listener) => listener(data));
   }
 
   private handleMessage(rawData: any) {
     try {
       const parsed = JSON.parse(rawData);
-      const event = parsed.event as WsEventType;
-      const data = parsed.data;
-
-      if (event) {
-        this.emit(event, data);
+      if (parsed.event === WsEventType.PRESSURE_READING) {
+        this.emit(WsEventType.PRESSURE_READING, parsed.data as PressureReading);
       }
     } catch (error) {
       console.warn("[WebSocket] Error al parsear mensaje JSON:", error);
