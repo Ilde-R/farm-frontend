@@ -40,15 +40,21 @@ type TankCardProps = {
   tankNumber: number;
   tankStatus?: TankStatus | string;
   onPress?: () => void;
+  size?: number;
 };
+
+export function getTankCardSize(screenWidth: number) {
+  return Math.min((screenWidth - 48) / 2, 190);
+}
 
 export default function TankCard({
   tankNumber,
   tankStatus = TankStatus.ACTIVE,
   onPress,
+  size,
 }: TankCardProps) {
   const { width: screenWidth } = useWindowDimensions();
-  const cardSize = Math.min((screenWidth - 48) / 2, 190);
+  const cardSize = size ?? getTankCardSize(screenWidth);
   const statusPresentation =
     STATUS_PRESENTATION[tankStatus] ?? {
       icon: "help-circle-outline" as const,
@@ -66,7 +72,7 @@ export default function TankCard({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Tanque ${tankNumber}, ${displayStatus}`}
-      className="w-[48%] items-center"
+      className="items-center"
     >
       <View
         style={{ width: cardSize, height: cardSize }}

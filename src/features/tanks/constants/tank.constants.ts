@@ -1,8 +1,8 @@
 import { TankStatus } from "../types/tank";
 
 export const TANK_STATUS_LABELS: Record<TankStatus, string> = {
-    [TankStatus.ACTIVE]: 'Active',
-    [TankStatus.EMPTY]: 'Vacio',
+    [TankStatus.ACTIVE]: 'Activo',
+    [TankStatus.EMPTY]: 'Vacío',
     [TankStatus.MAINTENANCE]: 'Mantenimiento',
 }
 

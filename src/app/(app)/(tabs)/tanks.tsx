@@ -1,7 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
-import TankCard from "@/features/tanks/components/tank-card";
+import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
 import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
 import { TankStatus } from "@/features/tanks/types/tank";
@@ -22,6 +22,7 @@ import {
 export default function TanksScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  const tankCardSize = getTankCardSize(width);
   const router = useRouter();
   
   const { createTank, tanks, isLoading, fetchTanks } = useTank();
@@ -80,8 +81,18 @@ export default function TanksScreen() {
       closeAddModal();
       Alert.alert("Éxito", "El tanque se guardó correctamente.");
       
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "No se pudo registrar el tanque");
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        /el tanque número \d+ ya está registrado\.?/i.test(error.message)
+      ) {
+        setErrors({ tankNumber: error.message });
+      } else {
+        Alert.alert(
+          "Error",
+          error instanceof Error ? error.message : "No se pudo registrar el tanque",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -112,15 +123,17 @@ export default function TanksScreen() {
           )}
 
           {!isLoading && tanks?.map((tank) => (
-            <TankCard 
-              key={tank.id}
-              tankNumber={tank.tankNumber} 
-              tankStatus={tank.tankStatus} 
-              onPress={() => router.push({
+            <View key={tank.id} className="w-[48%] items-center">
+              <TankCard
+                size={tankCardSize}
+                tankNumber={tank.tankNumber}
+                tankStatus={tank.tankStatus}
+                onPress={() => router.push({
                   pathname: "/tanks/[id]/edit",
                   params: { id: tank.id }
-              })}
-            />
+                })}
+              />
+            </View>
           ))}
         </View>
       </ScreenLayout>

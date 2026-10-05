@@ -10,16 +10,16 @@ type Props = {
 export default function TankStatusPicker({ value, onChange }: Props) {
     const options = [
         { label: "Activo", value: TankStatus.ACTIVE },
-        { label: 'Vacio',  value: TankStatus.EMPTY },
+        { label: 'Vacío',  value: TankStatus.EMPTY },
         { label: 'Mantenimiento',  value: TankStatus.MAINTENANCE },
     ];
 
     return (
-        <View className="rounded-xl border border-backgroundSelected bg-white mb-4 overflow-hidden">
+        <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
             <Picker
                 selectedValue={value}
                 onValueChange={(itemValue) => onChange(itemValue)}
-                style={{ color: "#111827" }}
+                style={{ color: "#f8fafc", backgroundColor: "#1b2338" }}
             >
                 {options.map((option) => (
                     <Picker.Item 

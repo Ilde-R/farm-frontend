@@ -2,7 +2,7 @@ import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import DayPickerModal from "@/features/tanks/components/day-picker-modal";
 import MovementForm from "@/features/tanks/components/movement-form";
-import TankCard from "@/features/tanks/components/tank-card";
+import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
 import TankStatusPicker from "@/features/tanks/components/tank-status-picker";
 import { TANK_STATUS_CONFIG } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
@@ -26,6 +26,7 @@ export default function EditTankScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  const tankCardSize = getTankCardSize(width);
 
   const currentTank = tanks.find((t) => t.id === id);
   const tankNumber = currentTank?.tankNumber ?? (Number(id) || 1);
@@ -105,17 +106,65 @@ export default function EditTankScreen() {
           </Text>
         </View>
         <View className="items-center mt-6">
-          <TankCard tankNumber={currentTank?.tankNumber ?? 1} tankStatus={status} />
+          <TankCard
+            size={tankCardSize}
+            tankNumber={currentTank?.tankNumber ?? 1}
+            tankStatus={status}
+          />
         </View>
 
         <View className="flex-1 pt-6 px-1">
           <ScrollView showsVerticalScrollIndicator={false}>
             <View className="w-full">
             
-              <TouchableOpacity onPress={() => setShowDailyForm(true)}>
-                <Text className="text-text dark:text-text-dark font-semibold text-base mb-4">
-                  {statusConfig.form === "sowing" ? "+ Iniciar siembra" : "+ Agregar registro diario"}
-                </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showDailyForm }}
+                className={`mb-4 flex-row items-center rounded-2xl border p-4 ${
+                  showDailyForm
+                    ? "border-white/15 bg-[#202a40]"
+                    : "border-cyan-400/20 bg-cyan-400/10"
+                }`}
+                onPress={() => setShowDailyForm((isOpen) => !isOpen)}
+              >
+                <View
+                  className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
+                    showDailyForm ? "bg-white/10" : "bg-cyan-400/10"
+                  }`}
+                >
+                  <MaterialCommunityIcons
+                    name={
+                      showDailyForm
+                        ? "close"
+                        : statusConfig.form === "sowing"
+                          ? "fish"
+                          : "plus"
+                    }
+                    size={22}
+                    color={showDailyForm ? "#cbd5e1" : "#67e8f9"}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-text dark:text-text-dark">
+                    {showDailyForm
+                      ? "Cerrar formulario"
+                      : statusConfig.form === "sowing"
+                        ? "Iniciar siembra"
+                        : "Agregar registro diario"}
+                  </Text>
+                  {!showDailyForm && (
+                    <Text className="mt-1 text-xs text-textSecondary dark:text-textSecondary-dark">
+                      {statusConfig.form === "sowing"
+                        ? "Registrar la población inicial"
+                        : "Capturar un movimiento del tanque"}
+                    </Text>
+                  )}
+                </View>
+                <MaterialCommunityIcons
+                  name={showDailyForm ? "chevron-up" : "chevron-down"}
+                  size={22}
+                  color={theme.textSecondary}
+                />
               </TouchableOpacity>
 
               {showDailyForm && (
@@ -132,14 +181,21 @@ export default function EditTankScreen() {
 
               {statusConfig.form === "daily" && (
                 <>
-                  <Text className="text-text dark:text-text-dark font-semibold mb-2">
-                    Tamaño del pez
-                  </Text>
-                  <View className="rounded-xl border border-backgroundSelected bg-white mb-4 overflow-hidden">
+                  <View className="mb-2 flex-row items-center">
+                    <MaterialCommunityIcons
+                      name="fish"
+                      size={18}
+                      color={theme.textSecondary}
+                    />
+                    <Text className="ml-2 font-semibold text-text dark:text-text-dark">
+                      Tamaño del pez
+                    </Text>
+                  </View>
+                  <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
                     <Picker
                       selectedValue={size}
                       onValueChange={(itemValue) => setSize(itemValue)}
-                      style={{ color: "#111827" }}
+                      style={{ color: "#f8fafc", backgroundColor: "#1b2338" }}
                     >
                       <Picker.Item label="Chico" value="Chico" />
                       <Picker.Item label="Mediano" value="Mediano" />
@@ -149,15 +205,23 @@ export default function EditTankScreen() {
                 </>
               )}
 
-              <Text className="text-text dark:text-text-dark font-semibold mb-2">
-                Estado del tanque
-              </Text>
+              <View className="mb-2 flex-row items-center">
+                <MaterialCommunityIcons
+                  name="water"
+                  size={18}
+                  color={theme.textSecondary}
+                />
+                <Text className="ml-2 font-semibold text-text dark:text-text-dark">
+                  Estado del tanque
+                </Text>
+              </View>
               <TankStatusPicker value={status} onChange={setStatus} />
 
               {statusConfig.form === "daily" && (
                 <>
                   <TouchableOpacity
-                    className="mb-2 mt-4"
+                    accessibilityRole="button"
+                    className="mb-4 mt-2 flex-row items-center rounded-2xl border border-white/10 bg-[#29334d] p-4"
                     onPress={() =>
                       router.push({
                         pathname: "/tanks/[id]/map" as any,
@@ -165,9 +229,26 @@ export default function EditTankScreen() {
                       })
                     }
                   >
-                    <Text className="text-text dark:text-text-dark font-semibold">
-                      Mapa de traslado
-                    </Text>
+                    <View className="mr-3 h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10">
+                      <MaterialCommunityIcons
+                        name="map-marker-path"
+                        size={22}
+                        color="#67e8f9"
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-white">
+                        Mapa de traslado
+                      </Text>
+                      <Text className="mt-1 text-xs text-slate-400">
+                        Ver rutas entre tanques
+                      </Text>
+                    </View>
+                    <MaterialCommunityIcons
+                      name="chevron-right"
+                      size={22}
+                      color="#94a3b8"
+                    />
                   </TouchableOpacity>
 
                   <View className="flex-row items-center justify-between mb-4 mt-2" style={{ gap: 10 }}>

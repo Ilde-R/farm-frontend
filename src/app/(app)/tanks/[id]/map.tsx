@@ -1,9 +1,10 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
-import TankCard from "@/features/tanks/components/tank-card";
+import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
 import TankFlowOverlay from "@/features/tanks/components/tank-flow-overlay";
 import { TankPosition, TankStatus } from "@/features/tanks/types/tank";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import {
   useAnimatedProps,
   useFrameCallback,
@@ -44,6 +45,8 @@ const mockConnections: TankConnection[] = [
 ];
 
 export default function MapDetailScreen() {
+  const { width } = useWindowDimensions();
+  const tankCardSize = getTankCardSize(width);
   const [tankPositions, setTankPositions] = useState<Record<number, TankPosition>>({});
   const [flowDirection, setFlowDirection] = useState<FlowDirection | null>(null);
   const flowOffset = useSharedValue(0);
@@ -91,31 +94,44 @@ export default function MapDetailScreen() {
       <View className="px-2 pt-2 pb-10">
         
         <View className="items-center mb-6">
-          <TankCard tankNumber={1} tankStatus={TankStatus.ACTIVE} />
+          <TankCard
+            size={tankCardSize}
+            tankNumber={1}
+            tankStatus={TankStatus.ACTIVE}
+          />
         </View>
 
-        <View className="flex-row gap-4 mb-6">
-          {(["entrada", "salida"] as const).map((direction) => {
-            const isSelected = flowDirection === direction;
+        <View className="mb-6 items-center">
+          <View className="w-full max-w-[320px] flex-row rounded-2xl border border-white/10 bg-[#202a40] p-1.5">
+            {(["entrada", "salida"] as const).map((direction) => {
+              const isSelected = flowDirection === direction;
 
-            return (
-              <Pressable
-                key={direction}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                className={`rounded-lg border px-4 py-2 ${
-                  isSelected
-                    ? "border-cyan-700 bg-cyan-700"
-                    : "border-cyan-700 bg-transparent"
-                }`}
-                onPress={() => toggleFlowDirection(direction)}
-              >
-                <Text className={isSelected ? "font-semibold text-white" : "font-semibold text-cyan-700"}>
-                  {direction === "entrada" ? "Entrada" : "Salida"}
-                </Text>
-              </Pressable>
-            );
-          })}
+              return (
+                <Pressable
+                  key={direction}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl px-4 py-3 ${
+                    isSelected ? "bg-cyan-700" : "bg-transparent"
+                  }`}
+                  onPress={() => toggleFlowDirection(direction)}
+                >
+                  <MaterialCommunityIcons
+                    name={direction === "entrada" ? "arrow-down-left" : "arrow-up-right"}
+                    size={18}
+                    color={isSelected ? "#ffffff" : "#94a3b8"}
+                  />
+                  <Text
+                    className={`font-semibold ${
+                      isSelected ? "text-white" : "text-slate-400"
+                    }`}
+                  >
+                    {direction === "entrada" ? "Entrada" : "Salida"}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
         
         <View className="relative">
@@ -132,11 +148,15 @@ export default function MapDetailScreen() {
             {mockTanks.map((tank) => (
               <View
                 key={tank.id}
-                className="w-40 h-40"
+                style={{ width: tankCardSize, height: tankCardSize }}
                 onLayout={setTankPosition(tank.id)}
               >
                 {(!flowDirection || visibleTankIds.has(tank.id)) && (
-                  <TankCard tankNumber={tank.id} tankStatus={TankStatus.ACTIVE} />
+                  <TankCard
+                    size={tankCardSize}
+                    tankNumber={tank.id}
+                    tankStatus={TankStatus.ACTIVE}
+                  />
                 )}
                 
                 {tank.id !== 1 && (!flowDirection || visibleTankIds.has(tank.id)) && (
