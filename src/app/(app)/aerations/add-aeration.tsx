@@ -1,5 +1,6 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import QrScanner from "@/core/components/qr-scanner";
+import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import { configureEsp32Service, createAerationDeviceService } from "@/features/aeration/services/aeration.service";
 import { useSession } from "@/features/auth/contexts/AuthContext";
@@ -8,9 +9,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -36,15 +35,25 @@ export default function AddAerationScreen() {
   const [deviceKey, setDeviceKey] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  function clearFieldError(field: string) {
+    setFieldErrors((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
 
   async function handleProvision() {
-    if (
-      !blowerId.trim() ||
-      !blowerName.trim() ||
-      !ssid.trim() ||
-      !password.trim()
-    ) {
-      Alert.alert("Campos requeridos", "Llena todos los campos.");
+    const nextErrors: Record<string, string> = {};
+    if (!blowerId.trim()) nextErrors.blowerId = "Este campo es obligatorio";
+    if (!blowerName.trim()) nextErrors.blowerName = "Este campo es obligatorio";
+    if (!ssid.trim()) nextErrors.ssid = "Este campo es obligatorio";
+    if (!password.trim()) nextErrors.password = "Este campo es obligatorio";
+
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -80,6 +89,8 @@ export default function AddAerationScreen() {
   function handleQrScanned(scannedSsid: string, scannedPassword: string) {
     setSsid(scannedSsid);
     setPassword(scannedPassword);
+    if (scannedSsid.trim()) clearFieldError("ssid");
+    if (scannedPassword.trim()) clearFieldError("password");
   }
 
   function handleReset() {
@@ -90,6 +101,7 @@ export default function AddAerationScreen() {
     setPassword("");
     setDeviceKey("");
     setErrorMsg("");
+    setFieldErrors({});
     router.replace("/(app)/(tabs)/sensors");
   }
 
@@ -102,25 +114,29 @@ export default function AddAerationScreen() {
               Configura un nuevo blower para tu granja.
             </Text>
 
-            <Text className="text-text font-semibold mb-1 dark:text-text-dark">
-              ID del blower
-            </Text>
-            <TextInput
-              className="text-text placeholder:text-textSecondary  dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
+            <TextField
+              label="ID del blower"
+              containerClassName="mb-4"
               placeholder="Ej: blwr_abc123"
               value={blowerId}
-              onChangeText={setBlowerId}
+              error={fieldErrors.blowerId}
+              onChangeText={(value) => {
+                setBlowerId(value);
+                clearFieldError("blowerId");
+              }}
               autoCapitalize="none"
             />
 
-            <Text className="text-text font-semibold mb-1 dark:text-text-dark">
-              Nombre del blower
-            </Text>
-            <TextInput
-              className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
+            <TextField
+              label="Nombre del blower"
+              containerClassName="mb-4"
               placeholder="Ej: Ventilador 1"
               value={blowerName}
-              onChangeText={setBlowerName}
+              error={fieldErrors.blowerName}
+              onChangeText={(value) => {
+                setBlowerName(value);
+                clearFieldError("blowerName");
+              }}
               autoCapitalize="words"
             />
 
@@ -134,22 +150,28 @@ export default function AddAerationScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            <TextInput
-              className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4"
+            <TextField
+              containerClassName="mb-4"
               placeholder="Nombre de tu red WiFi"
               value={ssid}
-              onChangeText={setSsid}
+              error={fieldErrors.ssid}
+              onChangeText={(value) => {
+                setSsid(value);
+                clearFieldError("ssid");
+              }}
               autoCapitalize="none"
             />
 
-            <Text className="text-text font-semibold mb-1 dark:text-text-dark">
-              Contraseña WiFi
-            </Text>
-            <TextInput
-              className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-6"
+            <TextField
+              label="Contraseña WiFi"
+              containerClassName="mb-6"
               placeholder="Contraseña de tu red"
               value={password}
-              onChangeText={setPassword}
+              error={fieldErrors.password}
+              onChangeText={(value) => {
+                setPassword(value);
+                clearFieldError("password");
+              }}
               secureTextEntry
               autoCapitalize="none"
             />

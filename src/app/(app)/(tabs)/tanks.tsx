@@ -1,4 +1,5 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import TankCard from "@/features/tanks/components/tank-card";
 import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
@@ -13,7 +14,6 @@ import {
   Alert,
   Modal,
   Text,
-  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -146,16 +146,13 @@ export default function TanksScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text className="mb-1 font-semibold text-text dark:text-text-dark">
-              Número de tanque
-            </Text>
-            <TextInput
-              className={`mb-2 rounded-lg border px-4 py-3 text-text dark:text-text-dark ${
-                errors.tankNumber ? "border-red-500" : "border-backgroundSelected"
-              }`}
+            <TextField
+              label="Número de tanque"
+              containerClassName="mb-4"
               placeholder="Ej: 3"
               placeholderTextColor={theme.textSecondary}
               value={tankNumber}
+              error={errors.tankNumber}
               onChangeText={(text) => {
                 setTankNumber(text);
                 clearError("tankNumber");
@@ -163,10 +160,6 @@ export default function TanksScreen() {
               keyboardType="number-pad"
               editable={!loading}
             />
-            {errors.tankNumber && (
-              <Text className="text-red-500 text-xs mb-4">{errors.tankNumber}</Text>
-            )}
-            {!errors.tankNumber && <View className="mb-4" />}
 
             <Text className="mb-1 font-semibold text-text dark:text-text-dark">
               Estado

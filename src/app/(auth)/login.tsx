@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
   Alert,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import TextField from "@/core/components/ui/text-field";
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -67,24 +67,23 @@ export default function LoginScreen() {
           Iniciar Sesión
         </Text>
 
-        <TextInput
-          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark  border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base "
+        <TextField
+          containerClassName="mb-4"
           placeholder="Nombre de usuario"
           value={username}
+          error={errors.username}
           onChangeText={(text) => {
             setUsername(text);
             clearError("username");
           }}
           autoCapitalize="none"
         />
-        {errors.username && (
-          <Text className="text-textError text-xs mb-2">{errors.username}</Text>
-        )}
 
-        <TextInput
-          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
+        <TextField
+          containerClassName="mb-4"
           placeholder="Email"
           value={email}
+          error={errors.email}
           onChangeText={(text) => {
             setEmail(text);
             clearError("email");
@@ -92,13 +91,11 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        {errors.email && (
-          <Text className="text-textError text-xs mb-2">{errors.email}</Text>
-        )}
         
         <View className="relative mb-4">
-          <TextInput
-            className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base"
+          <TextField
+            error={errors.password}
+            className="pr-12"
             placeholder="Contraseña"
             placeholderTextColor="#60646C"
             value={password}
@@ -119,9 +116,6 @@ export default function LoginScreen() {
             />
           </TouchableOpacity>
         </View>
-        {errors.password && (
-          <Text className="text-textError text-xs mb-2">{errors.password}</Text>
-        )}
 
         <TouchableOpacity
           onPress={handleLogin}

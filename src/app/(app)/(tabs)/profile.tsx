@@ -1,4 +1,5 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import { validateEmail, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
@@ -8,7 +9,6 @@ import {
   ActivityIndicator,
   Alert,
   Text,
-  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -115,32 +115,25 @@ export default function ProfileScreen() {
             </Text>
 
             <View className="w-full">
-              <Text className="text-text dark:text-text-dark font-semibold mb-1">
-                Username
-              </Text>
-              <TextInput
-                className="text-text dark:text-text-dark placeholder:text-textSecondary dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-1 text-base"
+              <TextField
+                label="Username"
+                containerClassName="mb-3"
                 placeholder="Username"
                 value={username}
+                error={errors.username}
                 onChangeText={(text) => {
                   setUsername(text);
                   clearError("username");
                 }}
                 autoCapitalize="none"
               />
-              {errors.username && (
-                <Text className="text-textError text-xs mb-2">
-                  {errors.username}
-                </Text>
-              )}
 
-              <Text className="text-text dark:text-text-dark font-semibold mb-1 mt-3">
-                Email
-              </Text>
-              <TextInput
-                className="text-text dark:text-text-dark placeholder:text-textSecondary dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-1 text-base"
+              <TextField
+                label="Email"
+                containerClassName="mt-1"
                 placeholder="Email"
                 value={email}
+                error={errors.email}
                 onChangeText={(text) => {
                   setEmail(text);
                   clearError("email");
@@ -148,11 +141,6 @@ export default function ProfileScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-              {errors.email && (
-                <Text className="text-textError text-xs mb-2">
-                  {errors.email}
-                </Text>
-              )}
             </View>
 
             <View className="flex-row mt-6" style={{ gap: 12 }}>

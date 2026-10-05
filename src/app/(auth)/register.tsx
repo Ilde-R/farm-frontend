@@ -5,11 +5,11 @@ import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { useState } from "react";
+import TextField from "@/core/components/ui/text-field";
 import {
   ActivityIndicator,
   Alert,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -68,24 +68,23 @@ export default function RegisterScreen() {
           Crear Cuenta
         </Text>
 
-        <TextInput
-          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
+        <TextField
+          containerClassName="mb-4"
           placeholder="Nombre de usuario"
           value={username}
+          error={errors.username}
           onChangeText={(text) => {
             setUsername(text);
             clearError("username");
           }}
           autoCapitalize="none"
         />
-        {errors.username && (
-          <Text className="text-textError text-xs mb-2">{errors.username}</Text>
-        )}
 
-        <TextInput
-          className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 mb-4 text-base"
+        <TextField
+          containerClassName="mb-4"
           placeholder="Email"
           value={email}
+          error={errors.email}
           onChangeText={(text) => {
             setEmail(text);
             clearError("email");
@@ -93,13 +92,11 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        {errors.email && (
-          <Text className="text-textError text-xs mb-2">{errors.email}</Text>
-        )}
 
         <View className="relative mb-1">
-          <TextInput
-            className="text-text placeholder:text-textSecondary dark:text-text-dark dark:placeholder:text-textSecondary-dark border border-backgroundSelected rounded-lg px-4 py-3 pr-12 text-base"
+          <TextField
+            error={errors.password}
+            className="pr-12"
             placeholder="Contraseña"
             placeholderTextColor="#60646C"
             value={password}
@@ -120,9 +117,6 @@ export default function RegisterScreen() {
             />
           </TouchableOpacity>
         </View>
-        {errors.password && (
-          <Text className="text-textError text-xs mb-2">{errors.password}</Text>
-        )}
         <Text className="text-xs text-textSecondary dark:text-textSecondary-dark mb-6">
           Mín. 8 caracteres, mayúscula, minúscula, número y carácter especial
         </Text>

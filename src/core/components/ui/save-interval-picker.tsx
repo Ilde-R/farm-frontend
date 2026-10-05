@@ -7,11 +7,11 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View
 } from "react-native";
+import TextField from "./text-field";
 import ThresholdSlider from "./threshold-slider";
 
 const SAVE_INTERVAL_OPTIONS = [
@@ -117,10 +117,10 @@ export default function SaveIntervalPicker({
 
               {customMode ? (
                 <View>
-                  <TextInput
-                    className="text-white bg-gray-700 border border-gray-500 rounded-lg px-4 py-3 text-base mb-4"
+                  <TextField
+                    containerClassName="mb-4"
+                    className="bg-gray-700 text-white"
                     placeholder="Segundos (60-10800)"
-                    placeholderTextColor="#9CA3AF"
                     value={customInput}
                     onChangeText={setCustomInput}
                     keyboardType="numeric"
