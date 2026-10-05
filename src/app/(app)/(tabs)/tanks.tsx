@@ -106,7 +106,7 @@ export default function TanksScreen() {
         headerRight={HeaderButtons}
         isScrollable={true}
       >
-        <View className="flex-row flex-wrap justify-center gap-4 p-4">
+        <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
           {isLoading && (
             <ActivityIndicator size="large" color={theme.text} className="mt-10"/>
           )}
