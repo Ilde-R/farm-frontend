@@ -30,11 +30,21 @@ export function BatchProvider({ children }: PropsWithChildren) {
         if(!token) return;
         try {
             setIsLoading(true);
-            const response = await getBatchesService();
-
-            setBatches(response.data.items || []);
+            const pageSize = 10;
+            const firstPage = await getBatchesService(1, pageSize);
+            const pageCount = Math.ceil(firstPage.data.total / pageSize);
+            const remainingPages = await Promise.all(
+                Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) =>
+                    getBatchesService(index + 2, pageSize)
+                )
+            );
+            setBatches([
+                ...firstPage.data.items,
+                ...remainingPages.flatMap((response) => response.data.items),
+            ]);
         } catch(error) {
             console.error('Error al obtener los lotes', error);
+            throw error;
         } finally {
             setIsLoading(false);
         }

@@ -11,9 +11,11 @@ export async function createBatchService(data: CreateBatchPayload): Promise<Batc
     }
 }
 
-export async function getBatchesService(): Promise<GetBatchResponse> {
+export async function getBatchesService(page = 1, limit = 10): Promise<GetBatchResponse> {
     try {
-        const response = await api.get('/batches');
+        const response = await api.get('/batches', {
+            params: { page, limit },
+        });
         return response.data
     } catch (error) {
         handleApiError(error, 'Error al obtener lotes')

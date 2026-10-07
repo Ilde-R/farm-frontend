@@ -23,7 +23,7 @@ import {
 } from "react-native";
 
 export default function EditTankScreen() {
-  const { tanks, updateTank } = useTank();
+  const { tanks, updateTank, fetchTanks } = useTank();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -36,7 +36,12 @@ export default function EditTankScreen() {
   const tankNumber = currentTank?.tankNumber ?? (Number(id) || 1);
 
   useEffect(() => {
-    void fetchBatches();
+    void fetchBatches().catch((error) => {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "No se pudieron cargar los lotes.",
+      );
+    });
   }, [fetchBatches]);
 
   const tankBatches = batches
@@ -59,6 +64,12 @@ export default function EditTankScreen() {
     currentTank ? currentTank.tankStatus : ("Activo" as TankStatus)
   );
   const [size, setSize] = useState("Mediano");
+
+  useEffect(() => {
+    if (currentTank) {
+      setStatus(currentTank.tankStatus);
+    }
+  }, [currentTank?.tankStatus]);
   
   const [showDailyForm, setShowDailyForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -144,6 +155,27 @@ export default function EditTankScreen() {
             tankStatus={status}
           />
         </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          className="mx-1 mt-4 flex-row items-center justify-between rounded-xl border border-backgroundSelected px-4 py-3"
+          onPress={() => router.push(`/tanks/${id}/batches`)}
+        >
+          <View className="flex-row items-center">
+            <MaterialCommunityIcons
+              name="format-list-bulleted"
+              size={20}
+              color={theme.textSecondary}
+            />
+            <Text className="ml-3 font-medium text-text dark:text-text-dark">
+              Ver lotes ({tankBatches.length})
+            </Text>
+          </View>
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color={theme.textSecondary}
+          />
+        </TouchableOpacity>
 
         <View className="flex-1 pt-6 px-1">
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -217,7 +249,7 @@ export default function EditTankScreen() {
                           initialQuantity: movementData.initialQuantity,
                           stockingDate: movementData.stockingDate,
                         });
-                        setStatus(TankStatus.ACTIVE);
+                        await fetchTanks();
                         setShowDailyForm(false);
                         Alert.alert("Éxito", "La siembra se inició correctamente.");
                       } catch (error) {
