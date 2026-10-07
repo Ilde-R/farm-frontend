@@ -14,6 +14,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
@@ -23,7 +24,7 @@ import {
 } from "react-native";
 
 export default function EditTankScreen() {
-  const { tanks, updateTank, fetchTanks } = useTank();
+  const { tanks, updateTank, fetchTanks, deleteTank } = useTank();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -34,6 +35,10 @@ export default function EditTankScreen() {
   const { batches, createBatch, fetchBatches } = useBatch();
   const currentTank = tanks.find((t) => t.id === id);
   const tankNumber = currentTank?.tankNumber ?? (Number(id) || 1);
+
+  useEffect(() => {
+    void fetchTanks();
+  }, [fetchTanks]);
 
   useEffect(() => {
     void fetchBatches().catch((error) => {
@@ -61,7 +66,7 @@ export default function EditTankScreen() {
   const iconSize = Math.round(width * 0.06);
 
   const [status, setStatus] = useState<TankStatus>(
-    currentTank ? currentTank.tankStatus : ("Activo" as TankStatus)
+    currentTank?.tankStatus ?? TankStatus.EMPTY
   );
   const [size, setSize] = useState("Mediano");
 
@@ -75,6 +80,7 @@ export default function EditTankScreen() {
   const [showHistory, setShowHistory] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const statusConfig = TANK_STATUS_CONFIG[status] || { form: "daily", label: "Activo" };
 
@@ -113,6 +119,58 @@ export default function EditTankScreen() {
       console.error("DETALLE DEL ERROR AL GUARDAR:", error);
       Alert.alert("Error", "No se pudieron guardar los cambios.");
     }
+  }
+
+  async function handleDeleteTank() {
+    if (!id || !currentTank) {
+      Alert.alert("Error", "No se encontraron los datos del tanque.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteTank(id);
+      Alert.alert(
+        "Estanque eliminado",
+        `El estanque ${currentTank.tankNumber} se eliminó correctamente.`,
+        [
+          {
+            text: "Aceptar",
+            onPress: () => router.replace("/(app)/(tabs)/tanks"),
+          },
+        ],
+        { cancelable: false },
+      );
+    } catch (error) {
+      Alert.alert(
+        "No se pudo eliminar",
+        error instanceof Error ? error.message : "Ocurrió un error al eliminar el estanque.",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  function confirmDeleteTank() {
+    if (!currentTank) {
+      Alert.alert("Error", "No se encontraron los datos del tanque.");
+      return;
+    }
+
+    Alert.alert(
+      "Eliminar estanque",
+      `¿Seguro que deseas eliminar el estanque ${currentTank.tankNumber}? Esta acción no se puede deshacer.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            void handleDeleteTank();
+          },
+        },
+      ],
+    );
   }
 
   const HeaderRight = (
@@ -453,6 +511,27 @@ export default function EditTankScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            className="mb-2 flex-row items-center justify-center rounded-lg border border-red-400/40 py-3"
+            onPress={confirmDeleteTank}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <ActivityIndicator color="#f87171" />
+            ) : (
+              <>
+                <MaterialCommunityIcons
+                  name="delete-outline"
+                  size={18}
+                  color="#f87171"
+                />
+                <Text className="ml-2 font-semibold text-red-400">
+                  Eliminar estanque
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       </ScreenLayout>
 

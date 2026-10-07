@@ -1,6 +1,6 @@
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
-import { createTankService, getTanksService, updateTankService } from "../services/tank.service";
+import { createTankService, deleteTankService, getTanksService, updateTankService } from "../services/tank.service";
 import { CreateTankPayload, Tank, UpdateTankPayload } from "../types/tank";
 
 interface TankContextType {
@@ -9,6 +9,7 @@ interface TankContextType {
    createTank: (data: CreateTankPayload) => Promise<void>;
    updateTank: (data: UpdateTankPayload, tankId: string) => Promise<void>;
    fetchTanks: () => Promise<void>;
+   deleteTank: (tankId: string) => Promise<void>;
 }
 
 const TankContext = createContext<TankContextType | null>(null);
@@ -81,6 +82,17 @@ export function TankProvider({ children }: PropsWithChildren) {
                    throw error;
                }
             },
+
+            // Eliminar
+            deleteTank: async (tankId: string) => {
+               try {
+                  await deleteTankService(tankId);
+                  setTanks((prevTanks) => prevTanks.filter((t) => t.id !== tankId));
+               } catch (error) {
+                  console.error('Error al eliminar el tanque', error);
+                  throw error;
+               }
+            }
          }}
       >
       {children}

@@ -28,3 +28,11 @@ export async function updateTankService(tankId: string, data: UpdateTankPayload)
     handleApiError(error, 'Error al actualizar el tanque')
   }
 }
+
+export async function deleteTankService(tankId:string): Promise<void> {
+  try {
+    await api.delete(`/tanks/${tankId}`);
+  } catch (error) {
+    handleApiError(error, 'Error al eliminar el tanque')
+  }
+}

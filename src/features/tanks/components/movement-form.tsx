@@ -29,6 +29,7 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
     const [dailyDate, setDailyDate] = useState(new Date());
     const [showDailyDatePicker, setShowDailyDatePicker] = useState(false);
     const [dailyQuantity, setDailyQuantity] = useState("");
+    const [quantityError, setQuantityError] = useState("");
     const [movementType, setMovementType] = useState<MovementType>("Traslado");
     const [targetTank, setTargetTank] = useState("1");
 
@@ -40,10 +41,11 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
                 return;
             }
             if (!Number.isInteger(initialQuantity) || initialQuantity <= 0) {
-                Alert.alert("Error", "Ingresa una cantidad entera mayor que 0.");
+                setQuantityError("Ingresa una cantidad entera mayor que 0.");
                 return;
             }
 
+            setQuantityError("");
             await onSave({
                 type: "Siembra",
                 tankId,
@@ -85,7 +87,11 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
                 className="border-white/10 bg-[#1b2338] text-white"
                 style={{ color: "#ffffff" }}
                 value={dailyQuantity}
-                onChangeText={setDailyQuantity}
+                error={formType === "sowing" ? quantityError : undefined}
+                onChangeText={(value) => {
+                    setDailyQuantity(value);
+                    if (quantityError) setQuantityError("");
+                }}
                 placeholder="Ej. 150"
                 keyboardType="number-pad"
                 containerClassName="mb-4"

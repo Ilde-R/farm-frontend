@@ -33,7 +33,7 @@ export default function TanksScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   
   const [tankNumber, setTankNumber] = useState("");
-  const [tankStatus, setTankStatus] = useState<TankStatus>(TankStatus.ACTIVE);
+  const [tankStatus, setTankStatus] = useState<TankStatus>(TankStatus.EMPTY);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -50,7 +50,7 @@ export default function TanksScreen() {
   function closeAddModal() {
     setShowAddModal(false);
     setTankNumber("");
-    setTankStatus(TankStatus.ACTIVE);
+    setTankStatus(TankStatus.EMPTY);
     setErrors({});
   }
 
@@ -120,6 +120,22 @@ export default function TanksScreen() {
         <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
           {isLoading && (
             <ActivityIndicator size="large" color={theme.text} className="mt-10"/>
+          )}
+
+          {!isLoading && tanks.length === 0 && (
+            <View className="w-full items-center py-12">
+              <MaterialCommunityIcons
+                name="water-off"
+                size={36}
+                color={theme.textSecondary}
+              />
+              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
+                No hay tanques registrados
+              </Text>
+              <Text className="mt-1 text-center text-sm text-textSecondary dark:text-textSecondary-dark">
+                Usa el botón + para registrar el primero.
+              </Text>
+            </View>
           )}
 
           {!isLoading && tanks?.map((tank) => (
