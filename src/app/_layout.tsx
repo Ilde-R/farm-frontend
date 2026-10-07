@@ -2,6 +2,7 @@ import { SplashScreenController } from "@/core/components/splash-screen-controll
 import { setupNotifications } from "@/core/utils/notifications";
 import { SocketProvider } from "@/features/aeration/contexts/AerationSocketContext";
 import { SessionProvider, useSession } from "@/features/auth/contexts/AuthContext";
+import { BatchProvider } from "@/features/batches/contexts/BatchContext";
 import { TankProvider } from "@/features/tanks/contexts/TankContext";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
@@ -33,8 +34,10 @@ export default function RootLayout() {
     <SessionProvider>
       <SocketProvider>
         <TankProvider>
-          <SplashScreenController />
-          <RootNavigator />
+          <BatchProvider>
+            <SplashScreenController />
+            <RootNavigator />
+          </BatchProvider>
         </TankProvider>
       </SocketProvider>
     </SessionProvider>

@@ -1,5 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
+import { useBatch } from "@/features/batches/contexts/BatchContext";
+import { BatchStatus } from "@/features/batches/types/batch";
 import DayPickerModal from "@/features/tanks/components/day-picker-modal";
 import MovementForm from "@/features/tanks/components/movement-form";
 import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
@@ -10,14 +12,14 @@ import { TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Picker } from "@react-native-picker/picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View
 } from "react-native";
 
 export default function EditTankScreen() {
@@ -28,8 +30,28 @@ export default function EditTankScreen() {
   const { width } = useWindowDimensions();
   const tankCardSize = getTankCardSize(width);
 
+  // Iniciar siembra
+  const { batches, createBatch, fetchBatches } = useBatch();
   const currentTank = tanks.find((t) => t.id === id);
   const tankNumber = currentTank?.tankNumber ?? (Number(id) || 1);
+
+  useEffect(() => {
+    void fetchBatches();
+  }, [fetchBatches]);
+
+  const tankBatches = batches
+    .filter((batch) => batch.tankId === currentTank?.id)
+    .sort(
+      (first, second) =>
+        new Date(second.stockingDate).getTime() -
+        new Date(first.stockingDate).getTime(),
+    );
+  const tankBatch =
+    tankBatches.find((batch) => batch.batchesStatus === BatchStatus.ACTIVE) ??
+    tankBatches[0];
+  const stockingDate = tankBatch
+    ? new Date(tankBatch.stockingDate).toLocaleString("es-MX")
+    : null;
 
   const iconSize = Math.round(width * 0.06);
 
@@ -100,10 +122,20 @@ export default function EditTankScreen() {
         headerRight={HeaderRight}
         isScrollable={false}
       >
-        <View className="mt-2 px-1">
-          <Text className="text-text dark:text-text-dark">
-            Fecha de siembra 12/12/2012 -- 3pm
-          </Text>
+        <View className="mx-1 mt-3 flex-row items-center border-b border-backgroundSelected pb-3">
+          <MaterialCommunityIcons
+            name="calendar-month-outline"
+            size={20}
+            color={theme.textSecondary}
+          />
+          <View className="flex-1">
+            <Text className="ml-3 text-sm text-textSecondary dark:text-textSecondary-dark">
+              Fecha de siembra
+            </Text>
+            <Text className="ml-3 mt-0.5 font-medium text-text dark:text-text-dark">
+              {stockingDate ?? "Sin siembra registrada"}
+            </Text>
+          </View>
         </View>
         <View className="items-center mt-6">
           <TankCard
@@ -170,10 +202,36 @@ export default function EditTankScreen() {
               {showDailyForm && (
                 <MovementForm
                   formType={statusConfig.form as "sowing" | "daily"}
-                  tankNumber={currentTank?.tankNumber ?? 1}
+                  tankId={currentTank?.id}
                   onCancel={() => setShowDailyForm(false)}
-                  onSave={() => {
-                    setStatus("Activo" as TankStatus);
+                  onSave={async (movementData) => {
+                    if (movementData.type === "Siembra") {
+                      if (!currentTank) {
+                        Alert.alert("Error", "No se encontraron los datos del tanque.");
+                        return;
+                      }
+
+                      try {
+                        await createBatch({
+                          tankId: movementData.tankId,
+                          initialQuantity: movementData.initialQuantity,
+                          stockingDate: movementData.stockingDate,
+                        });
+                        setStatus(TankStatus.ACTIVE);
+                        setShowDailyForm(false);
+                        Alert.alert("Éxito", "La siembra se inició correctamente.");
+                      } catch (error) {
+                        Alert.alert(
+                          "Error",
+                          error instanceof Error
+                            ? error.message
+                            : "No se pudo iniciar la siembra.",
+                        );
+                      }
+                      return;
+                    }
+
+                    setStatus(TankStatus.ACTIVE);
                     setShowDailyForm(false);
                   }}
                 />
