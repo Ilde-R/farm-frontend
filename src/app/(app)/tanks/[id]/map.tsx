@@ -235,6 +235,15 @@ export default function MapDetailScreen() {
                 !flowDirection ||
                 tank.id === id ||
                 visibleTankIds.has(tank.tankNumber);
+              const isSelectedTank = tank.id === id;
+              const movementLabel =
+                flowDirection === "entrada"
+                  ? isSelectedTank
+                    ? "Ingresaron"
+                    : "Salieron"
+                  : isSelectedTank
+                    ? "Salieron"
+                    : "Ingresaron";
               return (
                 <View
                   key={tank.id}
@@ -251,7 +260,7 @@ export default function MapDetailScreen() {
                       />
                       {flowDirection && quantityByTank.has(tank.tankNumber) && (
                         <Text className="absolute -bottom-7 w-full text-center text-xs font-semibold text-cyan-200">
-                          En la ruta: {quantityByTank.get(tank.tankNumber)} piezas
+                          {movementLabel}: {quantityByTank.get(tank.tankNumber)} piezas
                         </Text>
                       )}
                     </>
