@@ -3,7 +3,7 @@ import Animated from "react-native-reanimated";
 import { getCircleBorderPoint } from "../utils/tank-geometry";
 import type { TankPosition } from "../types/tank";
 
-type FlowDirection = "entrada" | "salida";
+type FlowDirection = "ingreso" | "salida";
 
 export type TankConnection = {
     fromId: number;
@@ -37,7 +37,7 @@ export default function TankFlowOverlay({
 
     if (readyConnections.length === 0) return null;
 
-    const hubId = readyConnections[0].direction === "entrada"
+    const hubId = readyConnections[0].direction === "ingreso"
         ? readyConnections[0].toId
         : readyConnections[0].fromId;
     const hubPosition = tankPositions[hubId];

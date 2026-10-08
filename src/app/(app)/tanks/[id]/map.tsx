@@ -23,7 +23,7 @@ import {
   useSharedValue,
 } from "react-native-reanimated";
 
-type FlowDirection = "entrada" | "salida";
+type FlowDirection = "ingreso" | "salida";
 
 export default function MapDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -72,12 +72,12 @@ export default function MapDetailScreen() {
   });
 
   const animatedFlowProps = useAnimatedProps(() => ({
-    strokeDashoffset: flowDirection === "entrada"
+    strokeDashoffset: flowDirection === "ingreso"
       ? flowOffset.value
       : -flowOffset.value,
   }));
   const animatedTrunkFlowProps = useAnimatedProps(() => ({
-    strokeDashoffset: flowDirection === "entrada"
+    strokeDashoffset: flowDirection === "ingreso"
       ? flowOffset.value
       : -flowOffset.value,
   }));
@@ -86,7 +86,7 @@ export default function MapDetailScreen() {
     ...(tankMovements?.incoming.fromTanks.map((group) => ({
         fromId: group.tankNumber,
         toId: tankMovements.tank.tankNumber,
-        direction: "entrada" as const,
+        direction: "ingreso" as const,
       })) ?? []),
     ...(tankMovements?.outgoing.toTanks.map((group) => ({
         fromId: tankMovements.tank.tankNumber,
@@ -99,12 +99,12 @@ export default function MapDetailScreen() {
     ? allConnections.filter((connection) => connection.direction === flowDirection)
     : [];
   const animatedUpperSpineFlowProps = useAnimatedProps(() => ({
-    strokeDashoffset: flowDirection === "entrada"
+    strokeDashoffset: flowDirection === "ingreso"
       ? -flowOffset.value
       : flowOffset.value,
   }));
   const animatedLowerSpineFlowProps = useAnimatedProps(() => ({
-    strokeDashoffset: flowDirection === "entrada"
+    strokeDashoffset: flowDirection === "ingreso"
       ? flowOffset.value
       : -flowOffset.value,
   }));
@@ -112,7 +112,7 @@ export default function MapDetailScreen() {
     visibleConnections.flatMap(({ fromId, toId }) => [fromId, toId]),
   );
   const quantityByTank = new Map<number, number>();
-  if (flowDirection === "entrada" && tankMovements) {
+  if (flowDirection === "ingreso" && tankMovements) {
     quantityByTank.set(
       tankMovements.tank.tankNumber,
       tankMovements.incoming.totalQuantity,
@@ -160,7 +160,7 @@ export default function MapDetailScreen() {
 
         <View className="mb-6 items-center">
           <View className="w-full max-w-[320px] flex-row rounded-2xl border border-white/10 bg-[#202a40] p-1.5">
-            {(["entrada", "salida"] as const).map((direction) => {
+            {(["ingreso", "salida"] as const).map((direction) => {
               const isSelected = flowDirection === direction;
               return (
                 <Pressable
@@ -177,12 +177,12 @@ export default function MapDetailScreen() {
                   }
                 >
                   <MaterialCommunityIcons
-                    name={direction === "entrada" ? "arrow-down-left" : "arrow-up-right"}
+                    name={direction === "ingreso" ? "arrow-down-left" : "arrow-up-right"}
                     size={18}
                     color={isSelected ? "#ffffff" : "#94a3b8"}
                   />
                   <Text className={`font-semibold ${isSelected ? "text-white" : "text-slate-400"}`}>
-                    {direction === "entrada" ? "Entrada" : "Salida"}
+                    {direction === "ingreso" ? "Ingreso" : "Salida"}
                   </Text>
                 </Pressable>
               );
@@ -237,7 +237,7 @@ export default function MapDetailScreen() {
                 visibleTankIds.has(tank.tankNumber);
               const isSelectedTank = tank.id === id;
               const movementLabel =
-                flowDirection === "entrada"
+                flowDirection === "ingreso"
                   ? isSelectedTank
                     ? "Ingresaron"
                     : "Salieron"
