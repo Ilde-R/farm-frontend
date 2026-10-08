@@ -1,5 +1,6 @@
 export enum BatchStatus {
     ACTIVE = 'isActive',
+    HARVESTED = 'harvested',
 }
 
 export interface Batch {

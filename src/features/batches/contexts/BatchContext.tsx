@@ -61,7 +61,7 @@ export function BatchProvider({ children }: PropsWithChildren) {
                 createBatch: async (data: CreateBatchPayload) => {
                     const newBatch = await createBatchService(data);
                     setBatches(prev => [...prev, newBatch]);
-                }
+                },
             }}
         >
         {children}    

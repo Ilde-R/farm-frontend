@@ -615,8 +615,15 @@ export default function EditTankScreen() {
                   )}
                 </>
               )}
-              <TouchableOpacity 
-                className="flex-1 bg-text rounded-lg py-3 mt-4"
+              <TouchableOpacity
+                accessibilityRole="button"
+                className="mt-4 flex-1 rounded-lg bg-text py-3"
+                onPress={() =>
+                  Alert.alert(
+                    "Cosecha no disponible",
+                    "El backend todavía no ofrece una operación para cerrar el lote y marcar el tanque como vacío. No se hicieron cambios.",
+                  )
+                }
               >
                 <Text className="text-background font-semibold text-base text-center">
                   Cosechar estanque
