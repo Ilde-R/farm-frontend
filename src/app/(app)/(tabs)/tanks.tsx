@@ -1,6 +1,8 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
+import { useBatch } from "@/features/batches/contexts/BatchContext";
+import { getActiveBatchByTankId } from "@/features/batches/utils/batch.utils";
 import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
 import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
@@ -26,9 +28,20 @@ export default function TanksScreen() {
   const router = useRouter();
   
   const { createTank, tanks, isLoading, fetchTanks } = useTank();
+  const { batches, fetchBatches } = useBatch();
   useEffect(() => {
     fetchTanks();
   }, [fetchTanks]);
+  useEffect(() => {
+    void fetchBatches().catch((error) => {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "No se pudieron cargar los lotes.",
+      );
+    });
+  }, [fetchBatches]);
+
+  const activeBatchByTankId = getActiveBatchByTankId(batches);
 
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -144,6 +157,7 @@ export default function TanksScreen() {
                 size={tankCardSize}
                 tankNumber={tank.tankNumber}
                 tankStatus={tank.tankStatus}
+                currentQuantity={activeBatchByTankId.get(tank.id)?.currentQuantity}
                 onPress={() => router.push({
                   pathname: "/tanks/[id]/edit",
                   params: { id: tank.id }

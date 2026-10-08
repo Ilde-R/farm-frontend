@@ -1,4 +1,6 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import { useBatch } from "@/features/batches/contexts/BatchContext";
+import { getActiveBatchByTankId } from "@/features/batches/utils/batch.utils";
 import { useTankMovement } from "@/features/tank-movements/contexts/TankMovementContext";
 import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
 import TankFlowOverlay, { type TankConnection } from "@/features/tanks/components/tank-flow-overlay";
@@ -28,6 +30,7 @@ export default function MapDetailScreen() {
   const { width } = useWindowDimensions();
   const tankCardSize = getTankCardSize(width);
   const { tanks, fetchTanks } = useTank();
+  const { batches, fetchBatches } = useBatch();
   const { tankMovements, isLoading, fetchTankMovements } = useTankMovement();
   const [tankPositions, setTankPositions] = useState<Record<number, TankPosition>>({});
   const [flowDirection, setFlowDirection] = useState<FlowDirection | null>(null);
@@ -42,13 +45,17 @@ export default function MapDetailScreen() {
       setLoadError(null);
       setTankPositions({});
 
-      void Promise.all([fetchTanks(), id ? fetchTankMovements(id) : Promise.resolve()])
+      void Promise.all([
+        fetchTanks(),
+        fetchBatches(),
+        id ? fetchTankMovements(id) : Promise.resolve(),
+      ])
         .catch((error) => {
           if (isActive) {
             setLoadError(
               error instanceof Error
                 ? error.message
-                : "No se pudieron cargar los movimientos.",
+                : "No se pudieron cargar los datos del mapa.",
             );
           }
         });
@@ -56,7 +63,7 @@ export default function MapDetailScreen() {
       return () => {
         isActive = false;
       };
-    }, [fetchTanks, fetchTankMovements, id]),
+    }, [fetchTanks, fetchBatches, fetchTankMovements, id]),
   );
 
   useFrameCallback(({ timeSincePreviousFrame }) => {
@@ -122,6 +129,7 @@ export default function MapDetailScreen() {
       quantityByTank.set(group.tankNumber, group.quantity);
     }
   }
+  const activeBatchByTankId = getActiveBatchByTankId(batches);
 
   const setTankPosition =
     (tankNumber: number) =>
@@ -145,6 +153,7 @@ export default function MapDetailScreen() {
               size={tankCardSize}
               tankNumber={currentTank.tankNumber}
               tankStatus={currentTank.tankStatus}
+              currentQuantity={activeBatchByTankId.get(currentTank.id)?.currentQuantity}
             />
           </View>
         )}
@@ -238,10 +247,11 @@ export default function MapDetailScreen() {
                         size={tankCardSize}
                         tankNumber={tank.tankNumber}
                         tankStatus={tank.tankStatus ?? TankStatus.EMPTY}
+                        currentQuantity={activeBatchByTankId.get(tank.id)?.currentQuantity}
                       />
                       {flowDirection && quantityByTank.has(tank.tankNumber) && (
-                        <Text className="absolute -bottom-7 w-full text-center text-xs font-semibold text-cyan-700">
-                          {quantityByTank.get(tank.tankNumber)} piezas
+                        <Text className="absolute -bottom-7 w-full text-center text-xs font-semibold text-cyan-200">
+                          En la ruta: {quantityByTank.get(tank.tankNumber)} piezas
                         </Text>
                       )}
                     </>

@@ -39,6 +39,7 @@ const STATUS_PRESENTATION: Record<
 type TankCardProps = {
   tankNumber: number;
   tankStatus?: TankStatus | string;
+  currentQuantity?: number;
   onPress?: () => void;
   size?: number;
 };
@@ -50,6 +51,7 @@ export function getTankCardSize(screenWidth: number) {
 export default function TankCard({
   tankNumber,
   tankStatus = TankStatus.ACTIVE,
+  currentQuantity,
   onPress,
   size,
 }: TankCardProps) {
@@ -71,7 +73,9 @@ export default function TankCard({
       activeOpacity={0.85}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`Tanque ${tankNumber}, ${displayStatus}`}
+      accessibilityLabel={`Tanque ${tankNumber}, ${displayStatus}${
+        currentQuantity === undefined ? "" : `, ${currentQuantity} piezas actuales`
+      }`}
       className="items-center"
     >
       <View
@@ -106,6 +110,11 @@ export default function TankCard({
               {displayStatus}
             </Text>
           </View>
+          {currentQuantity !== undefined && (
+            <Text className="mt-1 text-[10px] font-medium text-slate-300">
+                {currentQuantity} piezas
+            </Text>
+          )}
         </View>
       </View>
     </TouchableOpacity>

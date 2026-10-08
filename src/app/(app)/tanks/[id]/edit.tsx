@@ -1,7 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
-import { BatchStatus } from "@/features/batches/types/batch";
+import { getActiveBatchByTankId } from "@/features/batches/utils/batch.utils";
 import { useTankMovement } from "@/features/tank-movements/contexts/TankMovementContext";
 import { MovementType, type TankMovement } from "@/features/tank-movements/types/tank-movement";
 import DayPickerModal from "@/features/tanks/components/day-picker-modal";
@@ -78,9 +78,9 @@ export default function EditTankScreen() {
         new Date(second.stockingDate).getTime() -
         new Date(first.stockingDate).getTime(),
     );
-  const activeTankBatch = tankBatches.find(
-    (batch) => batch.batchesStatus === BatchStatus.ACTIVE,
-  );
+  const activeTankBatch = currentTank
+    ? getActiveBatchByTankId(batches).get(currentTank.id)
+    : undefined;
   const tankBatch =
     activeTankBatch ?? tankBatches[0];
   const stockingDate = tankBatch
@@ -267,7 +267,7 @@ export default function EditTankScreen() {
         headerRight={HeaderRight}
         isScrollable={false}
       >
-        <View className="mx-1 mt-3 flex-row items-center border-b border-backgroundSelected pb-3">
+        <View className="mx-1 mt-3 flex-row items-center border-b border-white/10 pb-3">
           <MaterialCommunityIcons
             name="calendar-month-outline"
             size={20}
@@ -282,16 +282,17 @@ export default function EditTankScreen() {
             </Text>
           </View>
         </View>
-        <View className="items-center mt-6">
+        <View className="mt-5 items-center">
           <TankCard
             size={tankCardSize}
             tankNumber={currentTank?.tankNumber ?? 1}
             tankStatus={status}
+            currentQuantity={activeTankBatch?.currentQuantity}
           />
         </View>
         <TouchableOpacity
           accessibilityRole="button"
-          className="mx-1 mt-4 flex-row items-center justify-between rounded-xl border border-backgroundSelected px-4 py-3"
+          className="mx-1 mt-4 flex-row items-center justify-between rounded-lg border border-white/10 bg-[#202a40] px-4 py-3"
           onPress={() => router.push(`/tanks/${id}/batches`)}
         >
           <View className="flex-row items-center">
@@ -311,25 +312,26 @@ export default function EditTankScreen() {
           />
         </TouchableOpacity>
 
-        <View className="flex-1 pt-6 px-1">
+        <View className="flex-1 px-1 pt-5">
           <ScrollView showsVerticalScrollIndicator={false}>
             <View className="w-full">
-            
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={{ expanded: showDailyForm }}
-                className={`mb-4 flex-row items-center rounded-2xl border p-4 ${
-                  showDailyForm
-                    ? "border-white/15 bg-[#202a40]"
-                    : "border-cyan-400/20 bg-cyan-400/10"
-                }`}
-                onPress={() => setShowDailyForm((isOpen) => !isOpen)}
+            <Text className="mb-3 text-base font-semibold text-text dark:text-text-dark">
+              Registro del tanque
+            </Text>
+
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showDailyForm }}
+              className={`mb-4 flex-row items-center rounded-lg border p-4 ${
+                showDailyForm
+                  ? "border-white/15 bg-[#202a40]"
+                  : "border-white/10 bg-[#202a40]"
+              }`}
+              onPress={() => setShowDailyForm((isOpen) => !isOpen)}
+            >
+              <View
+                className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-white/5"
               >
-                <View
-                  className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
-                    showDailyForm ? "bg-white/10" : "bg-cyan-400/10"
-                  }`}
-                >
                   <MaterialCommunityIcons
                     name={
                       showDailyForm
@@ -339,7 +341,7 @@ export default function EditTankScreen() {
                           : "plus"
                     }
                     size={22}
-                    color={showDailyForm ? "#cbd5e1" : "#67e8f9"}
+                    color="#cbd5e1"
                   />
                 </View>
                 <View className="flex-1">
@@ -476,68 +478,64 @@ export default function EditTankScreen() {
                 </>
               )}
 
-              <View className="mb-2 flex-row items-center">
-                <MaterialCommunityIcons
-                  name="water"
-                  size={18}
-                  color={theme.textSecondary}
-                />
-                <Text className="ml-2 font-semibold text-text dark:text-text-dark">
-                  Estado del tanque
-                </Text>
-              </View>
+              <Text className="mb-2 mt-2 text-base font-semibold text-text dark:text-text-dark">
+                Estado del tanque
+              </Text>
               <TankStatusPicker value={status} onChange={setStatus} />
 
               {statusConfig.form === "daily" && (
                 <>
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    className="mb-4 mt-2 flex-row items-center rounded-2xl border border-white/10 bg-[#29334d] p-4"
-                    onPress={() =>
+              <TouchableOpacity
+                accessibilityRole="button"
+                className="mb-4 mt-2 flex-row items-center rounded-lg border border-white/10 bg-[#202a40] p-4"
+                onPress={() =>
                       router.push({
                         pathname: "/tanks/[id]/map" as any,
                         params: { id: String(currentTank?.id ?? id) },
                       })
                     }
                   >
-                    <View className="mr-3 h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10">
+                    <View className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-white/5">
                       <MaterialCommunityIcons
                         name="map-marker-path"
                         size={22}
-                        color="#67e8f9"
+                        color="#cbd5e1"
                       />
                     </View>
                     <View className="flex-1">
-                      <Text className="font-semibold text-white">
+                      <Text className="font-semibold text-text dark:text-text-dark">
                         Mapa de traslado
                       </Text>
-                      <Text className="mt-1 text-xs text-slate-400">
+                      <Text className="mt-1 text-xs text-textSecondary dark:text-textSecondary-dark">
                         Ver rutas entre tanques
                       </Text>
                     </View>
                     <MaterialCommunityIcons
                       name="chevron-right"
                       size={22}
-                      color="#94a3b8"
+                      color={theme.textSecondary}
                     />
                   </TouchableOpacity>
 
-                  <View className="flex-row items-center justify-between mb-4 mt-2" style={{ gap: 10 }}>
+                  <Text className="mb-3 mt-2 text-base font-semibold text-text dark:text-text-dark">
+                    Historial de movimientos
+                  </Text>
+                  <View className="mb-4 mt-1 flex-row items-center justify-between" style={{ gap: 10 }}>
                     <TouchableOpacity
-                      className="flex-1 flex-row items-center justify-center bg-text rounded-xl px-3 py-3"
+                      className="flex-1 flex-row items-center justify-center rounded-lg border border-white/10 bg-[#202a40] px-3 py-3"
                       onPress={() => setShowHistory((visible) => !visible)}
                     >
                       <MaterialCommunityIcons
                         name={showHistory ? "chevron-up" : "history"}
                         size={20}
-                        color="#181F3B"
+                        color={theme.textSecondary}
                       />
-                      <Text className="text-background font-semibold ml-2">
+                      <Text className="ml-2 font-semibold text-text dark:text-text-dark">
                         {showHistory ? "Ocultar historial" : "Ver historial"}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      className="flex-1 flex-row items-center justify-center border border-backgroundSelected rounded-xl px-3 py-3"
+                      className="flex-1 flex-row items-center justify-center rounded-lg border border-white/10 bg-[#202a40] px-3 py-3"
                       onPress={() => setShowDatePicker(true)}
                     >
                       <MaterialCommunityIcons name="calendar" size={20} color={theme.textSecondary} />
@@ -617,7 +615,7 @@ export default function EditTankScreen() {
               )}
               <TouchableOpacity
                 accessibilityRole="button"
-                className="mt-4 flex-1 rounded-lg bg-text py-3"
+                className="mt-2 flex-1 rounded-lg border border-white/10 bg-[#202a40] py-3"
                 onPress={() =>
                   Alert.alert(
                     "Cosecha no disponible",
@@ -625,25 +623,25 @@ export default function EditTankScreen() {
                   )
                 }
               >
-                <Text className="text-background font-semibold text-base text-center">
+                <Text className="text-center text-base font-medium text-textSecondary dark:text-textSecondary-dark">
                   Cosechar estanque
                 </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
 
-          <View className="flex-row mt-4 mb-2" style={{ gap: 12 }}>
+          <View className="mb-2 mt-3 flex-row border-t border-white/10 pt-3" style={{ gap: 10 }}>
             <TouchableOpacity
-              className="flex-1 bg-text rounded-lg py-3"
+              className="flex-1 rounded-lg bg-[#e5e7eb] py-3"
               onPress={handleEdit}
             >
-              <Text className="text-background font-semibold text-base text-center">
+              <Text className="text-center text-base font-semibold text-[#181f3b]">
                 Guardar
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 border border-backgroundSelected rounded-lg py-3"
+              className="flex-1 rounded-lg border border-white/15 py-3"
               onPress={() => router.back()}
             >
               <Text className="text-text dark:text-text-dark font-semibold text-base text-center">
