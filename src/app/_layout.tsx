@@ -3,6 +3,7 @@ import { setupNotifications } from "@/core/utils/notifications";
 import { SocketProvider } from "@/features/aeration/contexts/AerationSocketContext";
 import { SessionProvider, useSession } from "@/features/auth/contexts/AuthContext";
 import { BatchProvider } from "@/features/batches/contexts/BatchContext";
+import { TankMovementProvider } from "@/features/tank-movements/contexts/TankMovementContext";
 import { TankProvider } from "@/features/tanks/contexts/TankContext";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
@@ -35,8 +36,10 @@ export default function RootLayout() {
       <SocketProvider>
         <TankProvider>
           <BatchProvider>
-            <SplashScreenController />
-            <RootNavigator />
+            <TankMovementProvider>
+              <SplashScreenController />
+              <RootNavigator />
+            </TankMovementProvider>
           </BatchProvider>
         </TankProvider>
       </SocketProvider>

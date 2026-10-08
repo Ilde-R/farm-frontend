@@ -1,18 +1,24 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Modal, Alert, ActivityIndicator } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import TextField from "@/core/components/ui/text-field";
 import type { CreateBatchPayload } from "@/features/batches/types/batch";
+import { MovementType } from "@/features/tank-movements/types/tank-movement";
+import type { Tank } from "@/features/tanks/types/tank";
 
-type MovementType = "Traslado" | "Venta" | "Mortandad";
-
-type DailyMovementData = {
-    type: MovementType;
-    quantity: string;
-    tank?: string;
-    date: Date;
-};
+type DailyMovementData =
+    | {
+        type: MovementType.TRANSFER;
+        destinationTankId: string;
+        quantity: number;
+        movementDate: string;
+    }
+    | {
+        type: MovementType.SALE | MovementType.MORTALITY;
+        quantity: number;
+        movementDate: string;
+    };
 
 type MovementData =
     | (CreateBatchPayload & { type: "Siembra" })
@@ -21,17 +27,19 @@ type MovementData =
 type MovementFormProps = {
     formType: "sowing" | "daily";
     tankId?: string;
+    availableTanks: Tank[];
     onCancel: () => void;
     onSave: (movementData: MovementData) => void | Promise<void>;
 };
 
-export default function MovementForm({ formType, tankId, onCancel, onSave }: MovementFormProps) {
+export default function MovementForm({ formType, tankId, availableTanks, onCancel, onSave }: MovementFormProps) {
     const [dailyDate, setDailyDate] = useState(new Date());
     const [showDailyDatePicker, setShowDailyDatePicker] = useState(false);
     const [dailyQuantity, setDailyQuantity] = useState("");
     const [quantityError, setQuantityError] = useState("");
-    const [movementType, setMovementType] = useState<MovementType>("Traslado");
-    const [targetTank, setTargetTank] = useState("1");
+    const [movementType, setMovementType] = useState<MovementType>(MovementType.TRANSFER);
+    const [targetTankId, setTargetTankId] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = async () => {
         if (formType === "sowing") {
@@ -46,22 +54,53 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
             }
 
             setQuantityError("");
-            await onSave({
-                type: "Siembra",
-                tankId,
-                initialQuantity,
-                stockingDate: dailyDate.toISOString(),
-            });
+            setIsSaving(true);
+            try {
+                await onSave({
+                    type: "Siembra",
+                    tankId,
+                    initialQuantity,
+                    stockingDate: dailyDate.toISOString(),
+                });
+            } finally {
+                setIsSaving(false);
+            }
         } else {
-            Alert.alert("Guardado", "Registro diario guardado");
-            await onSave({
-                type: movementType,
-                quantity: dailyQuantity || "0",
-                ...(movementType === "Traslado" && {
-                    tank: `Tanque ${targetTank}`,
-                }),
-                date: dailyDate,
-            });
+            const quantity = Number(dailyQuantity);
+            if (!Number.isInteger(quantity) || quantity <= 0) {
+                setQuantityError("Ingresa una cantidad entera mayor que 0.");
+                return;
+            }
+
+            if (movementType === MovementType.TRANSFER) {
+                const destinationTankId = targetTankId || availableTanks[0]?.id;
+                if (!destinationTankId) {
+                    setQuantityError("No hay tanques disponibles como destino.");
+                    return;
+                }
+                setIsSaving(true);
+                try {
+                    await onSave({
+                        type: MovementType.TRANSFER,
+                        destinationTankId,
+                        quantity,
+                        movementDate: dailyDate.toISOString(),
+                    });
+                } finally {
+                    setIsSaving(false);
+                }
+            } else {
+                setIsSaving(true);
+                try {
+                    await onSave({
+                        type: movementType,
+                        quantity,
+                        movementDate: dailyDate.toISOString(),
+                    });
+                } finally {
+                    setIsSaving(false);
+                }
+            }
         }
     };
 
@@ -72,9 +111,9 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Tipo de movimiento</Text>
                     <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
                         <Picker selectedValue={movementType} onValueChange={(value) => setMovementType(value as MovementType)} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
-                            <Picker.Item label="Traslado" value="Traslado" />
-                            <Picker.Item label="Venta" value="Venta" />
-                            <Picker.Item label="Mortandad" value="Mortandad" />
+                            <Picker.Item label="Traslado" value={MovementType.TRANSFER} />
+                            <Picker.Item label="Venta" value={MovementType.SALE} />
+                            <Picker.Item label="Mortandad" value={MovementType.MORTALITY} />
                         </Picker>
                     </View>
                 </>
@@ -87,7 +126,7 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
                 className="border-white/10 bg-[#1b2338] text-white"
                 style={{ color: "#ffffff" }}
                 value={dailyQuantity}
-                error={formType === "sowing" ? quantityError : undefined}
+                error={quantityError || undefined}
                 onChangeText={(value) => {
                     setDailyQuantity(value);
                     if (quantityError) setQuantityError("");
@@ -109,28 +148,37 @@ export default function MovementForm({ formType, tankId, onCancel, onSave }: Mov
                 <MaterialCommunityIcons name="chevron-down" size={20} color="#94a3b8" />
             </TouchableOpacity>
 
-            {formType === "daily" && movementType === "Traslado" && (
+            {formType === "daily" && movementType === MovementType.TRANSFER && (
                 <>
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Tanque destino</Text>
                     <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                        <Picker selectedValue={targetTank} onValueChange={setTargetTank} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
-                            <Picker.Item label="1" value="1" />
-                            <Picker.Item label="2" value="2" />
-                            <Picker.Item label="3" value="3" />
-                            <Picker.Item label="4" value="4" />
+                        <Picker selectedValue={targetTankId || availableTanks[0]?.id} onValueChange={setTargetTankId} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                            {availableTanks.map((tank) => (
+                                <Picker.Item
+                                    key={tank.id}
+                                    label={`Tanque ${tank.tankNumber}`}
+                                    value={tank.id}
+                                />
+                            ))}
                         </Picker>
                     </View>
                 </>
             )}
 
             <View className="flex-row gap-2">
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark" onPress={handleSave}>
-                    <MaterialCommunityIcons name="content-save-outline" size={18} color="#fff" />
-                    <Text className="ml-2 text-center font-semibold text-background">
-                        {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
-                    </Text>
+                <TouchableOpacity className="flex-1 flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark" onPress={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                        <ActivityIndicator color="#181F3B" />
+                    ) : (
+                        <>
+                            <MaterialCommunityIcons name="content-save-outline" size={18} color="#fff" />
+                            <Text className="ml-2 text-center font-semibold text-background">
+                                {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
+                            </Text>
+                        </>
+                    )}
                 </TouchableOpacity>
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center rounded-xl border border-white/15 py-3" onPress={onCancel}>
+                <TouchableOpacity className="flex-1 flex-row items-center justify-center rounded-xl border border-white/15 py-3" onPress={onCancel} disabled={isSaving}>
                     <Text className="text-center font-semibold text-slate-300">Cancelar</Text>
                 </TouchableOpacity>
             </View>

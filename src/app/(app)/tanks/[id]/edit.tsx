@@ -2,6 +2,8 @@ import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
 import { BatchStatus } from "@/features/batches/types/batch";
+import { useTankMovement } from "@/features/tank-movements/contexts/TankMovementContext";
+import { MovementType } from "@/features/tank-movements/types/tank-movement";
 import DayPickerModal from "@/features/tanks/components/day-picker-modal";
 import MovementForm from "@/features/tanks/components/movement-form";
 import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
@@ -25,6 +27,10 @@ import {
 
 export default function EditTankScreen() {
   const { tanks, updateTank, fetchTanks, deleteTank } = useTank();
+  const {
+    createTankMovementTransfer,
+    createTankMovementOutflows,
+  } = useTankMovement();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -56,9 +62,11 @@ export default function EditTankScreen() {
         new Date(second.stockingDate).getTime() -
         new Date(first.stockingDate).getTime(),
     );
+  const activeTankBatch = tankBatches.find(
+    (batch) => batch.batchesStatus === BatchStatus.ACTIVE,
+  );
   const tankBatch =
-    tankBatches.find((batch) => batch.batchesStatus === BatchStatus.ACTIVE) ??
-    tankBatches[0];
+    activeTankBatch ?? tankBatches[0];
   const stockingDate = tankBatch
     ? new Date(tankBatch.stockingDate).toLocaleString("es-MX")
     : null;
@@ -293,6 +301,7 @@ export default function EditTankScreen() {
                 <MovementForm
                   formType={statusConfig.form as "sowing" | "daily"}
                   tankId={currentTank?.id}
+                  availableTanks={tanks.filter((tank) => tank.id !== currentTank?.id)}
                   onCancel={() => setShowDailyForm(false)}
                   onSave={async (movementData) => {
                     if (movementData.type === "Siembra") {
@@ -321,8 +330,50 @@ export default function EditTankScreen() {
                       return;
                     }
 
-                    setStatus(TankStatus.ACTIVE);
-                    setShowDailyForm(false);
+                    if (!activeTankBatch) {
+                      Alert.alert("Error", "Este tanque no tiene un lote activo para registrar movimientos.");
+                      return;
+                    }
+
+                    try {
+                      if (movementData.type === MovementType.TRANSFER) {
+                        await createTankMovementTransfer({
+                          batchId: activeTankBatch.id,
+                          destinationTankId: movementData.destinationTankId,
+                          quantity: movementData.quantity,
+                          movementDate: movementData.movementDate,
+                        });
+                      } else {
+                        await createTankMovementOutflows({
+                          batchId: activeTankBatch.id,
+                          movementType: movementData.type,
+                          quantity: movementData.quantity,
+                          movementDate: movementData.movementDate,
+                        });
+                      }
+
+                      setShowDailyForm(false);
+                      let refreshFailed = false;
+                      try {
+                        await Promise.all([fetchBatches(), fetchTanks()]);
+                      } catch (refreshError) {
+                        refreshFailed = true;
+                        console.error("Error al actualizar datos después del movimiento:", refreshError);
+                      }
+                      Alert.alert(
+                        refreshFailed ? "Movimiento registrado" : "Éxito",
+                        refreshFailed
+                          ? "El movimiento se guardó, pero no se pudieron actualizar los datos de la pantalla."
+                          : "El movimiento se registró correctamente.",
+                      );
+                    } catch (error) {
+                      Alert.alert(
+                        "Error",
+                        error instanceof Error
+                          ? error.message
+                          : "No se pudo registrar el movimiento.",
+                      );
+                    }
                   }}
                 />
               )}
