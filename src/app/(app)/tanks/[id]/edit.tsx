@@ -3,7 +3,7 @@ import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
 import { BatchStatus } from "@/features/batches/types/batch";
 import { useTankMovement } from "@/features/tank-movements/contexts/TankMovementContext";
-import { MovementType } from "@/features/tank-movements/types/tank-movement";
+import { MovementType, type TankMovement } from "@/features/tank-movements/types/tank-movement";
 import DayPickerModal from "@/features/tanks/components/day-picker-modal";
 import MovementForm from "@/features/tanks/components/movement-form";
 import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
@@ -30,6 +30,9 @@ export default function EditTankScreen() {
   const {
     createTankMovementTransfer,
     createTankMovementOutflows,
+    tankMovements,
+    isLoading: isMovementLoading,
+    fetchTankMovements,
   } = useTankMovement();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
@@ -54,6 +57,19 @@ export default function EditTankScreen() {
       );
     });
   }, [fetchBatches]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    void fetchTankMovements(id).catch((error) => {
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los movimientos del tanque.",
+      );
+    });
+  }, [fetchTankMovements, id]);
 
   const tankBatches = batches
     .filter((batch) => batch.tankId === currentTank?.id)
@@ -87,20 +103,72 @@ export default function EditTankScreen() {
   const [showDailyForm, setShowDailyForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [isDeleting, setIsDeleting] = useState(false);
 
   const statusConfig = TANK_STATUS_CONFIG[status] || { form: "daily", label: "Activo" };
 
-  const movements = [
-    { id: "1", type: "Traslado", quantity: "80", tank: "Tanque 2", day: new Date().getDate(), date: "12/12/2026" },
-    { id: "2", type: "Venta", quantity: "25", tank: "Tanque 2", day: new Date().getDate(), date: "12/12/2026" },
-    { id: "3", type: "Mortandad", quantity: "2", tank: "Tanque 2", day: new Date().getDate(), date: "12/12/2026" },
+  const movementsData = tankMovements?.tank.id === id ? tankMovements : null;
+  const movementsById = new Map<string, TankMovement>();
+  for (const group of movementsData?.incoming.fromTanks ?? []) {
+    for (const movement of group.movements) movementsById.set(movement.id, movement);
+  }
+  for (const group of movementsData?.outgoing.toTanks ?? []) {
+    for (const movement of group.movements) movementsById.set(movement.id, movement);
+  }
+  for (const group of movementsData?.outgoing.otherMovements ?? []) {
+    for (const movement of group.movements) movementsById.set(movement.id, movement);
+  }
+
+  const movementDates = [
+    ...new Map(
+      [...movementsById.values()].map((movement) => {
+        const date = new Date(movement.movementDate);
+        return [date.toDateString(), date] as const;
+      }),
+    ).values(),
   ];
 
-  const selectedDateMovements = movements.filter(
-    (movement) => movement.day === selectedDay,
-  );
+  const selectedDateMovements = [...movementsById.values()]
+    .filter((movement) => {
+      const movementDate = new Date(movement.movementDate);
+      return (
+        movementDate.getFullYear() === selectedDate.getFullYear() &&
+        movementDate.getMonth() === selectedDate.getMonth() &&
+        movementDate.getDate() === selectedDate.getDate()
+      );
+    })
+    .sort(
+      (first, second) =>
+        new Date(second.movementDate).getTime() -
+        new Date(first.movementDate).getTime(),
+    );
+
+  function getMovementLabel(type: MovementType) {
+    switch (type) {
+      case MovementType.TRANSFER:
+        return "Traslado";
+      case MovementType.SALE:
+        return "Venta";
+      case MovementType.MORTALITY:
+        return "Mortandad";
+    }
+  }
+
+  function getMovementDescription(movement: TankMovement) {
+    if (movement.movementType === MovementType.TRANSFER) {
+      if (movement.sourceTankId === currentTank?.id && movement.destinationTank) {
+        return `Destino: Tanque ${movement.destinationTank.tankNumber}`;
+      }
+      if (movement.sourceTank) {
+        return `Origen: Tanque ${movement.sourceTank.tankNumber}`;
+      }
+    }
+    if (movement.notes?.trim()) return movement.notes;
+    if (movement.movementType === MovementType.SALE) return "Venta registrada";
+    if (movement.movementType === MovementType.MORTALITY) return "Mortandad registrada";
+    return "Traslado registrado";
+  }
 
   async function handleEdit() {
     if (!id) {
@@ -355,7 +423,11 @@ export default function EditTankScreen() {
                       setShowDailyForm(false);
                       let refreshFailed = false;
                       try {
-                        await Promise.all([fetchBatches(), fetchTanks()]);
+                        await Promise.all([
+                          fetchBatches(),
+                          fetchTanks(),
+                          ...(id ? [fetchTankMovements(id)] : []),
+                        ]);
                       } catch (refreshError) {
                         refreshFailed = true;
                         console.error("Error al actualizar datos después del movimiento:", refreshError);
@@ -470,35 +542,45 @@ export default function EditTankScreen() {
                     >
                       <MaterialCommunityIcons name="calendar" size={20} color={theme.textSecondary} />
                       <Text className="text-text dark:text-text-dark font-semibold ml-2">
-                        Día {selectedDay}
+                        {selectedDate.toLocaleDateString("es-MX", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </Text>
                     </TouchableOpacity>
                   </View>
 
                   {showHistory && (
                     <View className="mb-5">
-                      {selectedDateMovements.length === 0 ? (
+                      {isMovementLoading ? (
+                        <ActivityIndicator
+                          className="py-6"
+                          size="small"
+                          color={theme.text}
+                        />
+                      ) : selectedDateMovements.length === 0 ? (
                         <Text className="text-textSecondary text-center py-6">
                           No hay movimientos registrados este día.
                         </Text>
                       ) : (
                         selectedDateMovements.map((movement, index) => (
                           <View key={movement.id} className="flex-row">
-                            <View className="items-center mr-3" style={{ width: 24 }}>
-                              <View className="w-8 h-8 rounded-full bg-backgroundElement items-center justify-center">
+                            <View className="items-center mr-3" style={{ width: 32 }}>
+                              <View className="w-8 h-8 rounded-full bg-[#29334d] items-center justify-center">
                                 <MaterialCommunityIcons
                                   name={
-                                    movement.type === "Traslado"
+                                    movement.movementType === MovementType.TRANSFER
                                       ? "swap-horizontal"
-                                      : movement.type === "Venta"
+                                      : movement.movementType === MovementType.SALE
                                       ? "cart-arrow-down"
                                       : "skull-crossbones"
                                   }
                                   size={18}
                                   color={
-                                    movement.type === "Traslado"
+                                    movement.movementType === MovementType.TRANSFER
                                       ? "#34d399"
-                                      : movement.type === "Venta"
+                                      : movement.movementType === MovementType.SALE
                                       ? "#60a5fa"
                                       : "#f87171"
                                   }
@@ -510,19 +592,19 @@ export default function EditTankScreen() {
                             </View>
                             <View className="flex-1 pb-5">
                               <Text className="text-textSecondary text-xs mb-1">
-                                {movement.date}
+                                {new Date(movement.movementDate).toLocaleString("es-MX")}
                               </Text>
-                              <View className="bg-backgroundElement rounded-xl p-3">
+                              <View className="bg-[#202a40] rounded-xl p-3">
                                 <View className="flex-row items-center justify-between">
                                   <Text className="text-text dark:text-text-dark font-semibold">
-                                    {movement.type}
+                                    {getMovementLabel(movement.movementType)}
                                   </Text>
                                   <Text className="text-text dark:text-text-dark font-bold">
                                     {movement.quantity} peces
                                   </Text>
                                 </View>
                                 <Text className="text-textSecondary mt-1">
-                                  Destino: {movement.tank}
+                                  {getMovementDescription(movement)}
                                 </Text>
                               </View>
                             </View>
@@ -588,8 +670,9 @@ export default function EditTankScreen() {
 
       <DayPickerModal 
         visible={showDatePicker} 
-        selectedDay={selectedDay} 
-        onDayChange={setSelectedDay} 
+        selectedDate={selectedDate}
+        movementDates={movementDates}
+        onDateChange={setSelectedDate}
         onClose={() => setShowDatePicker(false)} 
       />
     </>
