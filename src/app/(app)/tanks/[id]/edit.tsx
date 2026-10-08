@@ -144,10 +144,12 @@ export default function EditTankScreen() {
         new Date(first.movementDate).getTime(),
     );
 
-  function getMovementLabel(type: MovementType) {
-    switch (type) {
+  function getMovementLabel(movement: TankMovement) {
+    switch (movement.movementType) {
       case MovementType.TRANSFER:
-        return "Traslado";
+        return movement.sourceTankId === currentTank?.id
+          ? "Salieron"
+          : "Ingresaron";
       case MovementType.SALE:
         return "Venta";
       case MovementType.MORTALITY:
@@ -158,10 +160,10 @@ export default function EditTankScreen() {
   function getMovementDescription(movement: TankMovement) {
     if (movement.movementType === MovementType.TRANSFER) {
       if (movement.sourceTankId === currentTank?.id && movement.destinationTank) {
-        return `Destino: Tanque ${movement.destinationTank.tankNumber}`;
+        return `Hacia tanque ${movement.destinationTank.tankNumber}`;
       }
       if (movement.sourceTank) {
-        return `Origen: Tanque ${movement.sourceTank.tankNumber}`;
+        return `Desde tanque ${movement.sourceTank.tankNumber}`;
       }
     }
     if (movement.notes?.trim()) return movement.notes;
@@ -595,10 +597,10 @@ export default function EditTankScreen() {
                               <View className="bg-[#202a40] rounded-xl p-3">
                                 <View className="flex-row items-center justify-between">
                                   <Text className="text-text dark:text-text-dark font-semibold">
-                                    {getMovementLabel(movement.movementType)}
+                                    {getMovementLabel(movement)}
                                   </Text>
                                   <Text className="text-text dark:text-text-dark font-bold">
-                                    {movement.quantity} peces
+                                    {movement.quantity} piezas
                                   </Text>
                                 </View>
                                 <Text className="text-textSecondary mt-1">
