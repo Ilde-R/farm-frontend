@@ -28,11 +28,10 @@ type MovementFormProps = {
     formType: "sowing" | "daily";
     tankId?: string;
     availableTanks: Tank[];
-    onCancel: () => void;
     onSave: (movementData: MovementData) => void | Promise<void>;
 };
 
-export default function MovementForm({ formType, tankId, availableTanks, onCancel, onSave }: MovementFormProps) {
+export default function MovementForm({ formType, tankId, availableTanks, onSave }: MovementFormProps) {
     const [dailyDate, setDailyDate] = useState(new Date());
     const [showDailyDatePicker, setShowDailyDatePicker] = useState(false);
     const [dailyQuantity, setDailyQuantity] = useState("");
@@ -165,23 +164,22 @@ export default function MovementForm({ formType, tankId, availableTanks, onCance
                 </>
             )}
 
-            <View className="flex-row gap-2">
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark" onPress={handleSave} disabled={isSaving}>
-                    {isSaving ? (
-                        <ActivityIndicator color="#181F3B" />
-                    ) : (
-                        <>
-                            <MaterialCommunityIcons name="content-save-outline" size={18} color="#fff" />
-                            <Text className="ml-2 text-center font-semibold text-background">
-                                {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
-                            </Text>
-                        </>
-                    )}
-                </TouchableOpacity>
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center rounded-xl border border-white/15 py-3" onPress={onCancel} disabled={isSaving}>
-                    <Text className="text-center font-semibold text-slate-300">Cancelar</Text>
-                </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+                className="flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark"
+                onPress={handleSave}
+                disabled={isSaving}
+            >
+                {isSaving ? (
+                    <ActivityIndicator color="#181F3B" />
+                ) : (
+                    <>
+                        <MaterialCommunityIcons name="content-save-outline" size={18} color="#000000" />
+                        <Text className="ml-2 text-center font-semibold text-background">
+                            {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
+                        </Text>
+                    </>
+                )}
+            </TouchableOpacity>
 
             <Modal visible={showDailyDatePicker} transparent animationType="fade" onRequestClose={() => setShowDailyDatePicker(false)}>
                 <View className="flex-1 justify-center bg-black/60 px-6">

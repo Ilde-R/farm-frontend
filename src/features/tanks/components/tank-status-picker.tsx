@@ -5,9 +5,10 @@ import { View } from "react-native";
 type Props = {
     value: TankStatus;
     onChange: (value: TankStatus) => void;
+    disabled?: boolean;
 };
 
-export default function TankStatusPicker({ value, onChange }: Props) {
+export default function TankStatusPicker({ value, onChange, disabled = false }: Props) {
     const options = [
         { label: "Activo", value: TankStatus.ACTIVE },
         { label: 'Vacío',  value: TankStatus.EMPTY },
@@ -17,6 +18,7 @@ export default function TankStatusPicker({ value, onChange }: Props) {
     return (
         <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
             <Picker
+                enabled={!disabled}
                 selectedValue={value}
                 onValueChange={(itemValue) => onChange(itemValue)}
                 style={{ color: "#f8fafc", backgroundColor: "#1b2338" }}

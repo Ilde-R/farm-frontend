@@ -21,6 +21,19 @@ import {
   View,
 } from "react-native";
 
+type TankFilter = TankStatus | "todos";
+
+const TANK_SUMMARY_ITEMS: {
+  status: TankFilter;
+  label: string;
+  icon: "water" | "water-off" | "wrench-outline" | "format-list-bulleted";
+}[] = [
+  { status: "todos", label: "Todos", icon: "format-list-bulleted" },
+  { status: TankStatus.ACTIVE, label: "Activos", icon: "water" },
+  { status: TankStatus.EMPTY, label: "Vacíos", icon: "water-off" },
+  { status: TankStatus.MAINTENANCE, label: "Mantenimiento", icon: "wrench-outline" },
+];
+
 export default function TanksScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
@@ -49,8 +62,13 @@ export default function TanksScreen() {
   const [tankStatus, setTankStatus] = useState<TankStatus>(TankStatus.EMPTY);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tankFilter, setTankFilter] = useState<TankFilter>("todos");
 
   const iconSize = Math.round(width * 0.06);
+  const filteredTanks =
+    tankFilter === "todos"
+      ? tanks
+      : tanks.filter((tank) => tank.tankStatus === tankFilter);
 
   function clearError(field: string) {
     setErrors((prev) => {
@@ -131,6 +149,56 @@ export default function TanksScreen() {
         isScrollable={true}
       >
         <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
+          {tanks.length > 0 && (
+            <View className="w-full">
+              <Text className="mb-3 text-base font-semibold text-text dark:text-text-dark">
+                Resumen de tanques
+              </Text>
+              <View className="flex-row flex-wrap justify-between gap-y-3">
+                {TANK_SUMMARY_ITEMS.map(({ status, label, icon }) => {
+                  const count =
+                    status === "todos"
+                      ? tanks.length
+                      : tanks.filter((tank) => tank.tankStatus === status).length;
+                  const isSelected = tankFilter === status;
+
+                  return (
+                    <TouchableOpacity
+                      key={status}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isSelected }}
+                      className={`w-[48%] flex-row items-center rounded-xl border px-3 py-3 ${
+                        isSelected
+                          ? "border-white/30 bg-[#202a40]"
+                          : "border-white/10 bg-[#202a40]"
+                      }`}
+                      onPress={() => setTankFilter(status)}
+                    >
+                      <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-white/5">
+                        <MaterialCommunityIcons
+                          name={icon}
+                          size={19}
+                          color={isSelected ? theme.text : theme.textSecondary}
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <Text
+                          numberOfLines={1}
+                          className="text-xs text-textSecondary dark:text-textSecondary-dark"
+                        >
+                          {label}
+                        </Text>
+                        <Text className="text-lg font-bold text-text dark:text-text-dark">
+                          {count}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
           {isLoading && (
             <ActivityIndicator size="large" color={theme.text} className="mt-10"/>
           )}
@@ -151,7 +219,20 @@ export default function TanksScreen() {
             </View>
           )}
 
-          {!isLoading && tanks?.map((tank) => (
+          {!isLoading && tanks.length > 0 && filteredTanks.length === 0 && (
+            <View className="w-full items-center py-10">
+              <MaterialCommunityIcons
+                name="water-off"
+                size={32}
+                color={theme.textSecondary}
+              />
+              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
+                No hay tanques en este estado
+              </Text>
+            </View>
+          )}
+
+          {!isLoading && filteredTanks.map((tank) => (
             <View key={tank.id} className="w-[48%] items-center">
               <TankCard
                 size={tankCardSize}
