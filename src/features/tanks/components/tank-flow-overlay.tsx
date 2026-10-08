@@ -1,136 +1,203 @@
-import React from "react";
-import Svg, { Line, Polyline } from "react-native-svg";
+import Svg, { G, Line, Polyline } from "react-native-svg";
 import Animated from "react-native-reanimated";
-
-import { 
-    getCircleBorderPoint, 
-    getManualLinePoints, 
-    getBranchLinePoints 
-} from "../utils/tank-geometry";
-
-type TankPosition = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
-
-type CirclePoint = {
-    x: number;
-    y: number;
-};
+import { getCircleBorderPoint } from "../utils/tank-geometry";
+import type { TankPosition } from "../types/tank";
 
 type FlowDirection = "entrada" | "salida";
 
-type TankConnection = {
+export type TankConnection = {
     fromId: number;
     toId: number;
-    fromPoint: CirclePoint;
-    toPoint: CirclePoint;
     direction: FlowDirection;
+};
+
+type TankFlowOverlayProps = {
+    tankPositions: Record<number, TankPosition>;
+    visibleConnections: TankConnection[];
+    animatedFlowProps: object;
+    animatedTrunkFlowProps: object;
+    animatedUpperSpineFlowProps: object;
+    animatedLowerSpineFlowProps: object;
 };
 
 const AnimatedLine = Animated.createAnimatedComponent(Line);
 const AnimatedPolyline = Animated.createAnimatedComponent(Polyline);
 
-type TankFlowOverlayProps = {
-    tankPositions: Record<number, TankPosition>;
-    visibleConnections: TankConnection[];
-    centralConnections: TankConnection[];
-    animatedFlowProps: any;
-};
-
-export default function TankFlowOverlay({ 
-    tankPositions, 
-    visibleConnections, 
-    centralConnections, 
-    animatedFlowProps 
+export default function TankFlowOverlay({
+    tankPositions,
+    visibleConnections,
+    animatedFlowProps,
+    animatedTrunkFlowProps,
+    animatedUpperSpineFlowProps,
+    animatedLowerSpineFlowProps,
 }: TankFlowOverlayProps) {
-    
-    if (!visibleConnections.every(({ fromId, toId }) => tankPositions[fromId] && tankPositions[toId])) {
-        return null;
-    }
+    const readyConnections = visibleConnections.filter(
+        ({ fromId, toId }) => tankPositions[fromId] && tankPositions[toId],
+    );
 
-    const sourcePosition = tankPositions[1];
-    const centralReferencePosition = tankPositions[4];
-    
-    if (!sourcePosition || !centralReferencePosition) return null;
+    if (readyConnections.length === 0) return null;
 
-    const sourcePoint = getCircleBorderPoint(sourcePosition, { x: 1, y: 0 });
-    const centralX = (sourcePoint.x + getCircleBorderPoint(centralReferencePosition, { x: -1, y: 0 }).x) / 2;
-    
-    const lastConnectionY = Math.max(
-        ...centralConnections.map(({ toId }) => {
-            const position = tankPositions[toId];
-            return position ? position.y + position.height / 2 : 0;
+    const hubId = readyConnections[0].direction === "entrada"
+        ? readyConnections[0].toId
+        : readyConnections[0].fromId;
+    const hubPosition = tankPositions[hubId];
+    const branches = readyConnections
+        .filter((connection) => connection.fromId === hubId || connection.toId === hubId)
+        .map((connection) => {
+            const tankId = connection.fromId === hubId ? connection.toId : connection.fromId;
+            return { connection, tankId, position: tankPositions[tankId] };
         })
+        .filter((branch) => branch.position);
+
+    if (!hubPosition || branches.length === 0) return null;
+
+    const hubCenterX = hubPosition.x + hubPosition.width / 2;
+    const hubCenterY = hubPosition.y + hubPosition.height / 2;
+    const columns = Object.values(tankPositions)
+        .map((position) => ({
+            centerX: position.x + position.width / 2,
+            left: position.x,
+            right: position.x + position.width,
+        }))
+        .sort((first, second) => first.centerX - second.centerX)
+        .reduce<{ centerX: number; left: number; right: number }[]>((result, position) => {
+            const column = result.find(
+                (candidate) => Math.abs(candidate.centerX - position.centerX) < 2,
+            );
+            if (column) {
+                column.left = Math.min(column.left, position.left);
+                column.right = Math.max(column.right, position.right);
+            } else {
+                result.push({ ...position });
+            }
+            return result;
+        }, []);
+    const centralX = columns.length > 1
+        ? (columns[0].right + columns[1].left) / 2
+        : branches.reduce(
+              (total, branch) => total + branch.position.x + branch.position.width / 2,
+              0,
+          ) / branches.length;
+    const hubPoint = getCircleBorderPoint(hubPosition, {
+        x: centralX - hubCenterX,
+        y: 0,
+    });
+    const firstBranchY = Math.min(
+        hubCenterY,
+        ...branches.map((branch) => branch.position.y + branch.position.height / 2),
+    );
+    const lastBranchY = Math.max(
+        hubCenterY,
+        ...branches.map((branch) => branch.position.y + branch.position.height / 2),
+    );
+    const hasUpperBranches = branches.some(
+        (branch) => branch.position.y + branch.position.height / 2 < hubCenterY,
+    );
+    const hasLowerBranches = branches.some(
+        (branch) => branch.position.y + branch.position.height / 2 > hubCenterY,
     );
 
     return (
-        <Svg 
-            pointerEvents="none" 
+        <Svg
+            pointerEvents="none"
             style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
         >
-            <Line 
-                x1={sourcePoint.x} y1={sourcePoint.y} 
-                x2={centralX} y2={sourcePoint.y} 
-                stroke="#0891b2" strokeWidth={4} 
-            />
-            <AnimatedLine 
-                animatedProps={animatedFlowProps} 
-                x1={sourcePoint.x} y1={sourcePoint.y} 
-                x2={centralX} y2={sourcePoint.y} 
-                stroke="#67e8f9" strokeWidth={3} strokeDasharray="4 16" strokeLinecap="round" 
-            />
-            
-            <Line 
-                x1={centralX} y1={sourcePoint.y} 
-                x2={centralX} y2={lastConnectionY} 
-                stroke="#0891b2" strokeWidth={4} 
-            />
-            <AnimatedLine 
-                animatedProps={animatedFlowProps} 
-                x1={centralX} y1={sourcePoint.y} 
-                x2={centralX} y2={lastConnectionY} 
-                stroke="#67e8f9" strokeWidth={3} strokeDasharray="4 16" strokeLinecap="round" 
-            />
+            <G>
+                <Line
+                    x1={hubPoint.x}
+                    y1={hubPoint.y}
+                    x2={centralX}
+                    y2={hubCenterY}
+                    stroke="#0891b2"
+                    strokeWidth={4}
+                />
+                <AnimatedLine
+                    animatedProps={animatedTrunkFlowProps}
+                    x1={hubPoint.x}
+                    y1={hubPoint.y}
+                    x2={centralX}
+                    y2={hubCenterY}
+                    stroke="#67e8f9"
+                    strokeWidth={3}
+                    strokeDasharray="4 16"
+                    strokeLinecap="round"
+                />
+                {hasUpperBranches && (
+                    <>
+                        <Line
+                            x1={centralX}
+                            y1={firstBranchY}
+                            x2={centralX}
+                            y2={hubCenterY}
+                            stroke="#0891b2"
+                            strokeWidth={4}
+                        />
+                        <AnimatedLine
+                            animatedProps={animatedUpperSpineFlowProps}
+                            x1={centralX}
+                            y1={firstBranchY}
+                            x2={centralX}
+                            y2={hubCenterY}
+                            stroke="#67e8f9"
+                            strokeWidth={3}
+                            strokeDasharray="4 16"
+                            strokeLinecap="round"
+                        />
+                    </>
+                )}
+                {hasLowerBranches && (
+                    <>
+                        <Line
+                            x1={centralX}
+                            y1={hubCenterY}
+                            x2={centralX}
+                            y2={lastBranchY}
+                            stroke="#0891b2"
+                            strokeWidth={4}
+                        />
+                        <AnimatedLine
+                            animatedProps={animatedLowerSpineFlowProps}
+                            x1={centralX}
+                            y1={hubCenterY}
+                            x2={centralX}
+                            y2={lastBranchY}
+                            stroke="#67e8f9"
+                            strokeWidth={3}
+                            strokeDasharray="4 16"
+                            strokeLinecap="round"
+                        />
+                    </>
+                )}
+                {branches.map(({ connection, tankId, position }) => {
+                    const targetCenterX = position.x + position.width / 2;
+                    const targetCenterY = position.y + position.height / 2;
+                    const targetPoint = getCircleBorderPoint(position, {
+                        x: centralX - targetCenterX,
+                        y: 0,
+                    });
+                    const branchPoints = `${centralX},${targetCenterY} ${targetPoint.x},${targetPoint.y}`;
 
-            {visibleConnections.map(({ fromId, toId, fromPoint, toPoint }) => {
-                const fromPosition = tankPositions[fromId];
-                const toPosition = tankPositions[toId];
-                
-                if (toId !== 2) {
-                    const points = getBranchLinePoints(toPosition, toPoint, centralX);
                     return (
-                        <React.Fragment key={`${fromId}-${toId}-branch`}>
-                            <Polyline 
-                                points={points} 
-                                fill="none" stroke="#0891b2" strokeWidth={4} 
+                        <G key={`${connection.fromId}-${connection.toId}-${connection.direction}-${tankId}`}>
+                            <Polyline
+                                points={branchPoints}
+                                fill="none"
+                                stroke="#0891b2"
+                                strokeWidth={4}
                             />
-                            <AnimatedPolyline 
-                                animatedProps={animatedFlowProps} 
-                                points={points} 
-                                fill="none" stroke="#67e8f9" strokeWidth={3} strokeDasharray="4 16" strokeLinecap="round" 
+                            <AnimatedPolyline
+                                animatedProps={animatedFlowProps}
+                                points={branchPoints}
+                                fill="none"
+                                stroke="#67e8f9"
+                                strokeWidth={3}
+                                strokeDasharray="4 16"
+                                strokeLinecap="round"
                             />
-                        </React.Fragment>
+                        </G>
                     );
-                }
-
-                const linePoints = getManualLinePoints(fromPosition, toPosition, fromPoint, toPoint);
-                return (
-                    <React.Fragment key={`${fromId}-${toId}-manual`}>
-                        <Line 
-                            {...linePoints} 
-                            stroke="#0891b2" strokeWidth={4} 
-                        />
-                        <AnimatedLine 
-                            animatedProps={animatedFlowProps} 
-                            {...linePoints} 
-                            stroke="#67e8f9" strokeWidth={3} strokeDasharray="4 16" strokeLinecap="round" 
-                        />
-                    </React.Fragment>
-                );
-            })}
+                })}
+            </G>
         </Svg>
     );
 }
