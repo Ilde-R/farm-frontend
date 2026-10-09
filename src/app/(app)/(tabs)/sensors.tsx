@@ -148,7 +148,7 @@ export default function SensorsScreen() {
       {devicesLoading ? (
         <View className="flex-1 items-center justify-center py-12">
           <ActivityIndicator size="large" color={theme.textSecondary} />
-          <Text className="text-textSecondary text-sm mt-3">
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-3">
             Cargando dispositivos...
           </Text>
         </View>
@@ -159,10 +159,10 @@ export default function SensorsScreen() {
             size={64}
             color={theme.textSecondary}
           />
-          <Text className="text-textSecondary text-base mt-4 text-center">
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-4 text-center">
             No hay blowers registrados.
           </Text>
-          <Text className="text-textSecondary text-sm mt-2 text-center">
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-2 text-center">
             Agrega un dispositivo para comenzar.
           </Text>
         </View>

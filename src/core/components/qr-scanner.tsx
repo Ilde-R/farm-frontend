@@ -80,7 +80,7 @@ export default function QrScanner({
     return (
       <Modal visible={visible} animationType="slide">
         <View className="flex-1 items-center justify-center bg-background px-6">
-          <Text className="text-text dark:text-textSecondary-dark text-lg font-bold text-center mb-4">
+          <Text className="text-text dark:text-text-dark text-lg font-bold text-center mb-4">
             Permiso de cámara requerido
           </Text>
           <Text className="text-textSecondary dark:text-textSecondary-dark text-base text-center mb-8">
@@ -91,12 +91,12 @@ export default function QrScanner({
             className="bg-text rounded-lg py-3 px-8"
             onPress={requestPermission}
           >
-            <Text className="text-background font-semibold text-base">
+            <Text className="text-text dark:text-text-dark font-semibold text-base">
               Conceder permiso
             </Text>
           </TouchableOpacity>
           <TouchableOpacity className="mt-4 py-3" onPress={handleClose}>
-            <Text className="text-textSecondary text-base">Cancelar</Text>
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-base">Cancelar</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -118,7 +118,7 @@ export default function QrScanner({
         </View>
         {error ? (
           <View className="absolute bottom-24 left-6 right-6 bg-backgroundElement border border-textSecondary rounded-lg py-3 px-4 items-center">
-            <Text className="text-text text-sm text-center">{error}</Text>
+            <Text className="text-textError dark:text-textError-dark text-sm text-center">{error}</Text>
           </View>
         ) : null}
         <View className="absolute bottom-10 left-0 right-0 items-center">

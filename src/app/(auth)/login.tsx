@@ -1,4 +1,5 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import { validateEmail, validatePassword, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
@@ -12,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import TextField from "@/core/components/ui/text-field";
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -120,7 +120,7 @@ export default function LoginScreen() {
         <TouchableOpacity
           onPress={handleLogin}
           disabled={loading}
-          className="bg-text rounded-lg py-4 mt-2"
+          className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-lg py-4 mt-2"
         >
           {loading ? (
             <ActivityIndicator color="white" />

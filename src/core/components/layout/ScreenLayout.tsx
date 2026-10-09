@@ -3,13 +3,13 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { ReactNode } from "react";
 import {
-    ScrollView,
-    StyleProp,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
-    ViewStyle,
+  ScrollView,
+  StyleProp,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+  ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -74,7 +74,7 @@ export default function ScreenLayout({
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-background p-3" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark p-3" edges={["top"]}>
       {Header}
       {Content}
     </SafeAreaView>

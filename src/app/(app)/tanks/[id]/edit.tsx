@@ -12,7 +12,6 @@ import { TANK_STATUS_CONFIG } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
 import { TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Picker } from "@react-native-picker/picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -303,13 +302,13 @@ export default function EditTankScreen() {
               accessibilityState={{ expanded: showDailyForm }}
               className={`mb-4 flex-row items-center rounded-lg border p-4 ${
                 showDailyForm
-                  ? "border-white/15 bg-[#202a40]"
-                  : "border-white/10 bg-[#202a40]"
+                  ? "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundSelected dark:bg-backgroundSelected-dark"
+                  : "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
               }`}
               onPress={() => setShowDailyForm((isOpen) => !isOpen)}
             >
               <View
-                className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-white/5"
+                className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-backgroundSelected dark:bg-backgroundSelected-dark"
               >
                   <MaterialCommunityIcons
                     name={
@@ -430,32 +429,6 @@ export default function EditTankScreen() {
                 />
               )}
 
-              {statusConfig.form === "daily" && (
-                <>
-                  <View className="mb-2 flex-row items-center">
-                    <MaterialCommunityIcons
-                      name="fish"
-                      size={18}
-                      color={theme.textSecondary}
-                    />
-                    <Text className="ml-2 font-semibold text-text dark:text-text-dark">
-                      Tamaño del pez
-                    </Text>
-                  </View>
-                  <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                    <Picker
-                      selectedValue={size}
-                      onValueChange={(itemValue) => setSize(itemValue)}
-                      style={{ color: "#f8fafc", backgroundColor: "#1b2338" }}
-                    >
-                      <Picker.Item label="Chico" value="Chico" />
-                      <Picker.Item label="Mediano" value="Mediano" />
-                      <Picker.Item label="Grande" value="Grande" />
-                    </Picker>
-                  </View>
-                </>
-              )}
-
               <View className="mb-2 mt-2 flex-row items-center justify-between">
                 <Text className="text-base font-semibold text-text dark:text-text-dark">
                   Estado del tanque
@@ -480,7 +453,7 @@ export default function EditTankScreen() {
                   <View className="mb-2 flex-row" style={{ gap: 8 }}>
                     <TouchableOpacity
                       accessibilityRole="button"
-                      className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-white/10 bg-[#202a40] px-2 py-3"
+                      className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
                       onPress={() => router.push(`/tanks/${id}/batches`)}
                     >
                       <MaterialCommunityIcons
@@ -494,7 +467,7 @@ export default function EditTankScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       accessibilityRole="button"
-                      className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-white/10 bg-[#202a40] px-2 py-3"
+                      className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
                       onPress={() =>
                         router.push({
                           pathname: "/tanks/[id]/map" as any,
@@ -516,7 +489,7 @@ export default function EditTankScreen() {
                     <TouchableOpacity
                       accessibilityRole="button"
                       accessibilityState={{ expanded: showHistory }}
-                      className="flex-1 flex-row items-center justify-center rounded-lg border border-white/10 bg-[#202a40] px-3 py-3"
+                      className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
                       onPress={() => setShowHistory((visible) => !visible)}
                     >
                       <MaterialCommunityIcons
@@ -530,7 +503,7 @@ export default function EditTankScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       accessibilityRole="button"
-                      className="flex-1 flex-row items-center justify-center rounded-lg border border-white/10 bg-[#202a40] px-3 py-3"
+                      className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
                       onPress={() => setShowDatePicker(true)}
                     >
                       <MaterialCommunityIcons
@@ -561,14 +534,14 @@ export default function EditTankScreen() {
                             color={theme.text}
                           />
                         ) : selectedDateMovements.length === 0 ? (
-                          <Text className="text-textSecondary text-center py-6">
+                          <Text className="text-textSecondary dark:text-textSecondary-dark text-center py-6">
                             No hay movimientos registrados este día.
                           </Text>
                         ) : (
                           selectedDateMovements.map((movement, index) => (
                             <View key={movement.id} className="flex-row">
                               <View className="items-center mr-3" style={{ width: 32 }}>
-                                <View className="w-8 h-8 rounded-full bg-[#29334d] items-center justify-center">
+                                <View className="w-8 h-8 rounded-full bg-backgroundElement dark:bg-backgroundElement-dark items-center justify-center">
                                   <MaterialCommunityIcons
                                     name={
                                       movement.movementType === MovementType.TRANSFER
@@ -588,14 +561,14 @@ export default function EditTankScreen() {
                                   />
                                 </View>
                                 {index < selectedDateMovements.length - 1 && (
-                                  <View className="flex-1 w-px bg-backgroundSelected" />
+                                  <View className="flex-1 w-px bg-backgroundSelected dark:bg-backgroundSelected-dark" />
                                 )}
                               </View>
                               <View className="flex-1 pb-5">
-                                <Text className="text-textSecondary text-xs mb-1">
+                                <Text className="text-textSecondary dark:text-textSecondary-dark text-xs mb-1">
                                   {new Date(movement.movementDate).toLocaleString("es-MX")}
                                 </Text>
-                                <View className="bg-[#202a40] rounded-xl p-3">
+                                <View className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-xl p-3">
                                   <View className="flex-row items-center justify-between">
                                     <Text className="text-text dark:text-text-dark font-semibold">
                                       {getMovementLabel(movement)}
@@ -604,7 +577,7 @@ export default function EditTankScreen() {
                                       {movement.quantity} piezas
                                     </Text>
                                   </View>
-                                  <Text className="text-textSecondary mt-1">
+                                  <Text className="text-textSecondary dark:text-textSecondary-dark mt-1">
                                     {getMovementDescription(movement)}
                                   </Text>
                                 </View>

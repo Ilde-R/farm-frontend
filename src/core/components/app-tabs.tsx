@@ -1,7 +1,7 @@
-import { Colors } from "@/constants/theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
 import { useColorScheme } from "react-native";
+import { Colors } from "../constants/theme";
 
 export default function AppTabs() {
   const scheme = useColorScheme();
@@ -12,7 +12,12 @@ export default function AppTabs() {
       screenOptions={{
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: { backgroundColor: colors.background },
+        tabBarStyle: { 
+          backgroundColor: colors.backgroundElement,
+          borderTopWidth: 1,
+          borderTopColor: colors.backgroundSelected, 
+          elevation: 0,
+        },
         headerShown: false,
       }}
     >

@@ -110,9 +110,6 @@ export default function AddAerationScreen() {
       case "form":
         return (
           <View className="flex-1 px-6 pt-4">
-            <Text className="text-textSecondary text-base mb-6 dark:text-textSecondary-dark">
-              Configura un nuevo blower para tu granja.
-            </Text>
 
             <TextField
               label="ID del blower"
@@ -191,7 +188,7 @@ export default function AddAerationScreen() {
         return (
           <View className="flex-1 items-center justify-center px-6">
             <ActivityIndicator size="large" color={theme.text} />
-            <Text className="text-textSecondary mt-4 text-base">
+            <Text className="text-textSecondary dark:text-text-dark mt-4 text-base">
               Conectando con el servidor...
             </Text>
           </View>
@@ -201,13 +198,13 @@ export default function AddAerationScreen() {
         return (
           <View className="flex-1 px-6 items-center pt-4">
             <MaterialCommunityIcons name="wifi" size={64} color={theme.text} />
-            <Text className="text-text text-lg font-bold mt-6 text-center">
+            <Text className="text-text dark:text-text-dark text-lg font-bold mt-6 text-center">
               Conéctate a la red del dispositivo
             </Text>
-            <Text className="text-textSecondary text-base mt-3 text-center leading-6">
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-3 text-center leading-6">
               Ve a la configuración de WiFi de tu celular y conéctate a:
             </Text>
-            <View className="bg-backgroundElement border border-backgroundSelected rounded-lg px-6 py-4 mt-4 items-center">
+            <View className="bg-backgroundElement dark:bg-backgroundElement-dark border border-backgroundSelected rounded-lg px-6 py-4 mt-4 items-center">
               <Text className="text-text dark:text-text-dark font-bold text-lg">Blower_Setup</Text>
               <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-1">
                 Contraseña: 12345678
@@ -220,7 +217,7 @@ export default function AddAerationScreen() {
               className="bg-text rounded-lg py-3 px-8 mt-8"
               onPress={handleSendConfig}
             >
-              <Text className="text-background font-semibold text-base">
+              <Text className="text-background dark:text-background-dark font-semibold text-base">
                 Enviar configuración
               </Text>
             </TouchableOpacity>
@@ -252,10 +249,10 @@ export default function AddAerationScreen() {
               Reconéctate a tu red WiFi normal. El blower se conectará automáticamente al backend.
             </Text>
             <TouchableOpacity
-              className="bg-text rounded-lg py-3 px-8 mt-8"
+              className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-lg py-3 px-8 mt-8"
               onPress={handleReset}
             >
-              <Text className="text-background font-semibold text-base">
+              <Text className="text-text dark:text-text-dark font-semibold text-base">
                 Finalizar
               </Text>
             </TouchableOpacity>
@@ -270,14 +267,14 @@ export default function AddAerationScreen() {
               size={64}
               color={theme.textSecondary}
             />
-            <Text className="text-textSecondary text-base mt-4 text-center">
+            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-4 text-center">
               {errorMsg}
             </Text>
             <TouchableOpacity
-              className="bg-textSecondary rounded-lg py-3 px-8 mt-8"
+              className="bg-textSecondary dark:text-textSecondary-dark rounded-lg py-3 px-8 mt-8"
               onPress={handleReset}
             >
-              <Text className="text-background font-semibold text-base">
+              <Text className="text-text dark:text-text-dark font-semibold text-base">
                 Reintentar
               </Text>
             </TouchableOpacity>
@@ -291,7 +288,7 @@ export default function AddAerationScreen() {
       <ScreenLayout
         title="Nuevo dispositivo"
         isScrollable={false}
-        showBackButton={true} // <-- Asumo que tu ScreenLayout maneja el botón de retroceso con una prop así, o lo hace automáticamente por Expo Router.
+        showBackButton={true}
       >
         {renderContent()}
       </ScreenLayout>

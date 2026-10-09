@@ -16,12 +16,12 @@ export default function TankStatusPicker({ value, onChange, disabled = false }: 
     ];
 
     return (
-        <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
+        <View className="mb-4 overflow-hidden rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark">
             <Picker
                 enabled={!disabled}
                 selectedValue={value}
                 onValueChange={(itemValue) => onChange(itemValue)}
-                style={{ color: "#f8fafc", backgroundColor: "#1b2338" }}
+                style={{ color: "#f8fafc" }}
             >
                 {options.map((option) => (
                     <Picker.Item 

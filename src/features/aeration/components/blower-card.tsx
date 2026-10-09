@@ -1,5 +1,5 @@
-import SaveIntervalPicker from "@/core/components/ui/save-interval-picker";
 import { useTheme } from "@/core/theme/use-theme";
+import SaveIntervalPicker from "@/features/aeration/components/save-interval-picker";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
@@ -70,7 +70,11 @@ export default function BlowerCard({
   const statusLabel =
     psi == null ? "Sin lectura" : isAlert ? "Bajo umbral" : "Normal";
   const statusTextColor =
-    psi == null ? "text-slate-200" : isAlert ? "text-red-200" : "text-emerald-200";
+    psi == null
+      ? "text-textSecondary dark:text-textSecondary-dark"
+      : isAlert
+        ? "text-red-700 dark:text-red-200"
+        : "text-emerald-700 dark:text-emerald-200";
   const statusDotColor =
     psi == null ? "bg-slate-400" : isAlert ? "bg-red-400" : "bg-emerald-400";
   const statusPillColor =
@@ -89,22 +93,17 @@ export default function BlowerCard({
       const x =
         trendValues.length === 1
           ? 55
-          : (index / (trendValues.length - 1)) * 110;
+          : (index / (trendValues.length - 1)) * 150;
       const y = 70 - ((value - chartMin) / (chartMax - chartMin || 1)) * 56;
       return `${index === 0 ? "M" : "L"}${x},${y}`;
     })
     .join(" ");
 
   return (
-    <View className="mb-6 w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#2a334e] shadow-xl shadow-black/20">
-      <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
+    <View className="mb-6 w-full overflow-hidden rounded-[28px] border border-backgroundSelected bg-backgroundElement shadow-xl shadow-black/20 dark:border-backgroundSelected-dark dark:bg-backgroundElement-dark">
+      <View className="flex-row items-center justify-between border-b border-backgroundSelected px-4 py-3 dark:border-backgroundSelected-dark">
         <View className="flex-row items-center gap-2">
-          <MaterialCommunityIcons
-            name="fan"
-            size={18}
-            color={isAlert ? "#fca5a5" : "#a7f3d0"}
-          />
-          <Text className="text-sm font-semibold text-white">{name}</Text>
+          <Text className="text-sm font-semibold text-text dark:text-text-dark">{name}</Text>
         </View>
 
         <View className="flex-row items-center gap-3">
@@ -146,35 +145,35 @@ export default function BlowerCard({
 
       <View className="px-4 py-4">
         <View className="flex-row items-end justify-between">
-          <View className="flex-1">
-            <Text className="mb-1 text-[10px] uppercase tracking-[1.5px] text-slate-400">
+          <View className="w-[132px] shrink-0">
+            <Text className="mb-1 text-[10px] uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
               Presión actual
             </Text>
-            <Text className="text-4xl font-black tracking-tight text-white">
+            <Text className="text-4xl font-black tracking-tight text-text dark:text-text-dark">
               {psi != null ? Number(psi).toFixed(2) : "--.--"}
             </Text>
-            <Text className="mt-1 text-[10px] uppercase tracking-[1.3px] text-slate-400">
+            <Text className="mt-1 text-[10px] uppercase tracking-[1.3px] text-textSecondary dark:text-textSecondary-dark">
               PSI
             </Text>
           </View>
 
-          <View className="ml-3 w-[120px] rounded-2xl border border-white/5 bg-[#1f2a3d] p-2">
-            <Text className="mb-2 text-[10px] uppercase tracking-[1.3px] text-slate-400">
+          <View className="ml-3 min-w-0 flex-1 rounded-2xl border border-backgroundSelected bg-backgroundSelected p-2 dark:border-backgroundSelected-dark dark:bg-backgroundSelected-dark">
+            <Text className="mb-2 text-[10px] uppercase tracking-[1.3px] text-textSecondary dark:text-textSecondary-dark">
               Tendencia
             </Text>
 
             {trendValues.length > 0 ? (
-              <Svg width={110} height={78} viewBox="0 0 120 78">
+              <Svg width="100%" height={78} viewBox="0 0 160 78">
                 {trendValues.length > 1 && (
                   <Path
-                    d={`${chartPath} L 110 78 L 0 78 Z`}
+                    d={`${chartPath} L 150 78 L 0 78 Z`}
                     fill={chartColor}
                     opacity={0.12}
                   />
                 )}
                 <Path
-                  d={`M 0 ${thresholdY} L 110 ${thresholdY}`}
-                  stroke="#f8fafc"
+                  d={`M 0 ${thresholdY} L 150 ${thresholdY}`}
+                  stroke={theme.text}
                   strokeDasharray="4 4"
                   opacity={0.5}
                 />
@@ -186,7 +185,7 @@ export default function BlowerCard({
                 />
                 {trendValues.length === 1 && (
                   <Circle
-                    cx={55}
+                    cx={75}
                     cy={
                       70 -
                       ((trendValues[0] - chartMin) /
@@ -200,7 +199,7 @@ export default function BlowerCard({
               </Svg>
             ) : (
               <View className="h-[78px] items-center justify-center">
-                <Text className="text-center text-[10px] text-slate-400">
+                <Text className="text-center text-[10px] text-textSecondary dark:text-textSecondary-dark">
                   {chartError ? "Sin datos" : "Sin lecturas"}
                 </Text>
               </View>
@@ -209,29 +208,29 @@ export default function BlowerCard({
         </View>
 
         <View className="mt-4 flex-row items-center gap-2">
-          <View className="flex-1 rounded-2xl border border-white/5 bg-white/5 px-3 py-2">
-            <Text className="text-[10px] uppercase tracking-[1.3px] text-slate-400">
+          <View className="flex-1 rounded-2xl border border-backgroundSelected bg-backgroundSelected px-3 py-2 dark:border-backgroundSelected-dark dark:bg-backgroundSelected-dark">
+            <Text className="text-[10px] uppercase tracking-[1.3px] text-textSecondary dark:text-textSecondary-dark">
               Umbral
             </Text>
-            <Text className="mt-1 text-sm font-semibold text-emerald-300">
+            <Text className="mt-1 text-sm font-semibold text-text dark:text-text-dark">
               {threshold.toFixed(1)} PSI
             </Text>
           </View>
 
-          <View className="flex-1 rounded-2xl border border-white/5 bg-white/5 px-3 py-2">
-            <Text className="text-[10px] uppercase tracking-[1.3px] text-slate-400">
+          <View className="flex-1 rounded-2xl border border-backgroundSelected bg-backgroundSelected px-3 py-2 dark:border-backgroundSelected-dark dark:bg-backgroundSelected-dark">
+            <Text className="text-[10px] uppercase tracking-[1.3px] text-textSecondary dark:text-textSecondary-dark">
               Guardado
             </Text>
-            <Text className="mt-1 text-sm font-semibold text-sky-300">
+            <Text className="mt-1 text-sm font-semibold text-text dark:text-text-dark">
               {saveIntervalSeconds ? `${saveIntervalSeconds / 60} min` : "--"}
             </Text>
           </View>
 
-          <View className="flex-1 rounded-2xl border border-white/5 bg-white/5 px-3 py-2">
-            <Text className="text-[10px] uppercase tracking-[1.3px] text-slate-400">
+          <View className="flex-1 rounded-2xl border border-backgroundSelected bg-backgroundSelected px-3 py-2 dark:border-backgroundSelected-dark dark:bg-backgroundSelected-dark">
+            <Text className="text-[10px] uppercase tracking-[1.3px] text-textSecondary dark:text-textSecondary-dark">
               FW
             </Text>
-            <Text className="mt-1 text-sm font-semibold text-slate-200">
+            <Text className="mt-1 text-sm font-semibold text-text dark:text-text-dark">
               {firmwareVersion ?? "N/A"}
             </Text>
           </View>

@@ -80,7 +80,7 @@ export default function TankCard({
     >
       <View
         style={{ width: cardSize, height: cardSize }}
-        className="items-center justify-center overflow-hidden rounded-full border-2 border-white/10 bg-[#29334d] p-4 shadow-lg shadow-black/20"
+        className="items-center justify-center overflow-hidden rounded-full border-2 border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark p-4 shadow-lg shadow-black/20"
       >
         <View
           className={`mb-2 h-10 w-10 items-center justify-center rounded-full ${statusPresentation.iconBackground}`}
@@ -93,10 +93,10 @@ export default function TankCard({
         </View>
 
         <View className="items-center">
-          <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-slate-400">
+          <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark ">
             Tanque
           </Text>
-          <Text className="text-3xl font-extrabold tracking-tight text-white">
+          <Text className="text-3xl font-extrabold tracking-tight text-text dark:text-text-dark">
             {tankNumber}
           </Text>
           <View
@@ -111,7 +111,7 @@ export default function TankCard({
             </Text>
           </View>
           {currentQuantity !== undefined && (
-            <Text className="mt-1 text-[10px] font-medium text-slate-300">
+            <Text className="mt-1 text-[10px] font-medium text-textSecondary dark:text-textSecondary-dark">
                 {currentQuantity} piezas
             </Text>
           )}

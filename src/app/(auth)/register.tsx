@@ -1,11 +1,11 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import { validateEmail, validatePassword, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { useState } from "react";
-import TextField from "@/core/components/ui/text-field";
 import {
   ActivityIndicator,
   Alert,
@@ -122,7 +122,7 @@ export default function RegisterScreen() {
         </Text>
 
         <TouchableOpacity
-          className="bg-text rounded-lg py-4 mt-2"
+          className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-lg py-4 mt-2"
           onPress={handleRegister}
           disabled={loading}
         >

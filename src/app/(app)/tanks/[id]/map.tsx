@@ -159,7 +159,7 @@ export default function MapDetailScreen() {
         )}
 
         <View className="mb-6 items-center">
-          <View className="w-full max-w-[320px] flex-row rounded-2xl border border-white/10 bg-[#202a40] p-1.5">
+          <View className="w-full max-w-[320px] flex-row rounded-2xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark p-1.5">
             {(["ingreso", "salida"] as const).map((direction) => {
               const isSelected = flowDirection === direction;
               return (

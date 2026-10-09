@@ -6,7 +6,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#181F3B",
+        background: {
+          DEFAULT: '#F5F7FA',
+          dark: '#121212',
+        },
         backgroundElement: {
           DEFAULT: "#F0F0F3",
           dark: "#212225",
@@ -15,9 +18,20 @@ module.exports = {
           DEFAULT: "#E0E1E6",
           dark: "#2E3135",
         },
-        text: "#ffffff",
-        textSecondary: "#B0B4BA",
-        textError: "#FF0000",
+        text:{
+          DEFAULT: '#181F3B',
+          dark: "#ffffff", 
+        },
+        textSecondary: {
+          DEFAULT: '#60646A',
+          dark: "#B0B4BA",
+        },   
+        textError: {
+          DEFAULT: '#B42318',
+          dark: "#FF0000",
+        } 
+        
+        
       },
     },
   },

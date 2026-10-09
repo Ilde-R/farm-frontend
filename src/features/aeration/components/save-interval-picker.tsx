@@ -11,8 +11,8 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import TextField from "./text-field";
-import ThresholdSlider from "./threshold-slider";
+import TextField from "../../../core/components/ui/text-field";
+import ThresholdSlider from "../../../core/components/ui/threshold-slider";
 
 const SAVE_INTERVAL_OPTIONS = [
   { value: 1800, label: "30 min" },
@@ -106,9 +106,9 @@ export default function SaveIntervalPicker({
           
           {/* Contenido del modal (sin Pressable envolviendo) */}
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className="bg-[#313b59] rounded-t-2xl pt-6 pb-10 px-6 overflow-hidden max-h-[90%]">
+            <View className="bg-backgroundElement rounded-t-2xl pt-6 pb-10 px-6 overflow-hidden max-h-[90%]  dark:bg-backgroundElement-dark">
               <View className="items-center mb-5">
-                <Text className="text-white font-bold text-lg">{name}</Text>
+                <Text className="text-text dark:text-text-dark font-bold text-lg">{name}</Text>
               </View>
 
               <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mb-3 text-center">
@@ -144,16 +144,16 @@ export default function SaveIntervalPicker({
                         key={opt.value}
                         className={`px-5 py-3 rounded-lg ${
                           isSelected
-                            ? "bg-gray-600 border border-green-500"
-                            : "bg-gray-700/50 border border-transparent"
+                            ? "bg-backgroundSelected dark:bg-backgroundSelected-dark"
+                            : "bg-background dark:bg-background-dark border border-transparent"
                         }`}
                         onPress={() => handleSelect(opt.value)}
                       >
                         <Text
                           className={`text-base ${
                             isSelected
-                              ? "text-white font-bold"
-                              : "text-gray-400"
+                              ? "text-text dark:text-text-dark"
+                              : "text-textSecondary dark:text-text-dark"
                           }`}
                         >
                           {opt.label}
@@ -164,8 +164,10 @@ export default function SaveIntervalPicker({
                   <TouchableOpacity
                     className={`rounded-lg px-5 py-3 ${
                       isCustomValue
-                        ? "bg-gray-600 border border-green-500"
-                        : "bg-gray-700/50 border border-transparent"
+                        // ? "bg-gray-600 border border-green-500"
+                        ? 'bg-backgroundSelected dark:bg-backgroundSelected-dark'
+                        // : "bg-gray-700/50 border border-transparent"
+                        : 'bg-backgroundElement dark:bg-backgroundElement-dark'
                     }`}
                     onPress={() => {
                       setCustomInput(isCustomValue ? String(currentValue) : "");
@@ -175,8 +177,8 @@ export default function SaveIntervalPicker({
                     <Text
                       className={`text-base ${
                         isCustomValue
-                          ? "text-white font-bold"
-                          : "text-gray-400"
+                          ? "text-text dark:text-text-dark font-bold"
+                          : "text-textSecondary dark:text-textSecondary-dark"
                       }`}
                     >
                       Personalizado
@@ -191,7 +193,7 @@ export default function SaveIntervalPicker({
                 <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mb-1 text-center">
                   Configurar umbral
                 </Text>
-                <Text className="text-white text-2xl font-bold text-center mb-3">
+                <Text className="text-text dark:text-text-dark text-2xl font-bold text-center mb-3">
                   {editingThreshold.toFixed(1)} PSI
                 </Text>
                 <View className="px-2 mb-5">
@@ -202,8 +204,8 @@ export default function SaveIntervalPicker({
                   />
                 </View>
                 <View className="flex-row justify-between px-2 mb-4">
-                  <Text className="text-gray-500 text-xs">0</Text>
-                  <Text className="text-gray-500 text-xs">10</Text>
+                  <Text className="text-text dark:text-text-dark text-xs">0</Text>
+                  <Text className="text-text dark:text-text-dark text-xs">10</Text>
                 </View>
               </View>
             </View>

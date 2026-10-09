@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, Alert, ActivityIndicator } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import TextField from "@/core/components/ui/text-field";
 import type { CreateBatchPayload } from "@/features/batches/types/batch";
 import { MovementType } from "@/features/tank-movements/types/tank-movement";
 import type { Tank } from "@/features/tanks/types/tank";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Picker } from "@react-native-picker/picker";
+import { useState } from "react";
+import { ActivityIndicator, Alert, Modal, Text, TouchableOpacity, View } from "react-native";
 
 type DailyMovementData =
     | {
@@ -104,12 +104,12 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
     };
 
     return (
-        <View className="mb-4 rounded-3xl border border-white/10 bg-[#313b59] p-4 shadow-lg">
+        <View className="mb-4 rounded-3xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark p-4 shadow-lg">
             {formType === "daily" && (
                 <>
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Tipo de movimiento</Text>
-                    <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                        <Picker selectedValue={movementType} onValueChange={(value) => setMovementType(value as MovementType)} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                    <View className="mb-4 overflow-hidden rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark">
+                        <Picker selectedValue={movementType} onValueChange={(value) => setMovementType(value as MovementType)} style={{ color: "#ffffff"}}>
                             <Picker.Item label="Traslado" value={MovementType.TRANSFER} />
                             <Picker.Item label="Venta" value={MovementType.SALE} />
                             <Picker.Item label="Mortandad" value={MovementType.MORTALITY} />
@@ -122,7 +122,7 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 {formType === "sowing" ? "Cantidad inicial de peces" : "Cantidad de peces"}
             </Text>
             <TextField
-                className="border-white/10 bg-[#1b2338] text-white"
+                className="border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark text-text dark:text-text-dark"
                 style={{ color: "#ffffff" }}
                 value={dailyQuantity}
                 error={quantityError || undefined}
@@ -139,7 +139,7 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 {formType === "sowing" ? "Fecha de siembra" : "Fecha y hora"}
             </Text>
             <TouchableOpacity
-                className="mb-4 flex-row items-center rounded-xl border border-white/10 bg-[#1b2338] px-3 py-3"
+                className="mb-4 flex-row items-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark px-3 py-3"
                 onPress={() => setShowDailyDatePicker(true)}
             >
                 <MaterialCommunityIcons name="calendar-clock" size={20} color="#94a3b8" />
@@ -150,8 +150,8 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
             {formType === "daily" && movementType === MovementType.TRANSFER && (
                 <>
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Tanque destino</Text>
-                    <View className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                        <Picker selectedValue={targetTankId || availableTanks[0]?.id} onValueChange={setTargetTankId} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                    <View className="mb-4 overflow-hidden rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark">
+                        <Picker selectedValue={targetTankId || availableTanks[0]?.id} onValueChange={setTargetTankId} style={{ color: "#ffffff" }}>
                             {availableTanks.map((tank) => (
                                 <Picker.Item
                                     key={tank.id}
@@ -174,7 +174,7 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 ) : (
                     <>
                         <MaterialCommunityIcons name="content-save-outline" size={18} color="#000000" />
-                        <Text className="ml-2 text-center font-semibold text-background">
+                        <Text className="ml-2 text-center font-semibold text-background dark:text-background-dark">
                             {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
                         </Text>
                     </>

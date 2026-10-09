@@ -151,9 +151,6 @@ export default function TanksScreen() {
         <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
           {tanks.length > 0 && (
             <View className="w-full">
-              <Text className="mb-3 text-base font-semibold text-text dark:text-text-dark">
-                Resumen de tanques
-              </Text>
               <View className="flex-row flex-wrap justify-between gap-y-3">
                 {TANK_SUMMARY_ITEMS.map(({ status, label, icon }) => {
                   const count =
@@ -169,8 +166,8 @@ export default function TanksScreen() {
                       accessibilityState={{ selected: isSelected }}
                       className={`w-[48%] flex-row items-center rounded-xl border px-3 py-3 ${
                         isSelected
-                          ? "border-white/30 bg-[#202a40]"
-                          : "border-white/10 bg-[#202a40]"
+                          ? "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
+                          : "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
                       }`}
                       onPress={() => setTankFilter(status)}
                     >
@@ -256,7 +253,7 @@ export default function TanksScreen() {
         onRequestClose={closeAddModal}
       >
         <View className="flex-1 items-center justify-center bg-black/40 px-6">
-          <View className="w-full rounded-xl bg-background p-6">
+          <View className="w-full rounded-xl bg-backgroundElement dark:bg-backgroundElement-dark p-6">
             <View className="mb-6 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-text dark:text-text-dark">
                 Registrar tanque
@@ -288,7 +285,7 @@ export default function TanksScreen() {
             <Text className="mb-1 font-semibold text-text dark:text-text-dark">
               Estado
             </Text>
-            <View className="mb-6 overflow-hidden rounded-lg border border-backgroundSelected">
+            <View className="mb-6 overflow-hidden rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark">
               <Picker
                 selectedValue={tankStatus}
                 onValueChange={(value) => setTankStatus(value as TankStatus)}
@@ -318,7 +315,8 @@ export default function TanksScreen() {
               
               <TouchableOpacity
                 className={`rounded-lg px-4 py-3 flex-row items-center justify-center min-w-[100px] ${
-                  loading ? "bg-gray-400" : "bg-text dark:bg-text-dark"
+                  loading ? "bg-textSecondary dark:bg-textSecondary-dark" 
+                          : "bg-text dark:bg-text-dark"
                 }`}
                 onPress={handleAddTank}
                 disabled={loading}
@@ -326,7 +324,7 @@ export default function TanksScreen() {
                 {loading ? (
                   <ActivityIndicator color={theme.background} size="small" />
                 ) : (
-                  <Text className="font-semibold text-background">Agregar</Text>
+                  <Text className="font-semibold text-background dark:text-background-dark ">Agregar</Text>
                 )}
               </TouchableOpacity>
             </View>

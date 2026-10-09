@@ -12,7 +12,12 @@ export default function TabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: { backgroundColor: colors.background },
+        tabBarStyle: { 
+          backgroundColor: colors.backgroundElement,
+          borderTopWidth: 1,
+          borderTopColor: colors.backgroundSelected, 
+          elevation: 0,
+        },
         headerShown: false,
       }}
     >
