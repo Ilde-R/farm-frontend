@@ -268,7 +268,7 @@ export default function EditTankScreen() {
         headerRight={HeaderRight}
         isScrollable
       >
-        <View className="mx-1 mt-3 flex-row items-center border-b border-white/10 pb-3">
+        <View className="mx-1 mt-3 flex-row items-center border-b border-border dark:border-border-dark pb-3">
           <MaterialCommunityIcons
             name="calendar-month-outline"
             size={20}
@@ -319,7 +319,7 @@ export default function EditTankScreen() {
                           : "plus"
                     }
                     size={22}
-                    color="#cbd5e1"
+                    color={theme.textSecondary}
                   />
                 </View>
                 <View className="flex-1">
@@ -553,10 +553,10 @@ export default function EditTankScreen() {
                                     size={18}
                                     color={
                                       movement.movementType === MovementType.TRANSFER
-                                        ? "#34d399"
+                                        ? theme.success
                                         : movement.movementType === MovementType.SALE
-                                        ? "#60a5fa"
-                                        : "#f87171"
+                                        ? theme.info
+                                        : theme.danger
                                     }
                                   />
                                 </View>
@@ -594,20 +594,20 @@ export default function EditTankScreen() {
 
           <TouchableOpacity
             accessibilityRole="button"
-            className="mb-2 mt-3 flex-row items-center justify-center rounded-lg border border-red-400/40 py-3"
+            className="mb-2 mt-3 flex-row items-center justify-center rounded-lg border border-danger/40 py-3"
             onPress={confirmDeleteTank}
             disabled={isDeleting}
           >
             {isDeleting ? (
-              <ActivityIndicator color="#f87171" />
+              <ActivityIndicator color={theme.danger} />
             ) : (
               <>
                 <MaterialCommunityIcons
                   name="delete-outline"
                   size={18}
-                  color="#f87171"
+                  color={theme.danger}
                 />
-                <Text className="ml-2 font-semibold text-red-400">
+                <Text className="ml-2 font-semibold text-danger dark:text-danger-dark">
                   Eliminar estanque
                 </Text>
               </>

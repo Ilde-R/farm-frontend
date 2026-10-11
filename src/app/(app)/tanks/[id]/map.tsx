@@ -1,4 +1,5 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
 import { getActiveBatchByTankId } from "@/features/batches/utils/batch.utils";
 import { useTankMovement } from "@/features/tank-movements/contexts/TankMovementContext";
@@ -28,6 +29,7 @@ type FlowDirection = "ingreso" | "salida";
 export default function MapDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { width } = useWindowDimensions();
+  const theme = useTheme();
   const tankCardSize = getTankCardSize(width);
   const { tanks, fetchTanks } = useTank();
   const { batches, fetchBatches } = useBatch();
@@ -168,7 +170,7 @@ export default function MapDetailScreen() {
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
                   className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl px-4 py-3 ${
-                    isSelected ? "bg-cyan-700" : "bg-transparent"
+                    isSelected ? "bg-primary" : "bg-transparent"
                   }`}
                   onPress={() =>
                     setFlowDirection((current) =>
@@ -179,9 +181,9 @@ export default function MapDetailScreen() {
                   <MaterialCommunityIcons
                     name={direction === "ingreso" ? "arrow-down-left" : "arrow-up-right"}
                     size={18}
-                    color={isSelected ? "#ffffff" : "#94a3b8"}
+                    color={isSelected ? theme.primaryForeground : theme.textSecondary}
                   />
-                  <Text className={`font-semibold ${isSelected ? "text-white" : "text-slate-400"}`}>
+                  <Text className={`font-semibold ${isSelected ? "text-primaryForeground" : "text-textSecondary dark:text-textSecondary-dark"}`}>
                     {direction === "ingreso" ? "Ingreso" : "Salida"}
                   </Text>
                 </Pressable>
@@ -191,12 +193,12 @@ export default function MapDetailScreen() {
         </View>
 
         {isLoading && (
-          <ActivityIndicator className="mb-5" size="large" color="#67e8f9" />
+          <ActivityIndicator className="mb-5" size="large" color={theme.primary} />
         )}
 
         {loadError && (
           <View className="mb-5 flex-row items-center justify-center">
-            <Text className="text-center text-red-400">{loadError}</Text>
+            <Text className="text-center text-danger dark:text-danger-dark">{loadError}</Text>
             <Pressable
               className="ml-3"
               onPress={() => {
@@ -208,7 +210,7 @@ export default function MapDetailScreen() {
                 );
               }}
             >
-              <Text className="font-semibold text-cyan-300">Reintentar</Text>
+              <Text className="font-semibold text-primary dark:text-primary-dark">Reintentar</Text>
             </Pressable>
           </View>
         )}
@@ -259,7 +261,7 @@ export default function MapDetailScreen() {
                         currentQuantity={activeBatchByTankId.get(tank.id)?.currentQuantity}
                       />
                       {flowDirection && quantityByTank.has(tank.tankNumber) && (
-                        <Text className="absolute -bottom-7 w-full text-center text-xs font-semibold text-cyan-200">
+                        <Text className="absolute -bottom-7 w-full text-center text-xs font-semibold text-primary dark:text-primary-dark">
                           {movementLabel}: {quantityByTank.get(tank.tankNumber)} piezas
                         </Text>
                       )}

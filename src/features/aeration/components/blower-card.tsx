@@ -73,13 +73,13 @@ export default function BlowerCard({
     psi == null
       ? "text-textSecondary dark:text-textSecondary-dark"
       : isAlert
-        ? "text-red-700 dark:text-red-200"
-        : "text-emerald-700 dark:text-emerald-200";
+        ? "text-danger dark:text-danger-dark"
+        : "text-success dark:text-success-dark";
   const statusDotColor =
-    psi == null ? "bg-slate-400" : isAlert ? "bg-red-400" : "bg-emerald-400";
+    psi == null ? "bg-textTertiary" : isAlert ? "bg-danger" : "bg-success";
   const statusPillColor =
-    psi == null ? "bg-slate-500/20" : isAlert ? "bg-red-500/15" : "bg-emerald-500/15";
-  const chartColor = isAlert ? "#f87171" : "#34d399";
+    psi == null ? "bg-textTertiary/20" : isAlert ? "bg-danger/15" : "bg-success/15";
+  const chartColor = isAlert ? theme.danger : theme.success;
 
   const trendValues = chartReadings
     .map((reading) => reading.psi)
@@ -138,7 +138,7 @@ export default function BlowerCard({
               );
             }}
           >
-            <MaterialCommunityIcons name="trash-can-outline" size={18} color="#FF6B5F" />
+            <MaterialCommunityIcons name="trash-can-outline" size={18} color={theme.danger} />
           </TouchableOpacity>
         </View>
       </View>

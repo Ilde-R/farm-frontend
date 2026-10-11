@@ -1,40 +1,44 @@
+import { useTheme } from "@/core/theme/use-theme";
 import { TANK_STATUS_CONFIG } from "@/features/tanks/constants/tank.constants";
 import { TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 
-const STATUS_PRESENTATION: Record<
-  string,
-  {
-    icon: keyof typeof MaterialCommunityIcons.glyphMap;
-    iconColor: string;
-    iconBackground: string;
-    badgeColor: string;
-    labelColor: string;
-  }
-> = {
-  [TankStatus.ACTIVE]: {
-    icon: "water",
-    iconColor: "#6ee7b7",
-    iconBackground: "bg-emerald-400/10",
-    badgeColor: "bg-emerald-400",
-    labelColor: "text-emerald-200",
-  },
-  [TankStatus.EMPTY]: {
-    icon: "water-off",
-    iconColor: "#cbd5e1",
-    iconBackground: "bg-slate-400/10",
-    badgeColor: "bg-slate-400",
-    labelColor: "text-slate-200",
-  },
-  [TankStatus.MAINTENANCE]: {
-    icon: "wrench-outline",
-    iconColor: "#fcd34d",
-    iconBackground: "bg-amber-400/10",
-    badgeColor: "bg-amber-400",
-    labelColor: "text-amber-200",
-  },
+type Theme = ReturnType<typeof useTheme>;
+
+type StatusPresentation = {
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  iconColor: string;
+  iconBackground: string;
+  badgeColor: string;
+  labelColor: string;
 };
+
+function getStatusPresentation(theme: Theme): Record<string, StatusPresentation> {
+  return {
+    [TankStatus.ACTIVE]: {
+      icon: "water",
+      iconColor: theme.success,
+      iconBackground: "bg-success/10",
+      badgeColor: "bg-success",
+      labelColor: "text-success",
+    },
+    [TankStatus.EMPTY]: {
+      icon: "water-off",
+      iconColor: theme.textTertiary,
+      iconBackground: "bg-textTertiary/10",
+      badgeColor: "bg-textTertiary",
+      labelColor: "text-textSecondary dark:text-textSecondary-dark",
+    },
+    [TankStatus.MAINTENANCE]: {
+      icon: "wrench-outline",
+      iconColor: theme.warning,
+      iconBackground: "bg-warning/10",
+      badgeColor: "bg-warning",
+      labelColor: "text-warning",
+    },
+  };
+}
 
 type TankCardProps = {
   tankNumber: number;
@@ -55,15 +59,16 @@ export default function TankCard({
   onPress,
   size,
 }: TankCardProps) {
+  const theme = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const cardSize = size ?? getTankCardSize(screenWidth);
   const statusPresentation =
-    STATUS_PRESENTATION[tankStatus] ?? {
+    getStatusPresentation(theme)[tankStatus] ?? {
       icon: "help-circle-outline" as const,
-      iconColor: "#cbd5e1",
-      iconBackground: "bg-slate-400/10",
-      badgeColor: "bg-slate-400",
-      labelColor: "text-slate-200",
+      iconColor: theme.textTertiary,
+      iconBackground: "bg-textTertiary/10",
+      badgeColor: "bg-textTertiary",
+      labelColor: "text-textSecondary dark:text-textSecondary-dark",
     };
   const displayStatus =
     TANK_STATUS_CONFIG[tankStatus as TankStatus]?.label || String(tankStatus);

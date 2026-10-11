@@ -1,6 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
+import { useTheme } from "@/core/theme/use-theme";
 
 type DayPickerModalProps = {
     visible: boolean;
@@ -19,6 +20,7 @@ export default function DayPickerModal({
     onDateChange,
     onClose,
 }: DayPickerModalProps) {
+    const theme = useTheme();
     const [displayedMonth, setDisplayedMonth] = useState(
         () => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
     );
@@ -53,11 +55,11 @@ export default function DayPickerModal({
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
             <View className="flex-1 justify-center bg-black/65 px-5">
-                <View className="rounded-3xl border border-white/10 bg-[#202a40] p-5">
-                    <Text className="mb-1 text-xl font-bold text-white">
+                <View className="rounded-3xl border border-border dark:border-border-dark bg-backgroundElement dark:bg-backgroundElement-dark p-5">
+                    <Text className="mb-1 text-xl font-bold text-text dark:text-text-dark">
                         Historial por fecha
                     </Text>
-                    <Text className="mb-5 text-sm text-slate-400">
+                    <Text className="mb-5 text-sm text-textSecondary dark:text-textSecondary-dark">
                         Selecciona el día que quieres consultar
                     </Text>
 
@@ -68,9 +70,9 @@ export default function DayPickerModal({
                             className="h-10 w-10 items-center justify-center rounded-xl bg-white/5"
                             onPress={() => changeMonth(-1)}
                         >
-                            <MaterialCommunityIcons name="chevron-left" size={24} color="#cbd5e1" />
+                            <MaterialCommunityIcons name="chevron-left" size={24} color={theme.textSecondary} />
                         </TouchableOpacity>
-                        <Text className="text-base font-semibold capitalize text-white">
+                        <Text className="text-base font-semibold capitalize text-text dark:text-text-dark">
                             {displayedMonth.toLocaleDateString("es-MX", {
                                 month: "long",
                                 year: "numeric",
@@ -82,14 +84,14 @@ export default function DayPickerModal({
                             className="h-10 w-10 items-center justify-center rounded-xl bg-white/5"
                             onPress={() => changeMonth(1)}
                         >
-                            <MaterialCommunityIcons name="chevron-right" size={24} color="#cbd5e1" />
+                            <MaterialCommunityIcons name="chevron-right" size={24} color={theme.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
                     <View className="mb-2 flex-row">
                         {weekDays.map((day, index) => (
                             <View key={`${day}-${index}`} className="flex-1 items-center py-2">
-                                <Text className="text-xs font-semibold text-slate-400">{day}</Text>
+                                <Text className="text-xs font-semibold text-textSecondary dark:text-textSecondary-dark">{day}</Text>
                             </View>
                         ))}
                     </View>
@@ -119,27 +121,27 @@ export default function DayPickerModal({
                                         accessibilityState={{ selected: isSelected }}
                                         className={`relative h-10 items-center justify-center rounded-xl ${
                                             isSelected
-                                                ? "bg-cyan-700"
+                                                ? "bg-primary"
                                                 : hasMovements
-                                                  ? "border border-cyan-400/40 bg-cyan-400/15"
+                                                  ? "border border-primary/40 bg-primary/15"
                                                 : isToday
-                                                  ? "border border-cyan-400/50 bg-cyan-400/10"
-                                                  : "bg-white/5"
+                                                  ? "border border-primary/50 bg-primary/10"
+                                                : "bg-backgroundSelected/60 dark:bg-backgroundSelected-dark/60"
                                         }`}
                                         onPress={() => onDateChange(date)}
                                     >
                                         <Text
-                                            className={`-mt-1 text-sm font-medium ${
-                                                isSelected ? "text-white" : "text-slate-200"
-                                            }`}
+                                                className={`-mt-1 text-sm font-medium ${
+                                                    isSelected ? "text-primaryForeground" : "text-text dark:text-text-dark"
+                                                }`}
                                         >
                                             {day}
                                         </Text>
                                         {hasMovements && (
                                             <View
-                                                className={`absolute bottom-1 h-1 w-1 rounded-full ${
-                                                    isSelected ? "bg-white" : "bg-cyan-300"
-                                                }`}
+                                                    className={`absolute bottom-1 h-1 w-1 rounded-full ${
+                                                        isSelected ? "bg-primaryForeground" : "bg-primary"
+                                                    }`}
                                             />
                                         )}
                                     </TouchableOpacity>
@@ -154,14 +156,14 @@ export default function DayPickerModal({
                             className="rounded-xl px-3 py-3"
                             onPress={() => onDateChange(today)}
                         >
-                            <Text className="font-semibold text-cyan-300">Hoy</Text>
+                            <Text className="font-semibold text-primary dark:text-primary-dark">Hoy</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             accessibilityRole="button"
-                            className="rounded-xl bg-cyan-700 px-6 py-3"
+                            className="rounded-xl bg-primary px-6 py-3"
                             onPress={onClose}
                         >
-                            <Text className="font-semibold text-white">Aceptar</Text>
+                            <Text className="font-semibold text-primaryForeground">Aceptar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

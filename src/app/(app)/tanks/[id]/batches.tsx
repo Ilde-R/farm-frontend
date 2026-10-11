@@ -1,4 +1,5 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
 import { Batch, BatchStatus } from "@/features/batches/types/batch";
 import { useTank } from "@/features/tanks/contexts/TankContext";
@@ -17,6 +18,7 @@ export default function TankBatchesScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { tanks } = useTank();
   const { batches, isLoading, fetchBatches } = useBatch();
+  const theme = useTheme();
   const tank = tanks.find((item) => item.id === id);
 
   useFocusEffect(
@@ -46,7 +48,7 @@ export default function TankBatchesScreen() {
     >
       <View className="px-1 pb-8">
         {isLoading && (
-          <ActivityIndicator className="mt-8" size="large" color="#67e8f9" />
+          <ActivityIndicator className="mt-8" size="large" color={theme.primary} />
         )}
 
         {!isLoading && tankBatches.length === 0 && (
@@ -58,14 +60,14 @@ export default function TankBatchesScreen() {
         {tankBatches.map((batch) => (
           <View
             key={batch.id}
-            className="mb-3 rounded-xl border border-backgroundSelected p-4"
+            className="mb-3 rounded-xl border border-border dark:border-border-dark p-4"
           >
             <View className="mb-3 flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <MaterialCommunityIcons
                   name="fish"
                   size={20}
-                  color="#67e8f9"
+                  color={theme.primary}
                 />
                 <Text className="ml-2 font-semibold text-text dark:text-text-dark">
                   Lote

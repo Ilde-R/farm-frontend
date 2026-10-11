@@ -1,5 +1,6 @@
 import Svg, { G, Line, Polyline } from "react-native-svg";
 import Animated from "react-native-reanimated";
+import { useColorScheme } from "@/core/theme/use-color-scheme";
 import { getCircleBorderPoint } from "../utils/tank-geometry";
 import type { TankPosition } from "../types/tank";
 
@@ -31,6 +32,10 @@ export default function TankFlowOverlay({
     animatedUpperSpineFlowProps,
     animatedLowerSpineFlowProps,
 }: TankFlowOverlayProps) {
+    const scheme = useColorScheme();
+    const isDark = scheme === "dark";
+    const trunkColor = isDark ? "#0891B2" : "#06B6D4";
+    const flowColor = isDark ? "#67E8F9" : "#0E7490";
     const readyConnections = visibleConnections.filter(
         ({ fromId, toId }) => tankPositions[fromId] && tankPositions[toId],
     );
@@ -108,7 +113,7 @@ export default function TankFlowOverlay({
                     y1={hubPoint.y}
                     x2={centralX}
                     y2={hubCenterY}
-                    stroke="#0891b2"
+                    stroke={trunkColor}
                     strokeWidth={4}
                 />
                 <AnimatedLine
@@ -117,7 +122,7 @@ export default function TankFlowOverlay({
                     y1={hubPoint.y}
                     x2={centralX}
                     y2={hubCenterY}
-                    stroke="#67e8f9"
+                    stroke={flowColor}
                     strokeWidth={3}
                     strokeDasharray="4 16"
                     strokeLinecap="round"
@@ -129,7 +134,7 @@ export default function TankFlowOverlay({
                             y1={firstBranchY}
                             x2={centralX}
                             y2={hubCenterY}
-                            stroke="#0891b2"
+                            stroke={trunkColor}
                             strokeWidth={4}
                         />
                         <AnimatedLine
@@ -138,7 +143,7 @@ export default function TankFlowOverlay({
                             y1={firstBranchY}
                             x2={centralX}
                             y2={hubCenterY}
-                            stroke="#67e8f9"
+                            stroke={flowColor}
                             strokeWidth={3}
                             strokeDasharray="4 16"
                             strokeLinecap="round"
@@ -152,7 +157,7 @@ export default function TankFlowOverlay({
                             y1={hubCenterY}
                             x2={centralX}
                             y2={lastBranchY}
-                            stroke="#0891b2"
+                            stroke={trunkColor}
                             strokeWidth={4}
                         />
                         <AnimatedLine
@@ -161,7 +166,7 @@ export default function TankFlowOverlay({
                             y1={hubCenterY}
                             x2={centralX}
                             y2={lastBranchY}
-                            stroke="#67e8f9"
+                            stroke={flowColor}
                             strokeWidth={3}
                             strokeDasharray="4 16"
                             strokeLinecap="round"
@@ -182,14 +187,14 @@ export default function TankFlowOverlay({
                             <Polyline
                                 points={branchPoints}
                                 fill="none"
-                                stroke="#0891b2"
+                                stroke={trunkColor}
                                 strokeWidth={4}
                             />
                             <AnimatedPolyline
                                 animatedProps={animatedFlowProps}
                                 points={branchPoints}
                                 fill="none"
-                                stroke="#67e8f9"
+                                stroke={flowColor}
                                 strokeWidth={3}
                                 strokeDasharray="4 16"
                                 strokeLinecap="round"

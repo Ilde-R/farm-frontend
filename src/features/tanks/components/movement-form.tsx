@@ -1,4 +1,5 @@
 import TextField from "@/core/components/ui/text-field";
+import { useTheme } from "@/core/theme/use-theme";
 import type { CreateBatchPayload } from "@/features/batches/types/batch";
 import { MovementType } from "@/features/tank-movements/types/tank-movement";
 import type { Tank } from "@/features/tanks/types/tank";
@@ -32,6 +33,7 @@ type MovementFormProps = {
 };
 
 export default function MovementForm({ formType, tankId, availableTanks, onSave }: MovementFormProps) {
+    const theme = useTheme();
     const [dailyDate, setDailyDate] = useState(new Date());
     const [showDailyDatePicker, setShowDailyDatePicker] = useState(false);
     const [dailyQuantity, setDailyQuantity] = useState("");
@@ -108,8 +110,8 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
             {formType === "daily" && (
                 <>
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Tipo de movimiento</Text>
-                    <View className="mb-4 overflow-hidden rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark">
-                        <Picker selectedValue={movementType} onValueChange={(value) => setMovementType(value as MovementType)} style={{ color: "#ffffff"}}>
+                    <View className="mb-4 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                        <Picker selectedValue={movementType} onValueChange={(value) => setMovementType(value as MovementType)} style={{ color: theme.text }}>
                             <Picker.Item label="Traslado" value={MovementType.TRANSFER} />
                             <Picker.Item label="Venta" value={MovementType.SALE} />
                             <Picker.Item label="Mortandad" value={MovementType.MORTALITY} />
@@ -122,8 +124,8 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 {formType === "sowing" ? "Cantidad inicial de peces" : "Cantidad de peces"}
             </Text>
             <TextField
-                className="border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark text-text dark:text-text-dark"
-                style={{ color: "#ffffff" }}
+                className="border-border dark:border-border-dark bg-background dark:bg-background-dark text-text dark:text-text-dark"
+                style={{ color: theme.text }}
                 value={dailyQuantity}
                 error={quantityError || undefined}
                 onChangeText={(value) => {
@@ -139,19 +141,19 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 {formType === "sowing" ? "Fecha de siembra" : "Fecha y hora"}
             </Text>
             <TouchableOpacity
-                className="mb-4 flex-row items-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark px-3 py-3"
+                className="mb-4 flex-row items-center rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark px-3 py-3"
                 onPress={() => setShowDailyDatePicker(true)}
             >
-                <MaterialCommunityIcons name="calendar-clock" size={20} color="#94a3b8" />
-                <Text className="ml-2 flex-1 text-slate-100">{dailyDate.toLocaleString("es-MX")}</Text>
-                <MaterialCommunityIcons name="chevron-down" size={20} color="#94a3b8" />
+                <MaterialCommunityIcons name="calendar-clock" size={20} color={theme.textSecondary} />
+                <Text className="ml-2 flex-1 text-text dark:text-text-dark">{dailyDate.toLocaleString("es-MX")}</Text>
+                <MaterialCommunityIcons name="chevron-down" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
 
             {formType === "daily" && movementType === MovementType.TRANSFER && (
                 <>
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Tanque destino</Text>
-                    <View className="mb-4 overflow-hidden rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-background dark:bg-background-dark">
-                        <Picker selectedValue={targetTankId || availableTanks[0]?.id} onValueChange={setTargetTankId} style={{ color: "#ffffff" }}>
+                    <View className="mb-4 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                        <Picker selectedValue={targetTankId || availableTanks[0]?.id} onValueChange={setTargetTankId} style={{ color: theme.text }}>
                             {availableTanks.map((tank) => (
                                 <Picker.Item
                                     key={tank.id}
@@ -164,17 +166,17 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 </>
             )}
 
-            <TouchableOpacity
-                className="flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark"
-                onPress={handleSave}
-                disabled={isSaving}
-            >
-                {isSaving ? (
-                    <ActivityIndicator color="#181F3B" />
-                ) : (
-                    <>
-                        <MaterialCommunityIcons name="content-save-outline" size={18} color="#000000" />
-                        <Text className="ml-2 text-center font-semibold text-background dark:text-background-dark">
+                <TouchableOpacity
+                    className="flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark"
+                    onPress={handleSave}
+                    disabled={isSaving}
+                >
+                    {isSaving ? (
+                        <ActivityIndicator color={theme.background} />
+                    ) : (
+                        <>
+                            <MaterialCommunityIcons name="content-save-outline" size={18} color={theme.background} />
+                            <Text className="ml-2 text-center font-semibold text-background dark:text-background-dark">
                             {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
                         </Text>
                     </>
@@ -183,43 +185,43 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
 
             <Modal visible={showDailyDatePicker} transparent animationType="fade" onRequestClose={() => setShowDailyDatePicker(false)}>
                 <View className="flex-1 justify-center bg-black/60 px-6">
-                    <View className="rounded-2xl border border-white/10 bg-[#29334d] p-5">
-                        <Text className="mb-3 text-lg font-bold text-white">Fecha y hora</Text>
+                    <View className="rounded-2xl border border-border dark:border-border-dark bg-backgroundElement dark:bg-backgroundElement-dark p-5">
+                        <Text className="mb-3 text-lg font-bold text-text dark:text-text-dark">Fecha y hora</Text>
                         
                         <View className="flex-row" style={{ gap: 8 }}>
-                            <View className="flex-1 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                                <Picker selectedValue={dailyDate.getDate()} onValueChange={(day) => setDailyDate(curr => { const d = new Date(curr); d.setDate(day); return d; })} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                            <View className="flex-1 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                                <Picker selectedValue={dailyDate.getDate()} onValueChange={(day) => setDailyDate(curr => { const d = new Date(curr); d.setDate(day); return d; })} style={{ color: theme.text, backgroundColor: theme.background }}>
                                     {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <Picker.Item key={d} label={`${d}`} value={d} />)}
                                 </Picker>
                             </View>
-                            <View className="flex-1 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                                <Picker selectedValue={dailyDate.getMonth()} onValueChange={(month) => setDailyDate(curr => { const d = new Date(curr); d.setMonth(month); return d; })} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                            <View className="flex-1 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                                <Picker selectedValue={dailyDate.getMonth()} onValueChange={(month) => setDailyDate(curr => { const d = new Date(curr); d.setMonth(month); return d; })} style={{ color: theme.text, backgroundColor: theme.background }}>
                                     {["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"].map((m, i) => <Picker.Item key={m} label={m} value={i} />)}
                                 </Picker>
                             </View>
-                            <View className="flex-1 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                                <Picker selectedValue={dailyDate.getFullYear()} onValueChange={(year) => setDailyDate(curr => { const d = new Date(curr); d.setFullYear(year); return d; })} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                            <View className="flex-1 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                                <Picker selectedValue={dailyDate.getFullYear()} onValueChange={(year) => setDailyDate(curr => { const d = new Date(curr); d.setFullYear(year); return d; })} style={{ color: theme.text, backgroundColor: theme.background }}>
                                     {[dailyDate.getFullYear() - 1, dailyDate.getFullYear(), dailyDate.getFullYear() + 1].map(y => <Picker.Item key={y} label={`${y}`} value={y} />)}
                                 </Picker>
                             </View>
                         </View>
 
-                        <Text className="mb-2 mt-4 text-xs uppercase tracking-widest text-slate-400">Hora</Text>
+                        <Text className="mb-2 mt-4 text-xs uppercase tracking-widest text-textSecondary dark:text-textSecondary-dark">Hora</Text>
                         <View className="flex-row" style={{ gap: 8 }}>
-                            <View className="flex-1 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                                <Picker selectedValue={dailyDate.getHours()} onValueChange={(hour) => setDailyDate(curr => { const d = new Date(curr); d.setHours(hour); return d; })} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                            <View className="flex-1 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                                <Picker selectedValue={dailyDate.getHours()} onValueChange={(hour) => setDailyDate(curr => { const d = new Date(curr); d.setHours(hour); return d; })} style={{ color: theme.text, backgroundColor: theme.background }}>
                                     {Array.from({ length: 24 }, (_, i) => <Picker.Item key={i} label={`${i}`.padStart(2, "0")} value={i} />)}
                                 </Picker>
                             </View>
-                            <View className="flex-1 overflow-hidden rounded-xl border border-white/10 bg-[#1b2338]">
-                                <Picker selectedValue={dailyDate.getMinutes()} onValueChange={(minute) => setDailyDate(curr => { const d = new Date(curr); d.setMinutes(minute); return d; })} style={{ color: "#ffffff", backgroundColor: "#1b2338" }}>
+                            <View className="flex-1 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-background dark:bg-background-dark">
+                                <Picker selectedValue={dailyDate.getMinutes()} onValueChange={(minute) => setDailyDate(curr => { const d = new Date(curr); d.setMinutes(minute); return d; })} style={{ color: theme.text, backgroundColor: theme.background }}>
                                     {Array.from({ length: 60 }, (_, i) => <Picker.Item key={i} label={`${i}`.padStart(2, "0")} value={i} />)}
                                 </Picker>
                             </View>
                         </View>
 
-                        <TouchableOpacity className="mt-4 rounded-xl bg-cyan-700 py-3" onPress={() => setShowDailyDatePicker(false)}>
-                            <Text className="text-center font-semibold text-white">Aceptar</Text>
+                        <TouchableOpacity className="mt-4 rounded-xl bg-primary py-3" onPress={() => setShowDailyDatePicker(false)}>
+                            <Text className="text-center font-semibold text-primaryForeground">Aceptar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
