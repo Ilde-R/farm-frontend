@@ -2,6 +2,7 @@ import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import QrScanner from "@/core/components/qr-scanner";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
+import { getErrorMessage } from "@/core/utils/errors";
 import { configureEsp32Service, createAerationDeviceService } from "@/features/aeration/services/aeration.service";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -36,6 +37,7 @@ export default function AddAerationScreen() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [retryFrom, setRetryFrom] = useState<"provisioning" | "sending">("provisioning");
 
   function clearFieldError(field: string) {
     setFieldErrors((previous) => {
@@ -65,8 +67,9 @@ export default function AddAerationScreen() {
       });
       setDeviceKey(response.deviceKey);
       setStep("instructions");
-    } catch (e: any) {
-      setErrorMsg(e.message);
+    } catch (e) {
+      setRetryFrom("provisioning");
+      setErrorMsg(getErrorMessage(e, "No se pudo crear el dispositivo. Intenta de nuevo."));
       setStep("error");
     }
   }
@@ -80,8 +83,9 @@ export default function AddAerationScreen() {
         deviceKey,
       });
       setStep("done");
-    } catch (e: any) {
-      setErrorMsg(e.message);
+    } catch (e) {
+      setRetryFrom("sending");
+      setErrorMsg(getErrorMessage(e, "No se pudo enviar la configuración. Intenta de nuevo."));
       setStep("error");
     }
   }
@@ -103,6 +107,14 @@ export default function AddAerationScreen() {
     setErrorMsg("");
     setFieldErrors({});
     router.replace("/(app)/(tabs)/sensors");
+  }
+
+  function handleRetry() {
+    if (retryFrom === "provisioning") {
+      void handleProvision();
+    } else {
+      void handleSendConfig();
+    }
   }
 
   function renderContent() {
@@ -271,11 +283,21 @@ export default function AddAerationScreen() {
               {errorMsg}
             </Text>
             <TouchableOpacity
+              accessibilityRole="button"
               className="bg-textSecondary dark:text-textSecondary-dark rounded-lg py-3 px-8 mt-8"
-              onPress={handleReset}
+              onPress={handleRetry}
             >
               <Text className="text-text dark:text-text-dark font-semibold text-base">
                 Reintentar
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => router.back()}
+              className="mt-4 px-8 py-2"
+            >
+              <Text className="text-textSecondary dark:text-textSecondary-dark font-semibold text-base">
+                Cancelar
               </Text>
             </TouchableOpacity>
           </View>

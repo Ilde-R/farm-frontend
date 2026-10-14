@@ -1,7 +1,9 @@
+import { logger } from '@/core/utils/logger';
 import axios from 'axios';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
+import { emitSessionExpired } from './session-events';
 
 export const api = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -34,7 +36,7 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error al leer el token en el interceptor', error);
+      logger.error('Error al leer el token en el interceptor', error);
     }
     return config;
   },
@@ -93,6 +95,8 @@ api.interceptors.response.use(
 
         await SecureStore.deleteItemAsync('accessToken');
         await SecureStore.deleteItemAsync('refreshToken');
+
+        emitSessionExpired();
 
         if (!isAlertVisible) {
           isAlertVisible = true;

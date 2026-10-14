@@ -1,4 +1,5 @@
 import { API_URL } from "@/core/api/config";
+import { logger } from "@/core/utils/logger";
 import {
   WsEventType,
   type PressureReading,
@@ -46,7 +47,7 @@ class AerationSocketService {
     };
 
     this.ws.onerror = (error) => {
-      console.warn("[WebSocket] Error de conexión:", error);
+      logger.warn("[WebSocket] Error de conexión:", error);
     };
   }
 
@@ -78,7 +79,7 @@ class AerationSocketService {
         this.emit(WsEventType.PRESSURE_READING, parsed.data as PressureReading);
       }
     } catch (error) {
-      console.warn("[WebSocket] Error al parsear mensaje JSON:", error);
+      logger.warn("[WebSocket] Error al parsear mensaje JSON:", error);
     }
   }
 

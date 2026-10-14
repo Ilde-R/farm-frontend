@@ -1,4 +1,6 @@
+import { onSessionExpired } from "@/core/api/session-events";
 import { useStorageState } from "@/core/hooks/useStorageState";
+import { logger } from "@/core/utils/logger";
 import { loginService, logoutService, registerService } from "@/features/auth/services/auth.service";
 import {
   LoginPayload,
@@ -6,7 +8,7 @@ import {
 } from "@/features/auth/types/auth";
 import { updateProfile } from "@/features/users/services/user.service";
 import { UpdateProfilePayload, User } from "@/features/users/types/users";
-import { createContext, use, type PropsWithChildren } from "react";
+import { createContext, use, useEffect, type PropsWithChildren } from "react";
 
 interface AuthContextType {
   signIn: (data: RegisterPayload) => Promise<void>;
@@ -35,6 +37,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
   
   const user = userRaw ? JSON.parse(userRaw) : null;
 
+  useEffect(() => {
+    return onSessionExpired(() => {
+      setToken(null);
+      setUser(null);
+      setRefreshToken(null);
+    });
+  }, [setToken, setUser, setRefreshToken]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -47,7 +57,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
             setRefreshToken(refresh_token);
             setUser(JSON.stringify(userData));
           } catch (error) {
-             console.error('Error al registrarse', error);
+             logger.error('Error al registrarse', error);
              throw error;
           }
         },
@@ -61,7 +71,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
             setRefreshToken(refresh_token);
             setUser(JSON.stringify(userData));
           } catch (error) {
-            console.error('Error al iniciar sesion', error);
+            logger.error('Error al iniciar sesion', error);
             throw error;
           }
         },
@@ -84,7 +94,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
             const updatedUser = await updateProfile(data);
             setUser(JSON.stringify(updatedUser));
           } catch (error) {
-            console.error('Error al actualizar el perfil', error);
+            logger.error('Error al actualizar el perfil', error);
             throw error;
           }
         },

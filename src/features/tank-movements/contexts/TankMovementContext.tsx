@@ -1,3 +1,4 @@
+import { logger } from "@/core/utils/logger";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
 import { createTankMovementOutflowsService, createTankMovementTransferService, getTankMovementService } from "../services/tank-movement.service";
@@ -46,7 +47,7 @@ export function TankMovementProvider({children}: PropsWithChildren) {
             const response = await getTankMovementService(tankId, filters);
             setTankMovements(response.data);
         } catch (error) {
-            console.error('Error al obtener los movimientos del tanque', error);
+            logger.error('Error al obtener los movimientos del tanque', error);
             throw error;
         } finally {
             setIsLoading(false);
@@ -69,7 +70,7 @@ export function TankMovementProvider({children}: PropsWithChildren) {
                     await createTankMovementTransferService(data);
                     setTankMovements(null);
                 } catch (error) {
-                    console.error('Error al crear el movimiento de transferencia', error)
+                    logger.error('Error al crear el movimiento de transferencia', error)
                     throw error 
                 } finally {
                     setIsLoading(false);
@@ -83,7 +84,7 @@ export function TankMovementProvider({children}: PropsWithChildren) {
                     await createTankMovementOutflowsService(data);
                     setTankMovements(null);
                 } catch (error) {
-                    console.error('Error al crear el movimiento', error)
+                    logger.error('Error al crear el movimiento', error)
                     throw error
                 } finally {
                     setIsLoading(false);

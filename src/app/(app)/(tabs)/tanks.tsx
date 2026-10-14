@@ -4,22 +4,30 @@ import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
 import { getActiveBatchByTankId } from "@/features/batches/utils/batch.utils";
 import TankCard, { getTankCardSize } from "@/features/tanks/components/tank-card";
-import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
-import { TankStatus } from "@/features/tanks/types/tank";
+import { TankStatus, type Tank } from "@/features/tanks/types/tank";
+import {
+  computeTankKpis,
+  groupTanksByStatus,
+  sortTanks,
+  type TankSortOption,
+} from "@/features/tanks/utils/tank-list";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
-  Modal,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 
 type TankFilter = TankStatus | "todos";
 
@@ -34,17 +42,52 @@ const TANK_SUMMARY_ITEMS: {
   { status: TankStatus.MAINTENANCE, label: "Mantenimiento", icon: "wrench-outline" },
 ];
 
+const TANK_SORT_ITEMS: { value: TankSortOption; label: string }[] = [
+  { value: "numero", label: "Número" },
+  { value: "poblacion", label: "Peces" },
+  { value: "siembra", label: "Siembra" },
+];
+
+function TankCardSkeleton({ size }: { size: number }) {
+  const theme = useTheme();
+  const opacity = useSharedValue(0.4);
+
+  useEffect(() => {
+    opacity.value = withRepeat(withTiming(1, { duration: 800 }), -1, true);
+  }, [opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <View className="w-[48%] items-center">
+      <Animated.View
+        style={[
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: theme.backgroundSelected,
+          },
+          animatedStyle,
+        ]}
+      />
+    </View>
+  );
+}
+
 export default function TanksScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const tankCardSize = getTankCardSize(width);
   const router = useRouter();
-  
-  const { createTank, tanks, isLoading, fetchTanks } = useTank();
+
+  const { tanks, isLoading, error: tanksError, fetchTanks } = useTank();
   const { batches, fetchBatches } = useBatch();
+
   useEffect(() => {
     fetchTanks();
   }, [fetchTanks]);
+
   useEffect(() => {
     void fetchBatches().catch((error) => {
       Alert.alert(
@@ -56,152 +99,245 @@ export default function TanksScreen() {
 
   const activeBatchByTankId = getActiveBatchByTankId(batches);
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  
-  const [tankNumber, setTankNumber] = useState("");
-  const [tankStatus, setTankStatus] = useState<TankStatus>(TankStatus.EMPTY);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [tankFilter, setTankFilter] = useState<TankFilter>("todos");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<TankSortOption>("numero");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const iconSize = Math.round(width * 0.06);
-  const filteredTanks =
+  const kpis = computeTankKpis(tanks, activeBatchByTankId);
+
+  const normalizedSearch = search.trim();
+  const searchFiltered = normalizedSearch
+    ? tanks.filter((tank) => String(tank.tankNumber).includes(normalizedSearch))
+    : tanks;
+  const statusFiltered =
     tankFilter === "todos"
-      ? tanks
-      : tanks.filter((tank) => tank.tankStatus === tankFilter);
+      ? searchFiltered
+      : searchFiltered.filter((tank) => tank.tankStatus === tankFilter);
+  const sortedTanks = sortTanks(statusFiltered, sortBy, activeBatchByTankId);
+  const sections =
+    tankFilter === "todos" ? groupTanksByStatus(sortedTanks) : [];
 
-  function clearError(field: string) {
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  }
+  const noSearchResults =
+    !isLoading && tanks.length > 0 && normalizedSearch.length > 0 && searchFiltered.length === 0;
+  const noFilterResults =
+    !isLoading && tanks.length > 0 && !noSearchResults && statusFiltered.length === 0;
 
-  function closeAddModal() {
-    setShowAddModal(false);
-    setTankNumber("");
-    setTankStatus(TankStatus.EMPTY);
-    setErrors({});
-  }
-
-  async function handleAddTank() {
-    const newErrors: Record<string, string> = {};
-    const number = Number(tankNumber.trim());
-
-    if (!tankNumber.trim()) {
-      newErrors.tankNumber = "El número de tanque es requerido";
-    } else if (!Number.isInteger(number) || number < 1) {
-      newErrors.tankNumber = "Ingresa un número entero mayor a 0";
-    } 
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
-    setLoading(true);
-
+  async function handleRefresh() {
+    setIsRefreshing(true);
     try {
-      await createTank({
-        tankNumber: number,
-        tankStatus: tankStatus,
-      });
-
-      closeAddModal();
-      Alert.alert("Éxito", "El tanque se guardó correctamente.");
-      
+      await Promise.all([fetchTanks(), fetchBatches()]);
     } catch (error) {
-      if (
-        error instanceof Error &&
-        /el tanque número \d+ ya está registrado\.?/i.test(error.message)
-      ) {
-        setErrors({ tankNumber: error.message });
-      } else {
-        Alert.alert(
-          "Error",
-          error instanceof Error ? error.message : "No se pudo registrar el tanque",
-        );
-      }
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "No se pudieron actualizar los datos.",
+      );
     } finally {
-      setLoading(false);
+      setIsRefreshing(false);
     }
   }
 
-  const HeaderButtons = (
-    <>
-      <TouchableOpacity onPress={() => setShowAddModal(true)} hitSlop={8}>
-        <MaterialCommunityIcons
-          name="plus"
-          size={iconSize}
-          color={theme.textSecondary}
-        />
-      </TouchableOpacity>
-    </>
-  );
+  function renderGrid(list: Tank[]) {
+    return (
+      <View className="flex-row flex-wrap justify-between gap-y-5 px-4">
+        {list.map((tank) => (
+          <View key={tank.id} className="w-[48%] items-center">
+            <TankCard
+              size={tankCardSize}
+              tankNumber={tank.tankNumber}
+              tankStatus={tank.tankStatus}
+              currentQuantity={activeBatchByTankId.get(tank.id)?.currentQuantity}
+              stockingDate={activeBatchByTankId.get(tank.id)?.stockingDate}
+              onPress={() =>
+                router.push({
+                  pathname: "/tanks/[id]/edit",
+                  params: { id: tank.id },
+                })
+              }
+            />
+          </View>
+        ))}
+      </View>
+    );
+  }
 
   return (
-    <>
+    <View className="flex-1">
       <ScreenLayout
         title="Tanques"
-        headerRight={HeaderButtons}
         isScrollable={true}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
       >
-        <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
+        <View className="pt-4">
           {tanks.length > 0 && (
-            <View className="w-full">
-              <View className="flex-row flex-wrap justify-between gap-y-3">
-                {TANK_SUMMARY_ITEMS.map(({ status, label, icon }) => {
-                  const count =
-                    status === "todos"
-                      ? tanks.length
-                      : tanks.filter((tank) => tank.tankStatus === status).length;
-                  const isSelected = tankFilter === status;
+            <View className="mx-4 mb-4 rounded-2xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark p-4">
+              <Text className="text-xs uppercase tracking-widest text-textSecondary dark:text-textSecondary-dark">
+                Total de peces
+              </Text>
+              <Text className="mt-1 text-4xl font-extrabold text-text dark:text-text-dark">
+                {kpis.fish.toLocaleString("es-MX")}
+              </Text>
+              <Text className="mt-1 text-sm text-textSecondary dark:text-textSecondary-dark">
+                {kpis.total} {kpis.total === 1 ? "tanque" : "tanques"} en total
+              </Text>
+            </View>
+          )}
 
-                  return (
-                    <TouchableOpacity
-                      key={status}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: isSelected }}
-                      className={`w-[48%] flex-row items-center rounded-xl border px-3 py-3 ${
-                        isSelected
-                          ? "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
-                          : "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
-                      }`}
-                      onPress={() => setTankFilter(status)}
-                    >
-                      <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-white/5">
-                        <MaterialCommunityIcons
-                          name={icon}
-                          size={19}
-                          color={isSelected ? theme.text : theme.textSecondary}
-                        />
-                      </View>
-                      <View className="flex-1">
-                        <Text
-                          numberOfLines={1}
-                          className="text-xs text-textSecondary dark:text-textSecondary-dark"
-                        >
-                          {label}
-                        </Text>
-                        <Text className="text-lg font-bold text-text dark:text-text-dark">
-                          {count}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+          {tanks.length > 0 && (
+            <View className="mx-4 mb-3 flex-row items-center gap-2">
+              <View className="flex-1">
+                <TextField
+                  placeholder="Buscar tanque por número"
+                  placeholderTextColor={theme.textSecondary}
+                  value={search}
+                  onChangeText={setSearch}
+                  keyboardType="number-pad"
+                />
               </View>
+              {search.length > 0 && (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Limpiar búsqueda"
+                  onPress={() => setSearch("")}
+                  hitSlop={8}
+                  className="h-12 w-12 items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark"
+                >
+                  <MaterialCommunityIcons
+                    name="close"
+                    size={20}
+                    color={theme.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {tanks.length > 0 && (
+            <View className="mx-4 mb-4 flex-row items-center gap-2">
+              <MaterialCommunityIcons
+                name="sort"
+                size={16}
+                color={theme.textSecondary}
+              />
+              <Text className="mr-1 text-xs font-semibold uppercase tracking-widest text-textSecondary dark:text-textSecondary-dark">
+                Orden
+              </Text>
+              {TANK_SORT_ITEMS.map((item) => {
+                const isSelected = sortBy === item.value;
+                return (
+                  <TouchableOpacity
+                    key={item.value}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => setSortBy(item.value)}
+                    className={`rounded-full border px-3 py-1.5 ${
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-backgroundSelected dark:border-backgroundSelected-dark"
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-semibold ${
+                        isSelected
+                          ? "text-primary"
+                          : "text-textSecondary dark:text-textSecondary-dark"
+                      }`}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+
+          {tanks.length > 0 && (
+            <View className="mx-4 mb-2 flex-row flex-wrap justify-between gap-y-3">
+              {TANK_SUMMARY_ITEMS.map(({ status, label, icon }) => {
+                const count =
+                  status === "todos"
+                    ? tanks.length
+                    : tanks.filter((tank) => tank.tankStatus === status).length;
+                const isSelected = tankFilter === status;
+
+                return (
+                  <TouchableOpacity
+                    key={status}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    className={`w-[48%] flex-row items-center rounded-xl border px-3 py-3 ${
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
+                    }`}
+                    onPress={() => setTankFilter(status)}
+                  >
+                    <View
+                      className={`mr-3 h-9 w-9 items-center justify-center rounded-lg ${
+                        isSelected ? "bg-primary/15" : "bg-white/5"
+                      }`}
+                    >
+                      <MaterialCommunityIcons
+                        name={icon}
+                        size={19}
+                        color={isSelected ? theme.primary : theme.textSecondary}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text
+                        numberOfLines={1}
+                        className="text-xs text-textSecondary dark:text-textSecondary-dark"
+                      >
+                        {label}
+                      </Text>
+                      <Text
+                        className={`text-lg font-bold ${
+                          isSelected ? "text-primary" : "text-text dark:text-text-dark"
+                        }`}
+                      >
+                        {count}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
 
           {isLoading && (
-            <ActivityIndicator size="large" color={theme.text} className="mt-10"/>
+            <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
+              {[0, 1, 2, 3].map((key) => (
+                <TankCardSkeleton key={key} size={tankCardSize} />
+              ))}
+            </View>
           )}
 
-          {!isLoading && tanks.length === 0 && (
-            <View className="w-full items-center py-12">
+          {!isLoading && tanksError && tanks.length === 0 && (
+            <View className="w-full items-center px-4 py-12">
+              <MaterialCommunityIcons
+                name="wifi-off"
+                size={36}
+                color={theme.textSecondary}
+              />
+              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
+                No se pudieron cargar los tanques
+              </Text>
+              <Text className="mt-1 text-center text-sm text-textSecondary dark:text-textSecondary-dark">
+                {tanksError}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => fetchTanks()}
+                className="mt-3 rounded-lg border border-primary px-4 py-2"
+              >
+                <Text className="font-semibold text-primary">Reintentar</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!isLoading && !tanksError && tanks.length === 0 && (
+            <View className="w-full items-center px-4 py-12">
               <MaterialCommunityIcons
                 name="water-off"
                 size={36}
@@ -216,8 +352,28 @@ export default function TanksScreen() {
             </View>
           )}
 
-          {!isLoading && tanks.length > 0 && filteredTanks.length === 0 && (
-            <View className="w-full items-center py-10">
+          {noSearchResults && (
+            <View className="w-full items-center px-4 py-12">
+              <MaterialCommunityIcons
+                name="magnify-close"
+                size={36}
+                color={theme.textSecondary}
+              />
+              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
+                Sin resultados para «{normalizedSearch}»
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => setSearch("")}
+                className="mt-3 rounded-lg border border-primary px-4 py-2"
+              >
+                <Text className="font-semibold text-primary">Limpiar búsqueda</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {noFilterResults && (
+            <View className="w-full items-center px-4 py-10">
               <MaterialCommunityIcons
                 name="water-off"
                 size={32}
@@ -229,108 +385,24 @@ export default function TanksScreen() {
             </View>
           )}
 
-          {!isLoading && filteredTanks.map((tank) => (
-            <View key={tank.id} className="w-[48%] items-center">
-              <TankCard
-                size={tankCardSize}
-                tankNumber={tank.tankNumber}
-                tankStatus={tank.tankStatus}
-                currentQuantity={activeBatchByTankId.get(tank.id)?.currentQuantity}
-                onPress={() => router.push({
-                  pathname: "/tanks/[id]/edit",
-                  params: { id: tank.id }
-                })}
-              />
-            </View>
-          ))}
+          {!isLoading &&
+            sortedTanks.length > 0 &&
+            (tankFilter === "todos" ? (
+              sections.map((section) => (
+                <View key={section.status}>
+                  <Text className="mb-3 mt-4 px-4 text-base font-semibold text-text dark:text-text-dark">
+                    {section.label} ({section.tanks.length})
+                  </Text>
+                  {renderGrid(section.tanks)}
+                </View>
+              ))
+            ) : (
+              <View className="pt-4">{renderGrid(sortedTanks)}</View>
+            ))}
+
+          <View className="h-24" />
         </View>
       </ScreenLayout>
-
-      <Modal
-        visible={showAddModal}
-        transparent
-        animationType="fade"
-        onRequestClose={closeAddModal}
-      >
-        <View className="flex-1 items-center justify-center bg-black/40 px-6">
-          <View className="w-full rounded-xl bg-backgroundElement dark:bg-backgroundElement-dark p-6">
-            <View className="mb-6 flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-text dark:text-text-dark">
-                Registrar tanque
-              </Text>
-              <TouchableOpacity onPress={closeAddModal} hitSlop={8} disabled={loading}>
-                <MaterialCommunityIcons
-                  name="close"
-                  size={24}
-                  color={theme.textSecondary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <TextField
-              label="Número de tanque"
-              containerClassName="mb-4"
-              placeholder="Ej: 3"
-              placeholderTextColor={theme.textSecondary}
-              value={tankNumber}
-              error={errors.tankNumber}
-              onChangeText={(text) => {
-                setTankNumber(text);
-                clearError("tankNumber");
-              }}
-              keyboardType="number-pad"
-              editable={!loading}
-            />
-
-            <Text className="mb-1 font-semibold text-text dark:text-text-dark">
-              Estado
-            </Text>
-            <View className="mb-6 overflow-hidden rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark">
-              <Picker
-                selectedValue={tankStatus}
-                onValueChange={(value) => setTankStatus(value as TankStatus)}
-                style={{ color: theme.text }}
-                enabled={!loading}
-              >
-                {Object.values(TankStatus).map((statusValue) => (
-                  <Picker.Item 
-                    key={statusValue} 
-                    label={TANK_STATUS_LABELS[statusValue as TankStatus] || statusValue} 
-                    value={statusValue} 
-                  />
-                ))}
-              </Picker>
-            </View>
-
-            <View className="flex-row justify-end gap-3">
-              <TouchableOpacity
-                className="rounded-lg px-4 py-3"
-                onPress={closeAddModal}
-                disabled={loading}
-              >
-                <Text className="font-semibold text-textSecondary dark:text-textSecondary-dark">
-                  Cancelar
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                className={`rounded-lg px-4 py-3 flex-row items-center justify-center min-w-[100px] ${
-                  loading ? "bg-textSecondary dark:bg-textSecondary-dark" 
-                          : "bg-text dark:bg-text-dark"
-                }`}
-                onPress={handleAddTank}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color={theme.background} size="small" />
-                ) : (
-                  <Text className="font-semibold text-background dark:text-background-dark ">Agregar</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </>
+    </View>
   );
 }

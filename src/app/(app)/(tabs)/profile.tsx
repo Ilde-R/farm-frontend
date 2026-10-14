@@ -1,6 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
+import { getErrorMessage } from "@/core/utils/errors";
 import { validateEmail, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -48,6 +49,13 @@ export default function ProfileScreen() {
     setMode("view");
   }
 
+  function handleLogout() {
+    Alert.alert("Cerrar sesión", "¿Estás seguro?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Salir", style: "destructive", onPress: () => signOut() },
+    ]);
+  }
+
   async function handleSave() {
     const newErrors: Record<string, string> = {};
     const usernameErr = validateUsername(username);
@@ -66,8 +74,8 @@ export default function ProfileScreen() {
     try {
       await updateUser({ username, email });
       setMode("view");
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
+    } catch (error) {
+      Alert.alert("Error", getErrorMessage(error, "No se pudo actualizar el perfil."));
     } finally {
       setLoading(false);
     }
@@ -105,6 +113,16 @@ export default function ProfileScreen() {
             >
               <Text className="text-text dark:text-text-dark font-semibold text-base text-center">
                 Editar perfil
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              accessibilityRole="button"
+              className="border border-danger dark:border-danger-dark rounded-lg py-3 px-8 w-full"
+              onPress={handleLogout}
+            >
+              <Text className="text-danger dark:text-danger-dark font-semibold text-base text-center">
+                Cerrar sesión
               </Text>
             </TouchableOpacity>
           </>

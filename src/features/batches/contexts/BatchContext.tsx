@@ -1,3 +1,4 @@
+import { logger } from "@/core/utils/logger";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
 import { createBatchService, getBatchesService } from "../services/batch.service";
@@ -43,7 +44,7 @@ export function BatchProvider({ children }: PropsWithChildren) {
                 ...remainingPages.flatMap((response) => response.data.items),
             ]);
         } catch(error) {
-            console.error('Error al obtener los lotes', error);
+            logger.error('Error al obtener los lotes', error);
             throw error;
         } finally {
             setIsLoading(false);

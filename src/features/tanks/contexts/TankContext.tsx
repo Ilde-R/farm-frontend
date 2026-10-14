@@ -1,3 +1,4 @@
+import { logger } from "@/core/utils/logger";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
 import { createTankService, deleteTankService, getTanksService, updateTankService } from "../services/tank.service";
@@ -6,6 +7,7 @@ import { CreateTankPayload, Tank, UpdateTankPayload } from "../types/tank";
 interface TankContextType {
    tanks: Tank[];
    isLoading: boolean;
+   error: string | null;
    createTank: (data: CreateTankPayload) => Promise<void>;
    updateTank: (data: UpdateTankPayload, tankId: string) => Promise<void>;
    fetchTanks: () => Promise<void>;
@@ -27,16 +29,21 @@ export function TankProvider({ children }: PropsWithChildren) {
 
    const [tanks, setTanks] = useState<Tank[]>([]);
    const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState<string | null>(null);
 
    const fetchTanks = useCallback(async () => {
       if(!token) return; 
       try {
          setIsLoading(true);
+         setError(null);
          const response = await getTanksService();
          
          setTanks(response.data.items || []); 
-      } catch(error) {
-         console.error('Error al obtener los tanques', error);
+      } catch(err) {
+         logger.error('Error al obtener los tanques', err);
+         setError(
+            err instanceof Error ? err.message : 'No se pudieron cargar los tanques.',
+         );
       } finally {
          setIsLoading(false);
       }
@@ -47,6 +54,7 @@ export function TankProvider({ children }: PropsWithChildren) {
          value={{
             tanks,
             isLoading,
+            error,
             // Obtener
             fetchTanks,
             
@@ -57,7 +65,7 @@ export function TankProvider({ children }: PropsWithChildren) {
                   
                   setTanks((prevTanks) => [...prevTanks, newTank]);
                } catch (error) {
-                  console.error('Error al crear el tanque', error);
+                  logger.error('Error al crear el tanque', error);
                   throw error;
                }
             },
@@ -78,7 +86,7 @@ export function TankProvider({ children }: PropsWithChildren) {
                       })
                    );
                } catch (error) {
-                   console.error('Error al actualizar el tanque', error);
+                   logger.error('Error al actualizar el tanque', error);
                    throw error;
                }
             },
@@ -89,7 +97,7 @@ export function TankProvider({ children }: PropsWithChildren) {
                   await deleteTankService(tankId);
                   setTanks((prevTanks) => prevTanks.filter((t) => t.id !== tankId));
                } catch (error) {
-                  console.error('Error al eliminar el tanque', error);
+                  logger.error('Error al eliminar el tanque', error);
                   throw error;
                }
             }

@@ -1,6 +1,7 @@
 import { useTheme } from "@/core/theme/use-theme";
 import { TANK_STATUS_CONFIG } from "@/features/tanks/constants/tank.constants";
 import { TankStatus } from "@/features/tanks/types/tank";
+import { getDaysInCulture } from "@/features/tanks/utils/tank-list";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 
@@ -44,6 +45,7 @@ type TankCardProps = {
   tankNumber: number;
   tankStatus?: TankStatus | string;
   currentQuantity?: number;
+  stockingDate?: string;
   onPress?: () => void;
   size?: number;
 };
@@ -56,12 +58,14 @@ export default function TankCard({
   tankNumber,
   tankStatus = TankStatus.ACTIVE,
   currentQuantity,
+  stockingDate,
   onPress,
   size,
 }: TankCardProps) {
   const theme = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const cardSize = size ?? getTankCardSize(screenWidth);
+  const daysInCulture = getDaysInCulture(stockingDate);
   const statusPresentation =
     getStatusPresentation(theme)[tankStatus] ?? {
       icon: "help-circle-outline" as const,
@@ -80,7 +84,7 @@ export default function TankCard({
       accessibilityRole="button"
       accessibilityLabel={`Tanque ${tankNumber}, ${displayStatus}${
         currentQuantity === undefined ? "" : `, ${currentQuantity} piezas actuales`
-      }`}
+      }${daysInCulture === null ? "" : `, ${daysInCulture} días de cultivo`}`}
       className="items-center"
     >
       <View
@@ -118,6 +122,11 @@ export default function TankCard({
           {currentQuantity !== undefined && (
             <Text className="mt-1 text-[10px] font-medium text-textSecondary dark:text-textSecondary-dark">
                 {currentQuantity} piezas
+            </Text>
+          )}
+          {daysInCulture !== null && (
+            <Text className="mt-0.5 text-[10px] font-medium text-textTertiary dark:text-textTertiary-dark">
+              {daysInCulture} {daysInCulture === 1 ? "día" : "días"}
             </Text>
           )}
         </View>

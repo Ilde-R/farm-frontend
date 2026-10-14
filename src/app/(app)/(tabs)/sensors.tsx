@@ -1,5 +1,6 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
+import { getErrorMessage } from "@/core/utils/errors";
 import BlowerCard from "@/features/aeration/components/blower-card";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
 import {
@@ -11,14 +12,13 @@ import type {
 } from "@/features/aeration/types/aeration";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -34,20 +34,17 @@ interface BlowerDisplay {
 
 export default function SensorsScreen() {
   const theme = useTheme();
-  const { signOut, token } = useSession();
-  const { width } = useWindowDimensions();
-  const router = useRouter();
-  
+  const { token } = useSession();
+
   const {
     latestReadings,
     thresholds,
     devices,
     devicesLoading,
+    devicesError,
     refreshDevices,
     applyDeviceConfig,
   } = useSocket();
-
-  const iconSize = Math.round(width * 0.06);
 
   useFocusEffect(
     useCallback(() => {
@@ -82,20 +79,13 @@ export default function SensorsScreen() {
       });
   })();
 
-  function handleLogout() {
-    Alert.alert("Cerrar sesión", "¿Estás seguro?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Salir", style: "destructive", onPress: () => signOut() },
-    ]);
-  }
-
   async function handleDelete(blowerId: string) {
     if (!token) return;
     try {
       await deleteAerationDeviceService(blowerId);
       await refreshDevices();
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
+    } catch (error) {
+      Alert.alert("Error", getErrorMessage(error, "No se pudo eliminar el dispositivo."));
     }
   }
 
@@ -108,8 +98,8 @@ export default function SensorsScreen() {
     try {
       const savedConfig = await updateAerationConfigService(blowerId, updates);
       applyDeviceConfig(blowerId, savedConfig);
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
+    } catch (error) {
+      Alert.alert("Error", getErrorMessage(error, "No se pudo guardar la configuración."));
     }
   }
 
@@ -117,40 +107,35 @@ export default function SensorsScreen() {
     await handleSaveConfig(blowerId, { currentThreshold });
   }
 
-  const HeaderButtons = (
-    <>
-      <TouchableOpacity
-        onPress={() => router.push("/aerations/add-aeration")}
-        hitSlop={8}
-      >
-        <MaterialCommunityIcons
-          name="plus"
-          size={iconSize}
-          color={theme.textSecondary}
-        />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={handleLogout} hitSlop={8}>
-        <MaterialCommunityIcons
-          name="logout"
-          size={iconSize}
-          color={theme.textSecondary}
-        />
-      </TouchableOpacity>
-    </>
-  );
-
   return (
-    <ScreenLayout
-      title="Sensores"
-      headerRight={HeaderButtons}
-      isScrollable={true}
-    >
+    <ScreenLayout title="Sensores" isScrollable={true}>
       {devicesLoading ? (
         <View className="flex-1 items-center justify-center py-12">
           <ActivityIndicator size="large" color={theme.textSecondary} />
           <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-3">
             Cargando dispositivos...
           </Text>
+        </View>
+      ) : blowers.length === 0 && devicesError ? (
+        <View className="flex-1 items-center justify-center py-12">
+          <MaterialCommunityIcons
+            name="wifi-off"
+            size={64}
+            color={theme.textSecondary}
+          />
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-4 text-center">
+            No se pudieron cargar los dispositivos.
+          </Text>
+          <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-2 text-center px-6">
+            {devicesError}
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => refreshDevices()}
+            className="mt-4 rounded-lg border border-primary px-4 py-2"
+          >
+            <Text className="font-semibold text-primary">Reintentar</Text>
+          </TouchableOpacity>
         </View>
       ) : blowers.length === 0 ? (
         <View className="flex-1 items-center justify-center py-12">

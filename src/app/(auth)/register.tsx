@@ -1,6 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
+import { getErrorMessage } from "@/core/utils/errors";
 import { validateEmail, validatePassword, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -54,8 +55,8 @@ export default function RegisterScreen() {
     try {
       await signIn({ username, email, password });
       router.replace("/");
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
+    } catch (error) {
+      Alert.alert("Error", getErrorMessage(error, "No se pudo crear la cuenta."));
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import { useTheme } from "@/core/theme/use-theme";
+import { logger } from "@/core/utils/logger";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
 import { getActiveBatchByTankId } from "@/features/batches/utils/batch.utils";
 import { useTankMovement } from "@/features/tank-movements/contexts/TankMovementContext";
@@ -13,18 +14,18 @@ import { useTank } from "@/features/tanks/contexts/TankContext";
 import { TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  View
+  View,
 } from "react-native";
 
 export default function EditTankScreen() {
-  const { tanks, updateTank, fetchTanks, deleteTank } = useTank();
+  const { tanks, updateTank, fetchTanks, deleteTank, isLoading: isTanksLoading } = useTank();
   const {
     createTankMovementTransfer,
     createTankMovementOutflows,
@@ -38,10 +39,8 @@ export default function EditTankScreen() {
   const { width } = useWindowDimensions();
   const tankCardSize = getTankCardSize(width);
 
-  // Iniciar siembra
   const { batches, createBatch, fetchBatches } = useBatch();
   const currentTank = tanks.find((t) => t.id === id);
-  const tankNumber = currentTank?.tankNumber ?? (Number(id) || 1);
 
   useEffect(() => {
     void fetchTanks();
@@ -79,31 +78,31 @@ export default function EditTankScreen() {
   const activeTankBatch = currentTank
     ? getActiveBatchByTankId(batches).get(currentTank.id)
     : undefined;
-  const tankBatch =
-    activeTankBatch ?? tankBatches[0];
+  const tankBatch = activeTankBatch ?? tankBatches[0];
   const stockingDate = tankBatch
-    ? new Date(tankBatch.stockingDate).toLocaleString("es-MX")
+    ? new Date(tankBatch.stockingDate).toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
     : null;
-
-  const iconSize = Math.round(width * 0.06);
 
   const [status, setStatus] = useState<TankStatus>(
     currentTank?.tankStatus ?? TankStatus.EMPTY
   );
-  const [size, setSize] = useState("Mediano");
-
-  useEffect(() => {
-    if (currentTank) {
-      setStatus(currentTank.tankStatus);
-    }
-  }, [currentTank?.tankStatus]);
-  
   const [showDailyForm, setShowDailyForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSavingStatus, setIsSavingStatus] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (currentTank) {
+      setStatus(currentTank.tankStatus);
+    }
+  }, [currentTank?.tankStatus]);
 
   const statusConfig = TANK_STATUS_CONFIG[status] || { form: "daily", label: "Activo" };
 
@@ -127,6 +126,22 @@ export default function EditTankScreen() {
       }),
     ).values(),
   ];
+
+  const latestMovementTime = movementDates.reduce(
+    (latest, date) => Math.max(latest, date.getTime()),
+    0,
+  );
+
+  // Si el usuario no ha elegido una fecha manualmente, abrimos el día del
+  // movimiento más reciente para no caer siempre en el vacío de "hoy".
+  const hasPickedDate = useRef(false);
+
+  useEffect(() => {
+    if (hasPickedDate.current || latestMovementTime === 0) return;
+    setSelectedDate((current) =>
+      current.getTime() === latestMovementTime ? current : new Date(latestMovementTime),
+    );
+  }, [latestMovementTime]);
 
   const selectedDateMovements = [...movementsById.values()]
     .filter((movement) => {
@@ -208,8 +223,8 @@ export default function EditTankScreen() {
     try {
       await deleteTank(id);
       Alert.alert(
-        "Estanque eliminado",
-        `El estanque ${currentTank.tankNumber} se eliminó correctamente.`,
+        "Tanque eliminado",
+        `El tanque ${currentTank.tankNumber} se eliminó correctamente.`,
         [
           {
             text: "Aceptar",
@@ -221,7 +236,7 @@ export default function EditTankScreen() {
     } catch (error) {
       Alert.alert(
         "No se pudo eliminar",
-        error instanceof Error ? error.message : "Ocurrió un error al eliminar el estanque.",
+        error instanceof Error ? error.message : "Ocurrió un error al eliminar el tanque.",
       );
     } finally {
       setIsDeleting(false);
@@ -235,8 +250,8 @@ export default function EditTankScreen() {
     }
 
     Alert.alert(
-      "Eliminar estanque",
-      `¿Seguro que deseas eliminar el estanque ${currentTank.tankNumber}? Esta acción no se puede deshacer.`,
+      "Eliminar tanque",
+      `¿Seguro que deseas eliminar el tanque ${currentTank.tankNumber}? Esta acción no se puede deshacer.`,
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -250,23 +265,62 @@ export default function EditTankScreen() {
     );
   }
 
-  const HeaderRight = (
-    <TouchableOpacity hitSlop={8}>
-      <MaterialCommunityIcons
-        name="water"
-        size={iconSize}
-        color={theme.textSecondary}
-      />
-    </TouchableOpacity>
-  );
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        fetchTanks(),
+        fetchBatches(),
+        ...(id ? [fetchTankMovements(id)] : []),
+      ]);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "No se pudieron actualizar los datos.",
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
+  if (!currentTank) {
+    return (
+      <ScreenLayout title="Tanque" showBackButton isScrollable={false}>
+        <View className="flex-1 items-center justify-center px-6">
+          {isTanksLoading || tanks.length === 0 ? (
+            <ActivityIndicator size="large" color={theme.text} />
+          ) : (
+            <>
+              <MaterialCommunityIcons
+                name="water-off"
+                size={40}
+                color={theme.textSecondary}
+              />
+              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
+                No se encontró el tanque
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => router.replace("/(app)/(tabs)/tanks")}
+                className="mt-4 rounded-lg border border-primary px-4 py-2"
+              >
+                <Text className="font-semibold text-primary">Volver a tanques</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <>
       <ScreenLayout
-        title={`Tanque ${currentTank?.tankNumber ?? ""}`}
+        title={`Tanque ${currentTank.tankNumber}`}
         showBackButton={true}
-        headerRight={HeaderRight}
         isScrollable
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
       >
         <View className="mx-1 mt-3 flex-row items-center border-b border-border dark:border-border-dark pb-3">
           <MaterialCommunityIcons
@@ -286,9 +340,10 @@ export default function EditTankScreen() {
         <View className="mt-5 items-center">
           <TankCard
             size={tankCardSize}
-            tankNumber={currentTank?.tankNumber ?? 1}
+            tankNumber={currentTank.tankNumber}
             tankStatus={status}
             currentQuantity={activeTankBatch?.currentQuantity}
+            stockingDate={tankBatch?.stockingDate}
           />
         </View>
         <View className="px-1 pt-5">
@@ -307,289 +362,280 @@ export default function EditTankScreen() {
               }`}
               onPress={() => setShowDailyForm((isOpen) => !isOpen)}
             >
-              <View
-                className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-backgroundSelected dark:bg-backgroundSelected-dark"
-              >
-                  <MaterialCommunityIcons
-                    name={
-                      showDailyForm
-                        ? "close"
-                        : statusConfig.form === "sowing"
-                          ? "fish"
-                          : "plus"
-                    }
-                    size={22}
-                    color={theme.textSecondary}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-semibold text-text dark:text-text-dark">
-                    {showDailyForm
-                      ? "Cerrar formulario"
-                      : statusConfig.form === "sowing"
-                        ? "Iniciar siembra"
-                        : "Agregar registro diario"}
-                  </Text>
-                  {!showDailyForm && (
-                    <Text className="mt-1 text-xs text-textSecondary dark:text-textSecondary-dark">
-                      {statusConfig.form === "sowing"
-                        ? "Registrar la población inicial"
-                        : "Capturar un movimiento del tanque"}
-                    </Text>
-                  )}
-                </View>
+              <View className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-backgroundSelected dark:bg-backgroundSelected-dark">
                 <MaterialCommunityIcons
-                  name={showDailyForm ? "chevron-up" : "chevron-down"}
+                  name={
+                    showDailyForm
+                      ? "close"
+                      : statusConfig.form === "sowing"
+                        ? "fish"
+                        : "plus"
+                  }
                   size={22}
                   color={theme.textSecondary}
                 />
-              </TouchableOpacity>
+              </View>
+              <View className="flex-1">
+                <Text className="font-semibold text-text dark:text-text-dark">
+                  {showDailyForm
+                    ? "Cerrar formulario"
+                    : statusConfig.form === "sowing"
+                      ? "Iniciar siembra"
+                      : "Agregar registro diario"}
+                </Text>
+                {!showDailyForm && (
+                  <Text className="mt-1 text-xs text-textSecondary dark:text-textSecondary-dark">
+                    {statusConfig.form === "sowing"
+                      ? "Registrar la población inicial"
+                      : "Capturar un movimiento del tanque"}
+                  </Text>
+                )}
+              </View>
+              <MaterialCommunityIcons
+                name={showDailyForm ? "chevron-up" : "chevron-down"}
+                size={22}
+                color={theme.textSecondary}
+              />
+            </TouchableOpacity>
 
-              {showDailyForm && (
-                <MovementForm
-                  formType={statusConfig.form as "sowing" | "daily"}
-                  tankId={currentTank?.id}
-                  availableTanks={tanks.filter((tank) => tank.id !== currentTank?.id)}
-                  onSave={async (movementData) => {
-                    if (movementData.type === "Siembra") {
-                      if (!currentTank) {
-                        Alert.alert("Error", "No se encontraron los datos del tanque.");
-                        return;
-                      }
-
-                      try {
-                        await createBatch({
-                          tankId: movementData.tankId,
-                          initialQuantity: movementData.initialQuantity,
-                          stockingDate: movementData.stockingDate,
-                        });
-                        await fetchTanks();
-                        setShowDailyForm(false);
-                        Alert.alert("Éxito", "La siembra se inició correctamente.");
-                      } catch (error) {
-                        Alert.alert(
-                          "Error",
-                          error instanceof Error
-                            ? error.message
-                            : "No se pudo iniciar la siembra.",
-                        );
-                      }
-                      return;
-                    }
-
-                    if (!activeTankBatch) {
-                      Alert.alert("Error", "Este tanque no tiene un lote activo para registrar movimientos.");
-                      return;
-                    }
-
+            {showDailyForm && (
+              <MovementForm
+                formType={statusConfig.form as "sowing" | "daily"}
+                tankId={currentTank.id}
+                maxQuantity={activeTankBatch?.currentQuantity}
+                availableTanks={tanks.filter((tank) => tank.id !== currentTank.id)}
+                onSave={async (movementData) => {
+                  if (movementData.type === "Siembra") {
                     try {
-                      if (movementData.type === MovementType.TRANSFER) {
-                        await createTankMovementTransfer({
-                          batchId: activeTankBatch.id,
-                          destinationTankId: movementData.destinationTankId,
-                          quantity: movementData.quantity,
-                          movementDate: movementData.movementDate,
-                        });
-                      } else {
-                        await createTankMovementOutflows({
-                          batchId: activeTankBatch.id,
-                          movementType: movementData.type,
-                          quantity: movementData.quantity,
-                          movementDate: movementData.movementDate,
-                        });
-                      }
-
+                      await createBatch({
+                        tankId: movementData.tankId,
+                        initialQuantity: movementData.initialQuantity,
+                        stockingDate: movementData.stockingDate,
+                      });
+                      await fetchTanks();
                       setShowDailyForm(false);
-                      let refreshFailed = false;
-                      try {
-                        await Promise.all([
-                          fetchBatches(),
-                          fetchTanks(),
-                          ...(id ? [fetchTankMovements(id)] : []),
-                        ]);
-                      } catch (refreshError) {
-                        refreshFailed = true;
-                        console.error("Error al actualizar datos después del movimiento:", refreshError);
-                      }
-                      Alert.alert(
-                        refreshFailed ? "Movimiento registrado" : "Éxito",
-                        refreshFailed
-                          ? "El movimiento se guardó, pero no se pudieron actualizar los datos de la pantalla."
-                          : "El movimiento se registró correctamente.",
-                      );
+                      Alert.alert("Éxito", "La siembra se inició correctamente.");
                     } catch (error) {
                       Alert.alert(
                         "Error",
                         error instanceof Error
                           ? error.message
-                          : "No se pudo registrar el movimiento.",
+                          : "No se pudo iniciar la siembra.",
                       );
                     }
-                  }}
-                />
-              )}
+                    return;
+                  }
 
-              <View className="mb-2 mt-2 flex-row items-center justify-between">
-                <Text className="text-base font-semibold text-text dark:text-text-dark">
-                  Estado del tanque
-                </Text>
-                {isSavingStatus && (
-                  <Text className="text-xs text-textSecondary dark:text-textSecondary-dark">
-                    Guardando...
-                  </Text>
-                )}
-              </View>
-              <TankStatusPicker
-                value={status}
-                onChange={(nextStatus) => void handleStatusChange(nextStatus)}
-                disabled={isSavingStatus}
+                  if (!activeTankBatch) {
+                    Alert.alert("Error", "Este tanque no tiene un lote activo para registrar movimientos.");
+                    return;
+                  }
+
+                  try {
+                    if (movementData.type === MovementType.TRANSFER) {
+                      await createTankMovementTransfer({
+                        batchId: activeTankBatch.id,
+                        destinationTankId: movementData.destinationTankId,
+                        quantity: movementData.quantity,
+                        movementDate: movementData.movementDate,
+                      });
+                    } else {
+                      await createTankMovementOutflows({
+                        batchId: activeTankBatch.id,
+                        movementType: movementData.type,
+                        quantity: movementData.quantity,
+                        movementDate: movementData.movementDate,
+                        notes: movementData.notes,
+                      });
+                    }
+
+                    setShowDailyForm(false);
+                    let refreshFailed = false;
+                    try {
+                      await Promise.all([
+                        fetchBatches(),
+                        fetchTanks(),
+                        ...(id ? [fetchTankMovements(id)] : []),
+                      ]);
+                    } catch (refreshError) {
+                      refreshFailed = true;
+                      logger.error("Error al actualizar datos después del movimiento:", refreshError);
+                    }
+                    Alert.alert(
+                      refreshFailed ? "Movimiento registrado" : "Éxito",
+                      refreshFailed
+                        ? "El movimiento se guardó, pero no se pudieron actualizar los datos de la pantalla."
+                        : "El movimiento se registró correctamente.",
+                    );
+                  } catch (error) {
+                    Alert.alert(
+                      "Error",
+                      error instanceof Error
+                        ? error.message
+                        : "No se pudo registrar el movimiento.",
+                    );
+                  }
+                }}
               />
+            )}
 
-              {statusConfig.form === "daily" && (
-                <>
-                  <Text className="mb-2 mt-4 text-base font-semibold text-text dark:text-text-dark">
-                    Accesos rápidos
-                  </Text>
-                  <View className="mb-2 flex-row" style={{ gap: 8 }}>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
-                      onPress={() => router.push(`/tanks/${id}/batches`)}
-                    >
-                      <MaterialCommunityIcons
-                        name="format-list-bulleted"
-                        size={20}
-                        color={theme.textSecondary}
-                      />
-                      <Text className="mt-1 text-center text-xs font-semibold text-text dark:text-text-dark">
-                        Lotes ({tankBatches.length})
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
-                      onPress={() =>
-                        router.push({
-                          pathname: "/tanks/[id]/map" as any,
-                          params: { id: String(currentTank?.id ?? id) },
-                        })
-                      }
-                    >
-                      <MaterialCommunityIcons
-                        name="map-marker-path"
-                        size={20}
-                        color={theme.textSecondary}
-                      />
-                      <Text className="mt-1 text-center text-xs font-semibold text-text dark:text-text-dark">
-                        Mapa
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View className="mb-4 mt-1 flex-row" style={{ gap: 10 }}>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityState={{ expanded: showHistory }}
-                      className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
-                      onPress={() => setShowHistory((visible) => !visible)}
-                    >
-                      <MaterialCommunityIcons
-                        name={showHistory ? "chevron-up" : "history"}
-                        size={20}
-                        color={showHistory ? theme.text : theme.textSecondary}
-                      />
-                      <Text className="ml-2 font-semibold text-text dark:text-text-dark">
-                        {showHistory ? "Ocultar historial" : "Ver historial"}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
-                      onPress={() => setShowDatePicker(true)}
-                    >
-                      <MaterialCommunityIcons
-                        name="calendar"
-                        size={20}
-                        color={theme.textSecondary}
-                      />
-                      <Text className="ml-2 font-semibold text-text dark:text-text-dark">
-                        {selectedDate.toLocaleDateString("es-MX", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {showHistory && (
-                    <>
-                      <Text className="mb-2 mt-1 text-base font-semibold text-text dark:text-text-dark">
-                        Historial de movimientos
-                      </Text>
-                      <View className="mb-5">
-                        {isMovementLoading ? (
-                          <ActivityIndicator
-                            className="py-6"
-                            size="small"
-                            color={theme.text}
-                          />
-                        ) : selectedDateMovements.length === 0 ? (
-                          <Text className="text-textSecondary dark:text-textSecondary-dark text-center py-6">
-                            No hay movimientos registrados este día.
-                          </Text>
-                        ) : (
-                          selectedDateMovements.map((movement, index) => (
-                            <View key={movement.id} className="flex-row">
-                              <View className="items-center mr-3" style={{ width: 32 }}>
-                                <View className="w-8 h-8 rounded-full bg-backgroundElement dark:bg-backgroundElement-dark items-center justify-center">
-                                  <MaterialCommunityIcons
-                                    name={
-                                      movement.movementType === MovementType.TRANSFER
-                                        ? "swap-horizontal"
-                                        : movement.movementType === MovementType.SALE
-                                        ? "cart-arrow-down"
-                                        : "skull-crossbones"
-                                    }
-                                    size={18}
-                                    color={
-                                      movement.movementType === MovementType.TRANSFER
-                                        ? theme.success
-                                        : movement.movementType === MovementType.SALE
-                                        ? theme.info
-                                        : theme.danger
-                                    }
-                                  />
-                                </View>
-                                {index < selectedDateMovements.length - 1 && (
-                                  <View className="flex-1 w-px bg-backgroundSelected dark:bg-backgroundSelected-dark" />
-                                )}
-                              </View>
-                              <View className="flex-1 pb-5">
-                                <Text className="text-textSecondary dark:text-textSecondary-dark text-xs mb-1">
-                                  {new Date(movement.movementDate).toLocaleString("es-MX")}
-                                </Text>
-                                <View className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-xl p-3">
-                                  <View className="flex-row items-center justify-between">
-                                    <Text className="text-text dark:text-text-dark font-semibold">
-                                      {getMovementLabel(movement)}
-                                    </Text>
-                                    <Text className="text-text dark:text-text-dark font-bold">
-                                      {movement.quantity} piezas
-                                    </Text>
-                                  </View>
-                                  <Text className="text-textSecondary dark:text-textSecondary-dark mt-1">
-                                    {getMovementDescription(movement)}
-                                  </Text>
-                                </View>
-                              </View>
-                            </View>
-                          ))
-                        )}
-                      </View>
-                    </>
-                  )}
-                </>
+            <View className="mb-2 mt-2 flex-row items-center justify-between">
+              <Text className="text-base font-semibold text-text dark:text-text-dark">
+                Estado del tanque
+              </Text>
+              {isSavingStatus && (
+                <Text className="text-xs text-textSecondary dark:text-textSecondary-dark">
+                  Guardando...
+                </Text>
               )}
+            </View>
+            <TankStatusPicker
+              value={status}
+              onChange={(nextStatus) => void handleStatusChange(nextStatus)}
+              disabled={isSavingStatus}
+            />
+
+            <Text className="mb-2 mt-4 text-base font-semibold text-text dark:text-text-dark">
+              Accesos rápidos
+            </Text>
+            <View className="mb-2 flex-row" style={{ gap: 8 }}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
+                onPress={() => router.push(`/tanks/${id}/batches`)}
+              >
+                <MaterialCommunityIcons
+                  name="format-list-bulleted"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+                <Text className="mt-1 text-center text-xs font-semibold text-text dark:text-text-dark">
+                  Lotes ({tankBatches.length})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
+                onPress={() =>
+                  router.push({
+                    pathname: "/tanks/[id]/map" as any,
+                    params: { id: String(currentTank.id) },
+                  })
+                }
+              >
+                <MaterialCommunityIcons
+                  name="map-marker-path"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+                <Text className="mt-1 text-center text-xs font-semibold text-text dark:text-text-dark">
+                  Mapa
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="mb-4 mt-1 flex-row" style={{ gap: 10 }}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showHistory }}
+                className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
+                onPress={() => setShowHistory((visible) => !visible)}
+              >
+                <MaterialCommunityIcons
+                  name={showHistory ? "chevron-up" : "history"}
+                  size={20}
+                  color={showHistory ? theme.text : theme.textSecondary}
+                />
+                <Text className="ml-2 font-semibold text-text dark:text-text-dark">
+                  {showHistory ? "Ocultar historial" : "Ver historial"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
+                onPress={() => setShowDatePicker(true)}
+              >
+                <MaterialCommunityIcons
+                  name="calendar"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+                <Text className="ml-2 font-semibold text-text dark:text-text-dark">
+                  {selectedDate.toLocaleDateString("es-MX", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {showHistory && (
+              <>
+                <Text className="mb-2 mt-1 text-base font-semibold text-text dark:text-text-dark">
+                  Historial de movimientos
+                </Text>
+                <View className="mb-5">
+                  {isMovementLoading ? (
+                    <ActivityIndicator
+                      className="py-6"
+                      size="small"
+                      color={theme.text}
+                    />
+                  ) : selectedDateMovements.length === 0 ? (
+                    <Text className="text-textSecondary dark:text-textSecondary-dark text-center py-6">
+                      No hay movimientos registrados este día.
+                    </Text>
+                  ) : (
+                    selectedDateMovements.map((movement, index) => (
+                      <View key={movement.id} className="flex-row">
+                        <View className="items-center mr-3" style={{ width: 32 }}>
+                          <View className="w-8 h-8 rounded-full bg-backgroundElement dark:bg-backgroundElement-dark items-center justify-center">
+                            <MaterialCommunityIcons
+                              name={
+                                movement.movementType === MovementType.TRANSFER
+                                  ? "swap-horizontal"
+                                  : movement.movementType === MovementType.SALE
+                                  ? "cart-arrow-down"
+                                  : "skull-crossbones"
+                              }
+                              size={18}
+                              color={
+                                movement.movementType === MovementType.TRANSFER
+                                  ? theme.success
+                                  : movement.movementType === MovementType.SALE
+                                  ? theme.info
+                                  : theme.danger
+                              }
+                            />
+                          </View>
+                          {index < selectedDateMovements.length - 1 && (
+                            <View className="flex-1 w-px bg-backgroundSelected dark:bg-backgroundSelected-dark" />
+                          )}
+                        </View>
+                        <View className="flex-1 pb-5">
+                          <Text className="text-textSecondary dark:text-textSecondary-dark text-xs mb-1">
+                            {new Date(movement.movementDate).toLocaleString("es-MX")}
+                          </Text>
+                          <View className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-xl p-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="text-text dark:text-text-dark font-semibold">
+                                {getMovementLabel(movement)}
+                              </Text>
+                              <Text className="text-text dark:text-text-dark font-bold">
+                                {movement.quantity} piezas
+                              </Text>
+                            </View>
+                            <Text className="text-textSecondary dark:text-textSecondary-dark mt-1">
+                              {getMovementDescription(movement)}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    ))
+                  )}
+                </View>
+              </>
+            )}
           </View>
 
           <TouchableOpacity
@@ -608,7 +654,7 @@ export default function EditTankScreen() {
                   color={theme.danger}
                 />
                 <Text className="ml-2 font-semibold text-danger dark:text-danger-dark">
-                  Eliminar estanque
+                  Eliminar tanque
                 </Text>
               </>
             )}
@@ -616,12 +662,15 @@ export default function EditTankScreen() {
         </View>
       </ScreenLayout>
 
-      <DayPickerModal 
-        visible={showDatePicker} 
+      <DayPickerModal
+        visible={showDatePicker}
         selectedDate={selectedDate}
         movementDates={movementDates}
-        onDateChange={setSelectedDate}
-        onClose={() => setShowDatePicker(false)} 
+        onDateChange={(date) => {
+          hasPickedDate.current = true;
+          setSelectedDate(date);
+        }}
+        onClose={() => setShowDatePicker(false)}
       />
     </>
   );

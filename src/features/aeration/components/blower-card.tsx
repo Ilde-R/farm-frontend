@@ -1,4 +1,5 @@
 import { useTheme } from "@/core/theme/use-theme";
+import { logger } from "@/core/utils/logger";
 import SaveIntervalPicker from "@/features/aeration/components/save-interval-picker";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
@@ -49,7 +50,7 @@ export default function BlowerCard({
         );
         if (active) setChartReadings(readings);
       } catch (error) {
-        console.error(
+        logger.error(
           `[Aeration] No se pudo cargar el historial de ${blowerId}:`,
           error,
         );

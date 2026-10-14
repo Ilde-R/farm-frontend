@@ -20,6 +20,7 @@ interface SocketContextType {
   thresholds: Map<string, number>;
   devices: Aeration[];
   devicesLoading: boolean;
+  devicesError: string | null;
   refreshDevices: () => Promise<void>;
   applyDeviceConfig: (
     blowerId: string,
@@ -44,6 +45,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const [lastReadingAt, setLastReadingAt] = useState<number | null>(null);
   const [devices, setDevices] = useState<Aeration[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
+  const [devicesError, setDevicesError] = useState<string | null>(null);
   
   const lastNotifiedRef = useRef<Map<string, number>>(new Map());
   const thresholdsRef = useRef(thresholds);
@@ -55,6 +57,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const refreshDevices = useCallback(async () => {
     if (!token) return;
     try {
+      setDevicesError(null);
       const data = await getAerationDevicesService();
       const deviceList = Array.isArray(data) ? data : [];
       setDevices(deviceList);
@@ -72,8 +75,10 @@ export function SocketProvider({ children }: PropsWithChildren) {
         }
         return next;
       });
-    } catch {
-      setDevices([]);
+    } catch (err) {
+      setDevicesError(
+        err instanceof Error ? err.message : "No se pudieron cargar los dispositivos.",
+      );
     } finally {
       setDevicesLoading(false);
     }
@@ -107,6 +112,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
     if (!token) {
       aerationSocketService.disconnect();
       setDevices([]);
+      setDevicesError(null);
       setDevicesLoading(false);
       return;
     }
@@ -154,6 +160,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
         thresholds,
         devices,
         devicesLoading,
+        devicesError,
         refreshDevices,
         applyDeviceConfig,
       }}

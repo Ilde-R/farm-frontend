@@ -17,6 +17,7 @@
       }
     },
     "android": {
+      "versionCode": 1,
       "usesCleartextTraffic": true,
       "package": "com.ilderios.farm",
       "adaptiveIcon": {
@@ -27,10 +28,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA"
       ]
     },
     "web": {

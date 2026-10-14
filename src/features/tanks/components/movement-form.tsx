@@ -19,6 +19,7 @@ type DailyMovementData =
         type: MovementType.SALE | MovementType.MORTALITY;
         quantity: number;
         movementDate: string;
+        notes?: string;
     };
 
 type MovementData =
@@ -29,10 +30,12 @@ type MovementFormProps = {
     formType: "sowing" | "daily";
     tankId?: string;
     availableTanks: Tank[];
+    
+    maxQuantity?: number;
     onSave: (movementData: MovementData) => void | Promise<void>;
 };
 
-export default function MovementForm({ formType, tankId, availableTanks, onSave }: MovementFormProps) {
+export default function MovementForm({ formType, tankId, availableTanks, maxQuantity, onSave }: MovementFormProps) {
     const theme = useTheme();
     const [dailyDate, setDailyDate] = useState(new Date());
     const [showDailyDatePicker, setShowDailyDatePicker] = useState(false);
@@ -40,6 +43,7 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
     const [quantityError, setQuantityError] = useState("");
     const [movementType, setMovementType] = useState<MovementType>(MovementType.TRANSFER);
     const [targetTankId, setTargetTankId] = useState("");
+    const [notes, setNotes] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = async () => {
@@ -73,12 +77,18 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 return;
             }
 
+            if (maxQuantity !== undefined && quantity > maxQuantity) {
+                setQuantityError(`Solo hay ${maxQuantity} piezas disponibles.`);
+                return;
+            }
+
             if (movementType === MovementType.TRANSFER) {
                 const destinationTankId = targetTankId || availableTanks[0]?.id;
                 if (!destinationTankId) {
                     setQuantityError("No hay tanques disponibles como destino.");
                     return;
                 }
+                setQuantityError("");
                 setIsSaving(true);
                 try {
                     await onSave({
@@ -91,12 +101,14 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                     setIsSaving(false);
                 }
             } else {
+                setQuantityError("");
                 setIsSaving(true);
                 try {
                     await onSave({
                         type: movementType,
                         quantity,
                         movementDate: dailyDate.toISOString(),
+                        notes: notes.trim() || undefined,
                     });
                 } finally {
                     setIsSaving(false);
@@ -166,17 +178,32 @@ export default function MovementForm({ formType, tankId, availableTanks, onSave 
                 </>
             )}
 
-                <TouchableOpacity
-                    className="flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark"
-                    onPress={handleSave}
-                    disabled={isSaving}
-                >
-                    {isSaving ? (
-                        <ActivityIndicator color={theme.background} />
-                    ) : (
-                        <>
-                            <MaterialCommunityIcons name="content-save-outline" size={18} color={theme.background} />
-                            <Text className="ml-2 text-center font-semibold text-background dark:text-background-dark">
+            {formType === "daily" && movementType !== MovementType.TRANSFER && (
+                <>
+                    <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Notas (opcional)</Text>
+                    <TextField
+                        className="min-h-[88px] border-border dark:border-border-dark bg-background dark:bg-background-dark text-text dark:text-text-dark"
+                        style={{ color: theme.text, textAlignVertical: "top" }}
+                        value={notes}
+                        onChangeText={setNotes}
+                        placeholder="Ej. Mortandad por hongos"
+                        multiline
+                        containerClassName="mb-4"
+                    />
+                </>
+            )}
+
+            <TouchableOpacity
+                className="flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark"
+                onPress={handleSave}
+                disabled={isSaving}
+            >
+                {isSaving ? (
+                    <ActivityIndicator color={theme.background} />
+                ) : (
+                    <>
+                        <MaterialCommunityIcons name="content-save-outline" size={18} color={theme.background} />
+                        <Text className="ml-2 text-center font-semibold text-background dark:text-background-dark">
                             {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
                         </Text>
                     </>

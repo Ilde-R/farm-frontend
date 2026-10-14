@@ -3,6 +3,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { ReactNode } from "react";
 import {
+  RefreshControl,
   ScrollView,
   StyleProp,
   Text,
@@ -20,6 +21,8 @@ interface ScreenLayoutProps {
   isScrollable?: boolean;
   showBackButton?: boolean;
   style?: StyleProp<ViewStyle>;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function ScreenLayout({
@@ -29,6 +32,8 @@ export default function ScreenLayout({
   isScrollable = true,
   showBackButton = false,
   style,
+  refreshing = false,
+  onRefresh,
 }: ScreenLayoutProps) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
@@ -64,7 +69,20 @@ export default function ScreenLayout({
   ) : null;
 
   const Content = isScrollable ? (
-    <ScrollView style={style} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={style}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.textSecondary}
+            colors={[theme.primary]}
+          />
+        ) : undefined
+      }
+    >
       {children}
     </ScrollView>
   ) : (

@@ -1,6 +1,7 @@
 
 import { api } from "@/core/api/axios.config";
 import { handleApiError } from "@/core/api/errors";
+import { logger } from "@/core/utils/logger";
 import {
   type Aeration,
   type AerationChartReading,
@@ -37,7 +38,7 @@ export async function configureEsp32Service(data: ConfigureEspPayload): Promise<
       throw new Error("Error al configurar el dispositivo ESP32");
     }
   } catch (error) {
-    console.error("[Hardware] Error de conexión directa con ESP32:", error);
+    logger.error("[Hardware] Error de conexión directa con ESP32:", error);
     throw error;
   }
 }

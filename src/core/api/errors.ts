@@ -1,7 +1,8 @@
+import { logger } from "@/core/utils/logger";
 import { isAxiosError } from "axios";
 
 export function handleApiError(error: unknown, defaultMsg: string): never {
-  console.error("[API Error Detalle]:", error);
+  logger.error("[API Error Detalle]:", error);
 
   if (isAxiosError(error)) {
     if (error.response?.data) {

@@ -1,4 +1,5 @@
 import { useTheme } from "@/core/theme/use-theme";
+import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
 import { TankStatus } from "@/features/tanks/types/tank";
 import { Picker } from "@react-native-picker/picker";
 import { View } from "react-native";
@@ -9,13 +10,17 @@ type Props = {
     disabled?: boolean;
 };
 
+const options = [
+    TankStatus.ACTIVE,
+    TankStatus.EMPTY,
+    TankStatus.MAINTENANCE,
+].map((status) => ({
+    label: TANK_STATUS_LABELS[status],
+    value: status,
+}));
+
 export default function TankStatusPicker({ value, onChange, disabled = false }: Props) {
     const theme = useTheme();
-    const options = [
-        { label: "Activo", value: TankStatus.ACTIVE },
-        { label: 'Vacío',  value: TankStatus.EMPTY },
-        { label: 'Mantenimiento',  value: TankStatus.MAINTENANCE },
-    ];
 
     return (
         <View className="mb-4 overflow-hidden rounded-xl border border-border dark:border-border-dark bg-backgroundElement dark:bg-backgroundElement-dark">
