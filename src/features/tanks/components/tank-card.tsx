@@ -48,6 +48,7 @@ type TankCardProps = {
   stockingDate?: string;
   onPress?: () => void;
   size?: number;
+  highlighted?: boolean;
 };
 
 export function getTankCardSize(screenWidth: number) {
@@ -61,6 +62,7 @@ export default function TankCard({
   stockingDate,
   onPress,
   size,
+  highlighted = false,
 }: TankCardProps) {
   const theme = useTheme();
   const { width: screenWidth } = useWindowDimensions();
@@ -89,7 +91,11 @@ export default function TankCard({
     >
       <View
         style={{ width: cardSize, height: cardSize }}
-        className="items-center justify-center overflow-hidden rounded-full border-2 border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark p-4 shadow-lg shadow-black/20"
+        className={`items-center justify-center overflow-hidden rounded-full border-2 ${
+          highlighted
+            ? "border-primary dark:border-primary-dark"
+            : "border-backgroundSelected dark:border-backgroundSelected-dark"
+        } bg-backgroundElement dark:bg-backgroundElement-dark p-4 shadow-lg shadow-black/20`}
       >
         <View
           className={`mb-2 h-10 w-10 items-center justify-center rounded-full ${statusPresentation.iconBackground}`}

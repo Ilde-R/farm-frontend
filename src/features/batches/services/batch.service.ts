@@ -21,3 +21,11 @@ export async function getBatchesService(page = 1, limit = 10): Promise<GetBatchR
         handleApiError(error, 'Error al obtener lotes')
     }
 }
+
+export async function harvestBatchService(batchId: string) {
+    try {
+        await api.post(`/batches/${batchId}/harvest`)
+    } catch (error)  {
+        handleApiError(error, 'Error al cosechar el lote')
+    }
+}

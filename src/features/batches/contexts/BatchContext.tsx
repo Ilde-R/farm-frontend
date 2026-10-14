@@ -1,13 +1,14 @@
 import { logger } from "@/core/utils/logger";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
-import { createBatchService, getBatchesService } from "../services/batch.service";
+import { createBatchService, getBatchesService, harvestBatchService } from "../services/batch.service";
 import { Batch, CreateBatchPayload } from "../types/batch";
 
 interface BatchContextType {
     batches: Batch[];
     isLoading: boolean;
     createBatch: (data: CreateBatchPayload) => Promise<void>;
+    harvestBatch: (batchId: string) => Promise<void>;
     fetchBatches: () => Promise<void>;
 }
 
@@ -62,6 +63,11 @@ export function BatchProvider({ children }: PropsWithChildren) {
                 createBatch: async (data: CreateBatchPayload) => {
                     const newBatch = await createBatchService(data);
                     setBatches(prev => [...prev, newBatch]);
+                },
+                //cosechar
+                harvestBatch: async (batchId: string) => {
+                    await harvestBatchService(batchId);
+                    await fetchBatches();
                 },
             }}
         >
