@@ -115,18 +115,25 @@ export default function MapDetailScreen() {
   );
   const quantityByTank = new Map<number, number>();
   if (flowDirection === "ingreso" && tankMovements) {
-    quantityByTank.set(
-      tankMovements.tank.tankNumber,
-      tankMovements.incoming.totalQuantity,
-    );
+    if (tankMovements.incoming.fromTanks.length > 0) {
+      quantityByTank.set(
+        tankMovements.tank.tankNumber,
+        tankMovements.incoming.totalQuantity,
+      );
+    }
     for (const group of tankMovements.incoming.fromTanks) {
       quantityByTank.set(group.tankNumber, group.quantity);
     }
   } else if (flowDirection === "salida" && tankMovements) {
-    quantityByTank.set(
-      tankMovements.tank.tankNumber,
-      tankMovements.outgoing.totalQuantity,
-    );
+    if (tankMovements.outgoing.toTanks.length > 0) {
+      quantityByTank.set(
+        tankMovements.tank.tankNumber,
+        tankMovements.outgoing.toTanks.reduce(
+          (total, group) => total + group.quantity,
+          0,
+        ),
+      );
+    }
     for (const group of tankMovements.outgoing.toTanks) {
       quantityByTank.set(group.tankNumber, group.quantity);
     }
@@ -217,7 +224,7 @@ export default function MapDetailScreen() {
 
         {!isLoading && !loadError && flowDirection && visibleConnections.length === 0 && (
           <Text className="mb-5 text-center text-textSecondary dark:text-textSecondary-dark">
-            {`No hay transferencias de ${flowDirection} para este tanque.`}
+            {`No hay transferencias de ${flowDirection === "ingreso" ? "entrada" : "salida"} para este tanque.`}
           </Text>
         )}
 
