@@ -223,37 +223,35 @@ export default function MapDetailScreen() {
         )}
 
         {currentTank && (
-          <Card className="mb-4 flex-row items-center">
+          <Card className="mb-4 items-center">
             <View className="h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
               <MaterialCommunityIcons name="water" size={24} color={theme.primary} />
             </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
-                Tanque actual
+            <Text className="mt-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
+              Tanque actual
+            </Text>
+            <View className="mt-0.5 flex-row items-baseline justify-center">
+              <Text className="text-xl font-bold text-text dark:text-text-dark">
+                Tanque {currentTank.tankNumber}
               </Text>
-              <View className="mt-0.5 flex-row items-baseline">
-                <Text className="text-xl font-bold text-text dark:text-text-dark">
-                  Tanque {currentTank.tankNumber}
-                </Text>
-                <Text className="ml-2 text-xs font-medium text-textSecondary dark:text-textSecondary-dark">
-                  {TANK_STATUS_LABELS[currentTank.tankStatus as TankStatus] ??
-                    String(currentTank.tankStatus)}
-                </Text>
-              </View>
-              <Text className="mt-0.5 text-xs text-textSecondary dark:text-textSecondary-dark">
-                {currentQuantity !== undefined
-                  ? `${formatQuantity(currentQuantity)} piezas`
-                  : "Sin lote activo"}
-                {currentDaysInCulture !== null
-                  ? ` · ${currentDaysInCulture} ${currentDaysInCulture === 1 ? "día" : "días"} de cultivo`
-                  : ""}
+              <Text className="ml-2 text-xs font-medium text-textSecondary dark:text-textSecondary-dark">
+                {TANK_STATUS_LABELS[currentTank.tankStatus as TankStatus] ??
+                  String(currentTank.tankStatus)}
               </Text>
             </View>
+            <Text className="mt-0.5 text-center text-xs text-textSecondary dark:text-textSecondary-dark">
+              {currentQuantity !== undefined
+                ? `${formatQuantity(currentQuantity)} piezas`
+                : "Sin lote activo"}
+              {currentDaysInCulture !== null
+                ? ` · ${currentDaysInCulture} ${currentDaysInCulture === 1 ? "día" : "días"} de cultivo`
+                : ""}
+            </Text>
           </Card>
         )}
 
         <View className="mb-4">
-          <View className="mb-2 flex-row items-center justify-between">
+          <View className="mb-2 flex-row items-center justify-center gap-3">
             <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
               Ver traslados
             </Text>
@@ -357,13 +355,13 @@ export default function MapDetailScreen() {
         )}
 
         {!isLoading && !loadError && hasAnyMovement && !flowDirection && (
-          <View className="mb-4 flex-row items-center rounded-xl border border-border bg-backgroundElement px-3 py-2.5 dark:border-border-dark dark:bg-backgroundElement-dark">
+          <View className="mb-4 flex-row items-center justify-center rounded-xl border border-border bg-backgroundElement px-3 py-2.5 dark:border-border-dark dark:bg-backgroundElement-dark">
             <MaterialCommunityIcons
               name="gesture-tap"
               size={16}
               color={theme.textTertiary}
             />
-            <Text className="ml-2 flex-1 text-xs text-textSecondary dark:text-textSecondary-dark">
+            <Text className="ml-2 text-center text-xs text-textSecondary dark:text-textSecondary-dark">
               Selecciona <Text className="font-semibold">Ingreso</Text> o{" "}
               <Text className="font-semibold">Salida</Text> para trazar el flujo.
             </Text>
@@ -377,44 +375,35 @@ export default function MapDetailScreen() {
         )}
 
         {!isLoading && !loadError && flowDirection && hasDirectionData && (
-          <Card className="mb-4">
-            <View className="flex-row items-center">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 dark:bg-primary-dark/10">
-                <MaterialCommunityIcons
-                  name={isIngreso ? "arrow-down-left" : "arrow-up-right"}
-                  size={22}
-                  color={theme.primary}
-                />
-              </View>
-              <View className="ml-3 flex-1">
-                <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
-                  {isIngreso ? "Total ingresado" : "Total transferido"}
-                </Text>
-                <View className="mt-0.5 flex-row items-baseline">
-                  <Text className="text-2xl font-extrabold tracking-tight text-text dark:text-text-dark">
-                    {formatQuantity(selectedTotal)}
-                  </Text>
-                  <Text className="ml-1.5 text-sm font-medium text-textSecondary dark:text-textSecondary-dark">
-                    piezas
-                  </Text>
-                </View>
-              </View>
-              <View className="items-end">
-                <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
-                  Tanques
-                </Text>
-                <Text className="mt-0.5 text-lg font-bold text-text dark:text-text-dark">
-                  {selectedTankCount}
-                </Text>
-              </View>
+          <Card className="mb-4 items-center">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 dark:bg-primary-dark/10">
+              <MaterialCommunityIcons
+                name={isIngreso ? "arrow-down-left" : "arrow-up-right"}
+                size={22}
+                color={theme.primary}
+              />
             </View>
+            <Text className="mt-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
+              {isIngreso ? "Total ingresado" : "Total transferido"}
+            </Text>
+            <View className="mt-0.5 flex-row items-baseline justify-center">
+              <Text className="text-2xl font-extrabold tracking-tight text-text dark:text-text-dark">
+                {formatQuantity(selectedTotal)}
+              </Text>
+              <Text className="ml-1.5 text-sm font-medium text-textSecondary dark:text-textSecondary-dark">
+                piezas
+              </Text>
+            </View>
+            <Text className="mt-0.5 text-center text-xs text-textSecondary dark:text-textSecondary-dark">
+              {selectedTankCount} {selectedTankCount === 1 ? "tanque" : "tanques"}
+            </Text>
 
             {flowDirection === "salida" && otherMovements.length > 0 && (
-              <View className="mt-4 border-t border-border pt-3 dark:border-border-dark">
-                <Text className="mb-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
+              <View className="mt-4 w-full border-t border-border pt-3 dark:border-border-dark">
+                <Text className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
                   Otros movimientos
                 </Text>
-                <View className="flex-row flex-wrap gap-2">
+                <View className="flex-row flex-wrap justify-center gap-2">
                   {otherMovements.map((group) => (
                     <View
                       key={group.movementType}

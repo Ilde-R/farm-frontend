@@ -134,7 +134,7 @@ export default function MovementForm({ formType, tankId, availableTanks, maxQuan
             )}
 
             <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">
-                {formType === "sowing" ? "Cantidad inicial de peces" : "Cantidad de peces"}
+                {formType === "sowing" ? "Cantidad inicial de organismos" : "Cantidad de organismos"}
             </Text>
             <TextField
                 value={dailyQuantity}

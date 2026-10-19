@@ -356,7 +356,7 @@ export default function EditTankScreen() {
                     showDailyForm
                       ? "close"
                       : statusConfig.form === "sowing"
-                        ? "fish"
+                        ? "sprout"
                         : "plus"
                   }
                   size={22}

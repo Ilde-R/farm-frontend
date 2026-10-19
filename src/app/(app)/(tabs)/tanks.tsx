@@ -36,7 +36,7 @@ const TANK_SUMMARY_ITEMS: {
 
 const TANK_SORT_ITEMS: { value: TankSortOption; label: string }[] = [
   { value: "numero", label: "Número" },
-  { value: "poblacion", label: "Peces" },
+  { value: "poblacion", label: "Cantidad" },
   { value: "siembra", label: "Siembra" },
 ];
 
@@ -155,10 +155,10 @@ export default function TanksScreen() {
           {tanks.length > 0 && (
             <Card className="mb-4 items-center py-6">
               <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
-                Total de peces
+                Total de organismos
               </Text>
               <Text className="mt-2 text-5xl font-extrabold tracking-tight text-text dark:text-text-dark">
-                {kpis.fish.toLocaleString("es-MX")}
+                {kpis.organisms.toLocaleString("es-MX")}
               </Text>
               <Text className="mt-1 text-sm text-textSecondary dark:text-textSecondary-dark">
                 en {kpis.total} {kpis.total === 1 ? "tanque" : "tanques"}

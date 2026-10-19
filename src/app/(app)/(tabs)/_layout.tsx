@@ -68,7 +68,7 @@ export default function TabsLayout() {
           options={{
             title: "Tanques",
             tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="fish" size={size} color={color} />
+              <MaterialCommunityIcons name="waves" size={size} color={color} />
             ),
           }}
         />

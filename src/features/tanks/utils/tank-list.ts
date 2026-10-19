@@ -5,7 +5,7 @@ export type TankSortOption = "numero" | "poblacion" | "siembra";
 
 export interface TankKpis {
   total: number;
-  fish: number;
+  organisms: number;
   active: number;
   empty: number;
   maintenance: number;
@@ -81,18 +81,18 @@ export function computeTankKpis(
   tanks: Tank[],
   activeBatchByTankId: Map<string, Batch>,
 ): TankKpis {
-  let fish = 0;
+  let organisms = 0;
   let active = 0;
   let empty = 0;
   let maintenance = 0;
 
   for (const tank of tanks) {
-    fish += activeBatchByTankId.get(tank.id)?.currentQuantity ?? 0;
+    organisms += activeBatchByTankId.get(tank.id)?.currentQuantity ?? 0;
 
     if (tank.tankStatus === TankStatus.ACTIVE) active += 1;
     else if (tank.tankStatus === TankStatus.EMPTY) empty += 1;
     else if (tank.tankStatus === TankStatus.MAINTENANCE) maintenance += 1;
   }
 
-  return { total: tanks.length, fish, active, empty, maintenance };
+  return { total: tanks.length, organisms, active, empty, maintenance };
 }
