@@ -1,4 +1,6 @@
+import Button from "@/core/components/ui/button";
 import TextField from "@/core/components/ui/text-field";
+import { useToast } from "@/core/components/ui/toast";
 import { useTheme } from "@/core/theme/use-theme";
 import { TANK_STATUS_LABELS } from "@/features/tanks/constants/tank.constants";
 import { useTank } from "@/features/tanks/contexts/TankContext";
@@ -6,14 +8,7 @@ import { TankStatus } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Modal, Text, TouchableOpacity, View } from "react-native";
 
 type CreateTankModalProps = {
   visible: boolean;
@@ -22,6 +17,7 @@ type CreateTankModalProps = {
 
 export default function CreateTankModal({ visible, onClose }: CreateTankModalProps) {
   const theme = useTheme();
+  const toast = useToast();
   const { createTank } = useTank();
 
   const [tankNumber, setTankNumber] = useState("");
@@ -70,7 +66,7 @@ export default function CreateTankModal({ visible, onClose }: CreateTankModalPro
       });
 
       onClose();
-      Alert.alert("Éxito", "El tanque se guardó correctamente.");
+      toast.show({ message: "El tanque se guardó correctamente.", type: "success" });
     } catch (error) {
       if (
         error instanceof Error &&
@@ -95,8 +91,8 @@ export default function CreateTankModal({ visible, onClose }: CreateTankModalPro
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 items-center justify-center bg-black/40 px-6">
-        <View className="w-full rounded-xl bg-backgroundElement dark:bg-backgroundElement-dark p-6">
+      <View className="flex-1 items-center justify-center bg-black/50 px-6">
+        <View className="w-full rounded-2xl bg-backgroundElement dark:bg-backgroundElement-dark p-6">
           <View className="mb-6 flex-row items-center justify-between">
             <Text className="text-xl font-bold text-text dark:text-text-dark">
               Registrar tanque
@@ -146,32 +142,21 @@ export default function CreateTankModal({ visible, onClose }: CreateTankModalPro
           </View>
 
           <View className="flex-row justify-end gap-3">
-            <TouchableOpacity
-              className="rounded-lg px-4 py-3"
+            <Button
+              title="Cancelar"
+              variant="ghost"
+              size="sm"
               onPress={onClose}
               disabled={loading}
-            >
-              <Text className="font-semibold text-textSecondary dark:text-textSecondary-dark">
-                Cancelar
-              </Text>
-            </TouchableOpacity>
+            />
 
-            <TouchableOpacity
-              className={`rounded-lg px-4 py-3 flex-row items-center justify-center min-w-[100px] ${
-                loading ? "bg-textSecondary dark:bg-textSecondary-dark"
-                        : "bg-text dark:bg-text-dark"
-              }`}
+            <Button
+              title="Agregar"
+              size="sm"
               onPress={handleCreate}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={theme.background} size="small" />
-              ) : (
-                <Text className="font-semibold text-background dark:text-background-dark ">
-                  Agregar
-                </Text>
-              )}
-            </TouchableOpacity>
+              loading={loading}
+              className="min-w-[100px]"
+            />
           </View>
         </View>
       </View>

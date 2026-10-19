@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Inter as the default typeface on every Text/TextInput (native + web). */
+  * {
+    font-family: Inter_400Regular;
+  }
+}

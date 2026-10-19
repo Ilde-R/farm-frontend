@@ -1,27 +1,21 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import Button from "@/core/components/ui/button";
 import TextField from "@/core/components/ui/text-field";
+import { useToast } from "@/core/components/ui/toast";
 import { useTheme } from "@/core/theme/use-theme";
 import { getErrorMessage } from "@/core/utils/errors";
 import { validateEmail, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Alert, Text, View } from "react-native";
 
 type ViewMode = "view" | "edit";
 
 export default function ProfileScreen() {
   const theme = useTheme();
+  const toast = useToast();
   const { user, signOut, updateUser } = useSession();
-  const { width } = useWindowDimensions();
-  const margin = Math.round(width * 0.04);
 
   const [mode, setMode] = useState<ViewMode>("view");
   const [username, setUsername] = useState(user?.username ?? "");
@@ -74,6 +68,7 @@ export default function ProfileScreen() {
     try {
       await updateUser({ username, email });
       setMode("view");
+      toast.show({ message: "Perfil actualizado.", type: "success" });
     } catch (error) {
       Alert.alert("Error", getErrorMessage(error, "No se pudo actualizar el perfil."));
     } finally {
@@ -82,61 +77,46 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScreenLayout
-      title="Perfil"
-      isScrollable={true}
-    >
-      <View
-        className="flex-1 items-center pt-8"
-        style={{ paddingHorizontal: margin }}
-      >
-        <View className="w-20 h-20 rounded-full bg-backgroundElement items-center justify-center mb-4">
-          <MaterialCommunityIcons
-            name="account"
-            size={48}
-            color={theme.textSecondary}
-          />
+    <ScreenLayout title="Perfil" isScrollable={true}>
+      <View className="items-center pt-6">
+        <View className="mb-4 h-20 w-20 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+          <MaterialCommunityIcons name="account" size={40} color={theme.primary} />
         </View>
 
         {mode === "view" ? (
           <>
-            <Text className="text-text dark:text-text-dark font-bold text-xl mb-1">
+            <Text className="mb-1 text-xl font-bold text-text dark:text-text-dark">
               {user?.username}
             </Text>
-            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mb-1">
+            <Text className="mb-1 text-base text-textSecondary dark:text-textSecondary-dark">
               {user?.email}
             </Text>
 
-            <TouchableOpacity
-              className="border border-backgroundSelected rounded-lg py-3 px-8 mb-3 w-full mt-4"
+            <Button
+              title="Editar perfil"
+              variant="secondary"
               onPress={handleEdit}
-            >
-              <Text className="text-text dark:text-text-dark font-semibold text-base text-center">
-                Editar perfil
-              </Text>
-            </TouchableOpacity>
+              className="mb-3 mt-5 w-full"
+            />
 
-            <TouchableOpacity
-              accessibilityRole="button"
-              className="border border-danger dark:border-danger-dark rounded-lg py-3 px-8 w-full"
+            <Button
+              title="Cerrar sesión"
+              variant="dangerOutline"
               onPress={handleLogout}
-            >
-              <Text className="text-danger dark:text-danger-dark font-semibold text-base text-center">
-                Cerrar sesión
-              </Text>
-            </TouchableOpacity>
+              className="w-full"
+            />
           </>
         ) : (
           <>
-            <Text className="text-textSecondary dark:text-textSecondary-dark text-base mb-6">
+            <Text className="mb-6 text-base text-textSecondary dark:text-textSecondary-dark">
               Editar tu información
             </Text>
 
             <View className="w-full">
               <TextField
-                label="Username"
+                label="Usuario"
                 containerClassName="mb-3"
-                placeholder="Username"
+                placeholder="Tu nombre de usuario"
                 value={username}
                 error={errors.username}
                 onChangeText={(text) => {
@@ -149,7 +129,7 @@ export default function ProfileScreen() {
               <TextField
                 label="Email"
                 containerClassName="mt-1"
-                placeholder="Email"
+                placeholder="Tu correo electrónico"
                 value={email}
                 error={errors.email}
                 onChangeText={(text) => {
@@ -161,30 +141,20 @@ export default function ProfileScreen() {
               />
             </View>
 
-            <View className="flex-row mt-6" style={{ gap: 12 }}>
-              <TouchableOpacity
-                className="flex-1 bg-text rounded-lg py-3"
+            <View className="mt-6 flex-row gap-3">
+              <Button
+                title="Guardar"
                 onPress={handleSave}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text className="text-background font-semibold text-base text-center">
-                    Guardar
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="flex-1 border border-backgroundSelected rounded-lg py-3"
+                loading={loading}
+                className="flex-1"
+              />
+              <Button
+                title="Cancelar"
+                variant="secondary"
                 onPress={handleCancel}
                 disabled={loading}
-              >
-                <Text className="text-text font-semibold text-base text-center">
-                  Cancelar
-                </Text>
-              </TouchableOpacity>
+                className="flex-1"
+              />
             </View>
           </>
         )}

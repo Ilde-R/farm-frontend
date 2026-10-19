@@ -1,3 +1,4 @@
+import { Colors } from '@/core/constants/theme';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
   },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
+    backgroundColor: Colors.light.primary,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,

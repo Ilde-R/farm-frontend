@@ -1,3 +1,5 @@
+import Button from "@/core/components/ui/button";
+import { useTheme } from "@/core/theme/use-theme";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState } from "react";
 import {
@@ -43,6 +45,7 @@ export default function QrScanner({
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [error, setError] = useState("");
+  const theme = useTheme();
 
   function handleBarcodeScanned(result: { data: string }) {
     if (scanned) return;
@@ -69,8 +72,8 @@ export default function QrScanner({
   if (!permission) {
     return (
       <Modal visible={visible} animationType="slide">
-        <View className="flex-1 items-center justify-center bg-black">
-          <ActivityIndicator size="large" color="#ffffff" />
+        <View className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       </Modal>
     );
@@ -87,14 +90,11 @@ export default function QrScanner({
             Necesitamos acceder a la cámara para escanear el código QR de tu red
             WiFi.
           </Text>
-          <TouchableOpacity
-            className="bg-text rounded-lg py-3 px-8"
+          <Button
+            title="Conceder permiso"
             onPress={requestPermission}
-          >
-            <Text className="text-text dark:text-text-dark font-semibold text-base">
-              Conceder permiso
-            </Text>
-          </TouchableOpacity>
+            size="lg"
+          />
           <TouchableOpacity className="mt-4 py-3" onPress={handleClose}>
             <Text className="text-textSecondary dark:text-textSecondary-dark text-base">Cancelar</Text>
           </TouchableOpacity>

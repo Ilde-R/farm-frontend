@@ -1,5 +1,6 @@
 import { ErrorBoundary } from "@/core/components/error-boundary";
 import { SplashScreenController } from "@/core/components/splash-screen-controller";
+import { ToastProvider } from "@/core/components/ui/toast";
 import { Colors } from "@/core/constants/theme";
 import { setupNotifications } from "@/core/utils/notifications";
 import { SocketProvider } from "@/features/aeration/contexts/AerationSocketContext";
@@ -7,6 +8,16 @@ import { SessionProvider, useSession } from "@/features/auth/contexts/AuthContex
 import { BatchProvider } from "@/features/batches/contexts/BatchContext";
 import { TankMovementProvider } from "@/features/tank-movements/contexts/TankMovementContext";
 import { TankProvider } from "@/features/tanks/contexts/TankContext";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  Inter_900Black,
+  useFonts,
+} from "@expo-google-fonts/inter";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useMemo } from "react";
@@ -39,7 +50,7 @@ function RootNavigator() {
 
   return (
     <ThemeProvider value={navigationTheme}>
-      <Stack screenOptions={{ animation: "none" }}>
+      <Stack screenOptions={{ animation: "fade" }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
 
         <Stack.Protected guard={!token}>
@@ -55,9 +66,27 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    // Preload the icon font so first paint never shows invisible icons.
+    ...MaterialCommunityIcons.font,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+    Inter_900Black,
+  });
+
+  const fontsReady = fontsLoaded || !!fontError;
+
   useEffect(() => {
     setupNotifications();
   }, []);
+
+  if (!fontsReady) {
+    return null;
+  }
+
   return (
     <ErrorBoundary>
       <SessionProvider>
@@ -65,8 +94,10 @@ export default function RootLayout() {
           <TankProvider>
             <BatchProvider>
               <TankMovementProvider>
-                <SplashScreenController />
-                <RootNavigator />
+                <SplashScreenController fontsReady={fontsReady} />
+                <ToastProvider>
+                  <RootNavigator />
+                </ToastProvider>
               </TankMovementProvider>
             </BatchProvider>
           </TankProvider>

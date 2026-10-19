@@ -1,3 +1,4 @@
+import Button from "@/core/components/ui/button";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import type { CreateBatchPayload } from "@/features/batches/types/batch";
@@ -6,7 +7,7 @@ import type { Tank } from "@/features/tanks/types/tank";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Modal, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Modal, Text, TouchableOpacity, View } from "react-native";
 
 type DailyMovementData =
     | {
@@ -136,8 +137,6 @@ export default function MovementForm({ formType, tankId, availableTanks, maxQuan
                 {formType === "sowing" ? "Cantidad inicial de peces" : "Cantidad de peces"}
             </Text>
             <TextField
-                className="border-border dark:border-border-dark bg-background dark:bg-background-dark text-text dark:text-text-dark"
-                style={{ color: theme.text }}
                 value={dailyQuantity}
                 error={quantityError || undefined}
                 onChangeText={(value) => {
@@ -182,8 +181,8 @@ export default function MovementForm({ formType, tankId, availableTanks, maxQuan
                 <>
                     <Text className="mb-2 text-sm font-semibold text-text dark:text-text-dark">Notas (opcional)</Text>
                     <TextField
-                        className="min-h-[88px] border-border dark:border-border-dark bg-background dark:bg-background-dark text-text dark:text-text-dark"
-                        style={{ color: theme.text, textAlignVertical: "top" }}
+                        className="min-h-[88px]"
+                        style={{ textAlignVertical: "top" }}
                         value={notes}
                         onChangeText={setNotes}
                         placeholder="Ej. Mortandad por hongos"
@@ -193,25 +192,15 @@ export default function MovementForm({ formType, tankId, availableTanks, maxQuan
                 </>
             )}
 
-            <TouchableOpacity
-                className="flex-row items-center justify-center rounded-xl bg-text py-3 dark:bg-text-dark"
+            <Button
+                title={formType === "sowing" ? "Iniciar siembra" : "Guardar"}
                 onPress={handleSave}
-                disabled={isSaving}
-            >
-                {isSaving ? (
-                    <ActivityIndicator color={theme.background} />
-                ) : (
-                    <>
-                        <MaterialCommunityIcons name="content-save-outline" size={18} color={theme.background} />
-                        <Text className="ml-2 text-center font-semibold text-background dark:text-background-dark">
-                            {formType === "sowing" ? "Iniciar siembra" : "Guardar"}
-                        </Text>
-                    </>
-                )}
-            </TouchableOpacity>
+                loading={isSaving}
+                icon={!isSaving ? <MaterialCommunityIcons name="content-save-outline" size={18} color={theme.primaryForeground} /> : undefined}
+            />
 
             <Modal visible={showDailyDatePicker} transparent animationType="fade" onRequestClose={() => setShowDailyDatePicker(false)}>
-                <View className="flex-1 justify-center bg-black/60 px-6">
+                <View className="flex-1 justify-center bg-black/50 px-6">
                     <View className="rounded-2xl border border-border dark:border-border-dark bg-backgroundElement dark:bg-backgroundElement-dark p-5">
                         <Text className="mb-3 text-lg font-bold text-text dark:text-text-dark">Fecha y hora</Text>
                         

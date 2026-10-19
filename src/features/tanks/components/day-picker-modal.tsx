@@ -54,8 +54,8 @@ export default function DayPickerModal({
 
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-            <View className="flex-1 justify-center bg-black/65 px-5">
-                <View className="rounded-3xl border border-border dark:border-border-dark bg-backgroundElement dark:bg-backgroundElement-dark p-5">
+            <View className="flex-1 justify-center bg-black/50 px-5">
+                <View className="rounded-2xl border border-border dark:border-border-dark bg-backgroundElement dark:bg-backgroundElement-dark p-5">
                     <Text className="mb-1 text-xl font-bold text-text dark:text-text-dark">
                         Historial por fecha
                     </Text>
@@ -67,7 +67,7 @@ export default function DayPickerModal({
                         <TouchableOpacity
                             accessibilityRole="button"
                             accessibilityLabel="Mes anterior"
-                            className="h-10 w-10 items-center justify-center rounded-xl bg-white/5"
+                            className="h-10 w-10 items-center justify-center rounded-xl bg-backgroundSelected/60 dark:bg-backgroundSelected-dark/60"
                             onPress={() => changeMonth(-1)}
                         >
                             <MaterialCommunityIcons name="chevron-left" size={24} color={theme.textSecondary} />
@@ -81,7 +81,7 @@ export default function DayPickerModal({
                         <TouchableOpacity
                             accessibilityRole="button"
                             accessibilityLabel="Mes siguiente"
-                            className="h-10 w-10 items-center justify-center rounded-xl bg-white/5"
+                            className="h-10 w-10 items-center justify-center rounded-xl bg-backgroundSelected/60 dark:bg-backgroundSelected-dark/60"
                             onPress={() => changeMonth(1)}
                         >
                             <MaterialCommunityIcons name="chevron-right" size={24} color={theme.textSecondary} />

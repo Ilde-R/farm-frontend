@@ -1,4 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import Button from "@/core/components/ui/button";
+import EmptyState from "@/core/components/ui/empty-state";
+import { useToast } from "@/core/components/ui/toast";
 import { useTheme } from "@/core/theme/use-theme";
 import { logger } from "@/core/utils/logger";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
@@ -36,6 +39,7 @@ export default function EditTankScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const theme = useTheme();
+  const toast = useToast();
   const { width } = useWindowDimensions();
   const tankCardSize = getTankCardSize(width);
 
@@ -202,6 +206,7 @@ export default function EditTankScreen() {
     setIsSavingStatus(true);
     try {
       await updateTank({ tankStatus: nextStatus }, id);
+      toast.show({ message: "Estado del tanque actualizado.", type: "success" });
     } catch (error) {
       setStatus(previousStatus);
       Alert.alert(
@@ -222,17 +227,11 @@ export default function EditTankScreen() {
     setIsDeleting(true);
     try {
       await deleteTank(id);
-      Alert.alert(
-        "Tanque eliminado",
-        `El tanque ${currentTank.tankNumber} se eliminó correctamente.`,
-        [
-          {
-            text: "Aceptar",
-            onPress: () => router.replace("/(app)/(tabs)/tanks"),
-          },
-        ],
-        { cancelable: false },
-      );
+      toast.show({
+        message: `El tanque ${currentTank.tankNumber} se eliminó correctamente.`,
+        type: "success",
+      });
+      router.replace("/(app)/(tabs)/tanks");
     } catch (error) {
       Alert.alert(
         "No se pudo eliminar",
@@ -286,29 +285,18 @@ export default function EditTankScreen() {
   if (!currentTank) {
     return (
       <ScreenLayout title="Tanque" showBackButton isScrollable={false}>
-        <View className="flex-1 items-center justify-center px-6">
-          {isTanksLoading || tanks.length === 0 ? (
-            <ActivityIndicator size="large" color={theme.text} />
-          ) : (
-            <>
-              <MaterialCommunityIcons
-                name="water-off"
-                size={40}
-                color={theme.textSecondary}
-              />
-              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
-                No se encontró el tanque
-              </Text>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => router.replace("/(app)/(tabs)/tanks")}
-                className="mt-4 rounded-lg border border-primary px-4 py-2"
-              >
-                <Text className="font-semibold text-primary">Volver a tanques</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+        {isTanksLoading || tanks.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : (
+          <EmptyState
+            icon="water-off"
+            title="No se encontró el tanque"
+            actionLabel="Volver a tanques"
+            onAction={() => router.replace("/(app)/(tabs)/tanks")}
+          />
+        )}
       </ScreenLayout>
     );
   }
@@ -322,7 +310,7 @@ export default function EditTankScreen() {
         refreshing={isRefreshing}
         onRefresh={handleRefresh}
       >
-        <View className="mx-1 mt-3 flex-row items-center border-b border-border dark:border-border-dark pb-3">
+        <View className="mt-3 flex-row items-center border-b border-border dark:border-border-dark pb-3">
           <MaterialCommunityIcons
             name="calendar-month-outline"
             size={20}
@@ -346,7 +334,7 @@ export default function EditTankScreen() {
             stockingDate={tankBatch?.stockingDate}
           />
         </View>
-        <View className="px-1 pt-5">
+        <View className="pt-5">
           <View className="w-full">
             <Text className="mb-3 text-base font-semibold text-text dark:text-text-dark">
               Registro del tanque
@@ -414,7 +402,10 @@ export default function EditTankScreen() {
                       });
                       await fetchTanks();
                       setShowDailyForm(false);
-                      Alert.alert("Éxito", "La siembra se inició correctamente.");
+                      toast.show({
+                        message: "La siembra se inició correctamente.",
+                        type: "success",
+                      });
                     } catch (error) {
                       Alert.alert(
                         "Error",
@@ -461,12 +452,18 @@ export default function EditTankScreen() {
                       refreshFailed = true;
                       logger.error("Error al actualizar datos después del movimiento:", refreshError);
                     }
-                    Alert.alert(
-                      refreshFailed ? "Movimiento registrado" : "Éxito",
-                      refreshFailed
-                        ? "El movimiento se guardó, pero no se pudieron actualizar los datos de la pantalla."
-                        : "El movimiento se registró correctamente.",
-                    );
+                    if (refreshFailed) {
+                      toast.show({
+                        message:
+                          "El movimiento se guardó, pero no se pudieron actualizar los datos de la pantalla.",
+                        type: "info",
+                      });
+                    } else {
+                      toast.show({
+                        message: "El movimiento se registró correctamente.",
+                        type: "success",
+                      });
+                    }
                   } catch (error) {
                     Alert.alert(
                       "Error",
@@ -498,10 +495,10 @@ export default function EditTankScreen() {
             <Text className="mb-2 mt-4 text-base font-semibold text-text dark:text-text-dark">
               Accesos rápidos
             </Text>
-            <View className="mb-2 flex-row" style={{ gap: 8 }}>
+            <View className="mb-2 flex-row gap-2">
               <TouchableOpacity
                 accessibilityRole="button"
-                className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
+                className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-border bg-backgroundElement px-2 py-3 dark:border-border-dark dark:bg-backgroundElement-dark"
                 onPress={() => router.push(`/tanks/${id}/batches`)}
               >
                 <MaterialCommunityIcons
@@ -515,10 +512,10 @@ export default function EditTankScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
-                className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-2 py-3"
+                className="min-h-[76px] flex-1 items-center justify-center rounded-xl border border-border bg-backgroundElement px-2 py-3 dark:border-border-dark dark:bg-backgroundElement-dark"
                 onPress={() =>
                   router.push({
-                    pathname: "/tanks/[id]/map" as any,
+                    pathname: "/tanks/[id]/map",
                     params: { id: String(currentTank.id) },
                   })
                 }
@@ -533,11 +530,11 @@ export default function EditTankScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            <View className="mb-4 mt-1 flex-row" style={{ gap: 10 }}>
+            <View className="mb-4 mt-1 flex-row gap-2">
               <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityState={{ expanded: showHistory }}
-                className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
+                className="flex-1 flex-row items-center justify-center rounded-lg border border-border bg-backgroundElement px-3 py-3 dark:border-border-dark dark:bg-backgroundElement-dark"
                 onPress={() => setShowHistory((visible) => !visible)}
               >
                 <MaterialCommunityIcons
@@ -551,7 +548,7 @@ export default function EditTankScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
-                className="flex-1 flex-row items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark px-3 py-3"
+                className="flex-1 flex-row items-center justify-center rounded-lg border border-border bg-backgroundElement px-3 py-3 dark:border-border-dark dark:bg-backgroundElement-dark"
                 onPress={() => setShowDatePicker(true)}
               >
                 <MaterialCommunityIcons
@@ -588,7 +585,7 @@ export default function EditTankScreen() {
                   ) : (
                     selectedDateMovements.map((movement, index) => (
                       <View key={movement.id} className="flex-row">
-                        <View className="items-center mr-3" style={{ width: 32 }}>
+                        <View className="mr-3 w-8 items-center">
                           <View className="w-8 h-8 rounded-full bg-backgroundElement dark:bg-backgroundElement-dark items-center justify-center">
                             <MaterialCommunityIcons
                               name={
@@ -613,10 +610,10 @@ export default function EditTankScreen() {
                           )}
                         </View>
                         <View className="flex-1 pb-5">
-                          <Text className="text-textSecondary dark:text-textSecondary-dark text-xs mb-1">
+                          <Text className="mb-1 text-xs text-textSecondary dark:text-textSecondary-dark">
                             {new Date(movement.movementDate).toLocaleString("es-MX")}
                           </Text>
-                          <View className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-xl p-3">
+                          <View className="rounded-xl border border-border bg-backgroundElement p-3 dark:border-border-dark dark:bg-backgroundElement-dark">
                             <View className="flex-row items-center justify-between">
                               <Text className="text-text dark:text-text-dark font-semibold">
                                 {getMovementLabel(movement)}
@@ -638,27 +635,22 @@ export default function EditTankScreen() {
             )}
           </View>
 
-          <TouchableOpacity
-            accessibilityRole="button"
-            className="mb-2 mt-3 flex-row items-center justify-center rounded-lg border border-danger/40 py-3"
+          <Button
+            title="Eliminar tanque"
+            variant="dangerOutline"
             onPress={confirmDeleteTank}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <ActivityIndicator color={theme.danger} />
-            ) : (
-              <>
+            loading={isDeleting}
+            className="mb-2 mt-3"
+            icon={
+              !isDeleting ? (
                 <MaterialCommunityIcons
                   name="delete-outline"
                   size={18}
                   color={theme.danger}
                 />
-                <Text className="ml-2 font-semibold text-danger dark:text-danger-dark">
-                  Eliminar tanque
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+              ) : undefined
+            }
+          />
         </View>
       </ScreenLayout>
 

@@ -8,7 +8,6 @@ import {
   StyleProp,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
   ViewStyle,
 } from "react-native";
@@ -36,28 +35,24 @@ export default function ScreenLayout({
   onRefresh,
 }: ScreenLayoutProps) {
   const theme = useTheme();
-  const { width } = useWindowDimensions();
   const router = useRouter();
 
-  const iconSize = Math.round(width * 0.07); 
-
   const Header = title ? (
-    <View className="flex-row items-center mb-4 justify-between">
-      <View className="flex-row items-center">
+    <View className="mb-4 flex-row items-center justify-between">
+      <View className="flex-row items-center gap-1">
         {showBackButton && (
           <TouchableOpacity
-            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+            activeOpacity={0.7}
             hitSlop={8}
-            className="mr-2"
+            onPress={() => router.back()}
+            className="-ml-2 h-10 w-10 items-center justify-center rounded-full active:bg-backgroundSelected dark:active:bg-backgroundSelected-dark"
           >
-            <MaterialCommunityIcons
-              name="arrow-left"
-              size={iconSize}
-              color={theme.textSecondary}
-            />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
           </TouchableOpacity>
         )}
-        <Text className="font-bold text-3xl text-text dark:text-text-dark">
+        <Text className="text-3xl font-bold tracking-tight text-text dark:text-text-dark">
           {title}
         </Text>
       </View>
@@ -72,6 +67,7 @@ export default function ScreenLayout({
     <ScrollView
       style={style}
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 24 }}
       refreshControl={
         onRefresh ? (
           <RefreshControl
@@ -92,9 +88,14 @@ export default function ScreenLayout({
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark p-3" edges={["top"]}>
-      {Header}
-      {Content}
+    <SafeAreaView
+      className="flex-1 bg-background dark:bg-background-dark"
+      edges={["top"]}
+    >
+      <View className="mx-auto w-full max-w-3xl flex-1 px-4 pt-3">
+        {Header}
+        {Content}
+      </View>
     </SafeAreaView>
   );
 }

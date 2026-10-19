@@ -1,5 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
-import { useTheme } from "@/core/theme/use-theme";
+import EmptyState from "@/core/components/ui/empty-state";
+import Skeleton from "@/core/components/ui/skeleton";
+import { useToast } from "@/core/components/ui/toast";
 import { getErrorMessage } from "@/core/utils/errors";
 import BlowerCard from "@/features/aeration/components/blower-card";
 import { useSocket } from "@/features/aeration/contexts/AerationSocketContext";
@@ -11,16 +13,9 @@ import type {
   UpdateAerationPayload,
 } from "@/features/aeration/types/aeration";
 import { useSession } from "@/features/auth/contexts/AuthContext";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, View } from "react-native";
 
 interface BlowerDisplay {
   blowerId: string;
@@ -33,7 +28,7 @@ interface BlowerDisplay {
 }
 
 export default function SensorsScreen() {
-  const theme = useTheme();
+  const toast = useToast();
   const { token } = useSession();
 
   const {
@@ -84,6 +79,7 @@ export default function SensorsScreen() {
     try {
       await deleteAerationDeviceService(blowerId);
       await refreshDevices();
+      toast.show({ message: "Dispositivo eliminado.", type: "success" });
     } catch (error) {
       Alert.alert("Error", getErrorMessage(error, "No se pudo eliminar el dispositivo."));
     }
@@ -110,50 +106,27 @@ export default function SensorsScreen() {
   return (
     <ScreenLayout title="Sensores" isScrollable={true}>
       {devicesLoading ? (
-        <View className="flex-1 items-center justify-center py-12">
-          <ActivityIndicator size="large" color={theme.textSecondary} />
-          <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-3">
-            Cargando dispositivos...
-          </Text>
+        <View className="gap-4 pt-2">
+          <Skeleton className="h-56 rounded-2xl" />
+          <Skeleton className="h-56 rounded-2xl" />
         </View>
       ) : blowers.length === 0 && devicesError ? (
-        <View className="flex-1 items-center justify-center py-12">
-          <MaterialCommunityIcons
-            name="wifi-off"
-            size={64}
-            color={theme.textSecondary}
-          />
-          <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-4 text-center">
-            No se pudieron cargar los dispositivos.
-          </Text>
-          <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-2 text-center px-6">
-            {devicesError}
-          </Text>
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={() => refreshDevices()}
-            className="mt-4 rounded-lg border border-primary px-4 py-2"
-          >
-            <Text className="font-semibold text-primary">Reintentar</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon="wifi-off"
+          title="No se pudieron cargar los dispositivos"
+          description={devicesError}
+          actionLabel="Reintentar"
+          onAction={() => refreshDevices()}
+        />
       ) : blowers.length === 0 ? (
-        <View className="flex-1 items-center justify-center py-12">
-          <MaterialCommunityIcons
-            name="thermometer"
-            size={64}
-            color={theme.textSecondary}
-          />
-          <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-4 text-center">
-            No hay blowers registrados.
-          </Text>
-          <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-2 text-center">
-            Agrega un dispositivo para comenzar.
-          </Text>
-        </View>
+        <EmptyState
+          icon="thermometer"
+          title="No hay blowers registrados"
+          description="Agrega un dispositivo para comenzar."
+        />
       ) : (
         blowers.map((b, i) => (
-          <View key={b.blowerId || i} style={{ marginBottom: 16 }}>
+          <View key={b.blowerId || i} className="mb-4">
             <BlowerCard
               blowerId={b.blowerId}
               blowerConfigId={b.blowerConfigId}

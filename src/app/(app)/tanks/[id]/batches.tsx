@@ -1,4 +1,6 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import EmptyState from "@/core/components/ui/empty-state";
+import StatusPill, { type StatusPillTone } from "@/core/components/ui/status-pill";
 import { useTheme } from "@/core/theme/use-theme";
 import { getErrorMessage } from "@/core/utils/errors";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
@@ -7,42 +9,19 @@ import { useTank } from "@/features/tanks/contexts/TankContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
 
 type StatusPresentation = {
   label: string;
-  dot: string;
-  pill: string;
-  labelColor: string;
+  tone: StatusPillTone;
 };
 
 const BATCH_STATUS_PRESENTATION: Record<string, StatusPresentation> = {
-  [BatchStatus.ACTIVE]: {
-    label: "Activo",
-    dot: "bg-success dark:bg-success-dark",
-    pill: "bg-success/10 dark:bg-success-dark/10",
-    labelColor: "text-success dark:text-success-dark",
-  },
-  [BatchStatus.HARVESTED]: {
-    label: "Cosechado",
-    dot: "bg-textTertiary dark:bg-textTertiary-dark",
-    pill: "bg-textTertiary/10 dark:bg-textTertiary-dark/10",
-    labelColor: "text-textSecondary dark:text-textSecondary-dark",
-  },
+  [BatchStatus.ACTIVE]: { label: "Activo", tone: "success" },
+  [BatchStatus.HARVESTED]: { label: "Cosechado", tone: "neutral" },
 };
 
-const FALLBACK_STATUS: StatusPresentation = {
-  label: "—",
-  dot: "bg-textTertiary dark:bg-textTertiary-dark",
-  pill: "bg-textTertiary/10 dark:bg-textTertiary-dark/10",
-  labelColor: "text-textSecondary dark:text-textSecondary-dark",
-};
+const FALLBACK_STATUS: StatusPresentation = { label: "—", tone: "neutral" };
 
 function getBatchStatusPresentation(
   status: Batch["batchesStatus"],
@@ -120,7 +99,7 @@ export default function TankBatchesScreen() {
       showBackButton
       isScrollable
     >
-      <View className="px-1 pb-8">
+      <View className="pb-8">
         {isLoading && (
           <ActivityIndicator
             className="mt-8"
@@ -130,23 +109,16 @@ export default function TankBatchesScreen() {
         )}
 
         {!isLoading && tankBatches.length === 0 && (
-          <View className="mt-12 items-center px-6">
-            <MaterialCommunityIcons
-              name="clipboard-text-outline"
-              size={40}
-              color={theme.textTertiary}
-            />
-            <Text className="mt-4 text-center text-base font-medium text-text dark:text-text-dark">
-              Sin lotes registrados
-            </Text>
-            <Text className="mt-1 text-center text-sm text-textSecondary dark:text-textSecondary-dark">
-              Este tanque todavía no tiene lotes.
-            </Text>
-          </View>
+          <EmptyState
+            icon="clipboard-text-outline"
+            title="Sin lotes registrados"
+            description="Este tanque todavía no tiene lotes."
+            className="mt-8"
+          />
         )}
 
         {!isLoading && tankBatches.length > 0 && (
-          <View className="mb-3 flex-row items-center justify-between px-1">
+          <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-xs font-semibold uppercase tracking-wider text-textSecondary dark:text-textSecondary-dark">
               {tankBatches.length} {tankBatches.length === 1 ? "lote" : "lotes"}
             </Text>
@@ -184,18 +156,7 @@ export default function TankBatchesScreen() {
                   </View>
                 </View>
 
-                <View
-                  className={`flex-row items-center gap-1.5 rounded-full px-2.5 py-1 ${status.pill}`}
-                >
-                  <View
-                    className={`h-1.5 w-1.5 rounded-full ${status.dot}`}
-                  />
-                  <Text
-                    className={`text-[10px] font-semibold uppercase tracking-wide ${status.labelColor}`}
-                  >
-                    {status.label}
-                  </Text>
-                </View>
+                <StatusPill label={status.label} tone={status.tone} />
               </View>
 
               <View className="mt-4 flex-row rounded-xl bg-background dark:bg-background-dark p-3">
@@ -234,8 +195,10 @@ export default function TankBatchesScreen() {
                   accessibilityRole="button"
                   disabled={harvestingId !== null}
                   onPress={() => handleHarvest(batch)}
-                  style={{ opacity: harvestingId !== null ? 0.6 : 1 }}
-                  className="mt-4 flex-row items-center justify-center rounded-lg bg-primary/10 dark:bg-primary-dark/10 py-2.5"
+                  activeOpacity={0.75}
+                  className={`mt-4 flex-row items-center justify-center rounded-lg bg-primary/10 py-2.5 dark:bg-primary-dark/10 ${
+                    harvestingId !== null && harvestingId !== batch.id ? "opacity-60" : ""
+                  }`}
                 >
                   {harvestingId === batch.id ? (
                     <ActivityIndicator size="small" color={theme.primary} />

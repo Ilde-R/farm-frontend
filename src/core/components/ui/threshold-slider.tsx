@@ -1,3 +1,4 @@
+import { useTheme } from "@/core/theme/use-theme";
 import { useCallback, useRef } from "react";
 import { PanResponder, View } from "react-native";
 
@@ -16,11 +17,11 @@ export default function ThresholdSlider({
   onChange,
   onComplete,
 }: ThresholdSliderProps) {
+  const theme = useTheme();
   const trackLayout = useRef({ x: 0, width: 0 });
   const latestValue = useRef(value);
   latestValue.current = value;
 
-  // Keep stable refs so PanResponder always calls the latest callbacks
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onCompleteRef = useRef(onComplete);
@@ -42,7 +43,6 @@ export default function ThresholdSlider({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        // Re-measure the track position on every new gesture to avoid stale layout
         trackRef.current?.measureInWindow((x, _y, width) => {
           trackLayout.current = { x, width };
           const v = clampAndRound(e.nativeEvent.pageX);
@@ -51,10 +51,8 @@ export default function ThresholdSlider({
         });
       },
       onPanResponderMove: (_e, gestureState) => {
-        // Use the absolute accumulated position for smooth tracking
         const { x, width } = trackLayout.current;
         if (width <= 0) return;
-        // gestureState.moveX is the latest pageX of the finger
         const v = clampAndRound(gestureState.moveX);
         latestValue.current = v;
         onChangeRef.current(v);
@@ -86,10 +84,10 @@ export default function ThresholdSlider({
       className="h-8 justify-center"
       {...panResponder.panHandlers}
     >
-      <View className="h-3 rounded-full bg-gray-700 overflow-hidden">
+      <View className="h-3 overflow-hidden rounded-full bg-backgroundSelected dark:bg-backgroundSelected-dark">
         <View
           style={{ width: `${pct}%` }}
-          className="h-full rounded-full bg-green-500"
+          className="h-full rounded-full bg-primary"
         />
       </View>
       <View
@@ -101,6 +99,8 @@ export default function ThresholdSlider({
           borderRadius: 12,
           backgroundColor: "white",
           marginLeft: -12,
+          borderWidth: 1.5,
+          borderColor: theme.border,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.3,

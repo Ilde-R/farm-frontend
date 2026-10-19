@@ -1,3 +1,4 @@
+import StatusPill, { type StatusPillTone } from "@/core/components/ui/status-pill";
 import { useTheme } from "@/core/theme/use-theme";
 import { TANK_STATUS_CONFIG } from "@/features/tanks/constants/tank.constants";
 import { TankStatus } from "@/features/tanks/types/tank";
@@ -11,8 +12,12 @@ type StatusPresentation = {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   iconColor: string;
   iconBackground: string;
-  badgeColor: string;
-  labelColor: string;
+};
+
+const STATUS_TONES: Record<TankStatus, StatusPillTone> = {
+  [TankStatus.ACTIVE]: "success",
+  [TankStatus.EMPTY]: "neutral",
+  [TankStatus.MAINTENANCE]: "warning",
 };
 
 function getStatusPresentation(theme: Theme): Record<string, StatusPresentation> {
@@ -21,22 +26,16 @@ function getStatusPresentation(theme: Theme): Record<string, StatusPresentation>
       icon: "water",
       iconColor: theme.success,
       iconBackground: "bg-success/10",
-      badgeColor: "bg-success",
-      labelColor: "text-success",
     },
     [TankStatus.EMPTY]: {
       icon: "water-off",
       iconColor: theme.textTertiary,
       iconBackground: "bg-textTertiary/10",
-      badgeColor: "bg-textTertiary",
-      labelColor: "text-textSecondary dark:text-textSecondary-dark",
     },
     [TankStatus.MAINTENANCE]: {
       icon: "wrench-outline",
       iconColor: theme.warning,
       iconBackground: "bg-warning/10",
-      badgeColor: "bg-warning",
-      labelColor: "text-warning",
     },
   };
 }
@@ -49,10 +48,17 @@ type TankCardProps = {
   onPress?: () => void;
   size?: number;
   highlighted?: boolean;
+  /**
+   * `rectangle` (default) for list grids, `circle` for the transfer map where
+   * flow lines anchor to the card's circular border.
+   */
+  shape?: "rectangle" | "circle";
 };
 
+/** Card width for a 2-column grid. Content is capped at `max-w-3xl` (768) minus `px-4`. */
 export function getTankCardSize(screenWidth: number) {
-  return Math.min((screenWidth - 48) / 2, 190);
+  const contentWidth = Math.min(screenWidth, 768) - 32;
+  return Math.min(contentWidth / 2 - 16, 190);
 }
 
 export default function TankCard({
@@ -63,6 +69,7 @@ export default function TankCard({
   onPress,
   size,
   highlighted = false,
+  shape = "rectangle",
 }: TankCardProps) {
   const theme = useTheme();
   const { width: screenWidth } = useWindowDimensions();
@@ -73,11 +80,45 @@ export default function TankCard({
       icon: "help-circle-outline" as const,
       iconColor: theme.textTertiary,
       iconBackground: "bg-textTertiary/10",
-      badgeColor: "bg-textTertiary",
-      labelColor: "text-textSecondary dark:text-textSecondary-dark",
     };
   const displayStatus =
     TANK_STATUS_CONFIG[tankStatus as TankStatus]?.label || String(tankStatus);
+  const borderClass = highlighted
+    ? "border-primary dark:border-primary-dark"
+    : "border-border dark:border-border-dark";
+
+  if (shape === "circle") {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`Tanque ${tankNumber}, ${displayStatus}${
+          currentQuantity === undefined ? "" : `, ${currentQuantity} piezas actuales`
+        }${daysInCulture === null ? "" : `, ${daysInCulture} días de cultivo`}`}
+        style={{ width: cardSize, height: cardSize }}
+        className={`items-center justify-center overflow-hidden rounded-full border-2 bg-backgroundElement dark:bg-backgroundElement-dark ${borderClass}`}
+      >
+        <View
+          className={`h-9 w-9 items-center justify-center rounded-full ${statusPresentation.iconBackground}`}
+        >
+          <MaterialCommunityIcons
+            name={statusPresentation.icon}
+            size={18}
+            color={statusPresentation.iconColor}
+          />
+        </View>
+        <Text className="mt-1.5 text-3xl font-extrabold tracking-tight text-text dark:text-text-dark">
+          {tankNumber}
+        </Text>
+        <StatusPill
+          label={displayStatus}
+          tone={STATUS_TONES[tankStatus as TankStatus] ?? "neutral"}
+          className="mt-2"
+        />
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -87,55 +128,50 @@ export default function TankCard({
       accessibilityLabel={`Tanque ${tankNumber}, ${displayStatus}${
         currentQuantity === undefined ? "" : `, ${currentQuantity} piezas actuales`
       }${daysInCulture === null ? "" : `, ${daysInCulture} días de cultivo`}`}
-      className="items-center"
+      style={{ width: cardSize }}
+      className={`overflow-hidden rounded-2xl border bg-backgroundElement p-4 dark:bg-backgroundElement-dark ${borderClass}`}
     >
-      <View
-        style={{ width: cardSize, height: cardSize }}
-        className={`items-center justify-center overflow-hidden rounded-full border-2 ${
-          highlighted
-            ? "border-primary dark:border-primary-dark"
-            : "border-backgroundSelected dark:border-backgroundSelected-dark"
-        } bg-backgroundElement dark:bg-backgroundElement-dark p-4 shadow-lg shadow-black/20`}
-      >
+      <View className="flex-row items-center justify-between">
         <View
-          className={`mb-2 h-10 w-10 items-center justify-center rounded-full ${statusPresentation.iconBackground}`}
+          className={`h-9 w-9 items-center justify-center rounded-xl ${statusPresentation.iconBackground}`}
         >
           <MaterialCommunityIcons
             name={statusPresentation.icon}
-            size={20}
+            size={18}
             color={statusPresentation.iconColor}
           />
         </View>
+        <StatusPill
+          label={displayStatus}
+          tone={STATUS_TONES[tankStatus as TankStatus] ?? "neutral"}
+        />
+      </View>
 
-        <View className="items-center">
-          <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark ">
-            Tanque
-          </Text>
-          <Text className="text-3xl font-extrabold tracking-tight text-text dark:text-text-dark">
-            {tankNumber}
-          </Text>
-          <View
-            className={`mt-1.5 flex-row items-center gap-1.5 rounded-full px-2.5 py-1 ${statusPresentation.iconBackground}`}
-          >
-            <View className={`h-1.5 w-1.5 rounded-full ${statusPresentation.badgeColor}`} />
-            <Text
-              numberOfLines={1}
-              className={`text-[10px] font-semibold ${statusPresentation.labelColor}`}
-            >
-              {displayStatus}
+      <Text className="mt-4 text-4xl font-extrabold tracking-tight text-text dark:text-text-dark">
+        {tankNumber}
+      </Text>
+
+      <View className="mt-3 gap-1.5 border-t border-border pt-3 dark:border-border-dark">
+        {currentQuantity !== undefined && (
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs text-textSecondary dark:text-textSecondary-dark">
+              Piezas
+            </Text>
+            <Text className="text-xs font-semibold text-text dark:text-text-dark">
+              {currentQuantity.toLocaleString("es-MX")}
             </Text>
           </View>
-          {currentQuantity !== undefined && (
-            <Text className="mt-1 text-[10px] font-medium text-textSecondary dark:text-textSecondary-dark">
-                {currentQuantity} piezas
+        )}
+        {daysInCulture !== null && (
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs text-textSecondary dark:text-textSecondary-dark">
+              Cultivo
             </Text>
-          )}
-          {daysInCulture !== null && (
-            <Text className="mt-0.5 text-[10px] font-medium text-textTertiary dark:text-textTertiary-dark">
+            <Text className="text-xs font-semibold text-text dark:text-text-dark">
               {daysInCulture} {daysInCulture === 1 ? "día" : "días"}
             </Text>
-          )}
-        </View>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );

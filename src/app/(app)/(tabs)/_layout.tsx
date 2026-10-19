@@ -1,16 +1,14 @@
-import { Colors } from "@/core/constants/theme";
 import { useTheme } from "@/core/theme/use-theme";
 import CreateTankModal from "@/features/tanks/components/create-tank-modal";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import * as Haptics from "expo-haptics";
 import { usePathname, useRouter } from "expo-router";
 import { Tabs } from "expo-router/js-tabs";
 import { useState } from "react";
-import { TouchableOpacity, useColorScheme, View } from "react-native";
+import { Platform, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === "unspecified" ? "light" : scheme];
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
@@ -21,7 +19,13 @@ export default function TabsLayout() {
   const isSensorsTab = pathname.includes("/sensors");
   const showFab = isTanksTab || isSensorsTab;
 
+  // Clears the tab bar (49pt + safe area) with breathing room.
+  const fabBottom = insets.bottom + 72;
+
   function handleFabPress() {
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    }
     if (isTanksTab) {
       setShowCreateTank(true);
       return;
@@ -35,12 +39,16 @@ export default function TabsLayout() {
     <View className="flex-1">
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: colors.text,
-          tabBarInactiveTintColor: colors.textSecondary,
-          tabBarStyle: { 
-            backgroundColor: colors.backgroundElement,
+          tabBarActiveTintColor: theme.primary,
+          tabBarInactiveTintColor: theme.textSecondary,
+          tabBarLabelStyle: {
+            fontFamily: "Inter_600SemiBold",
+            fontSize: 11,
+          },
+          tabBarStyle: {
+            backgroundColor: theme.backgroundElement,
             borderTopWidth: 1,
-            borderTopColor: colors.backgroundSelected, 
+            borderTopColor: theme.border,
             elevation: 0,
           },
           headerShown: false,
@@ -79,9 +87,10 @@ export default function TabsLayout() {
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={isTanksTab ? "Registrar tanque" : "Agregar sensor"}
+          activeOpacity={0.85}
           onPress={handleFabPress}
           className="absolute right-5 z-50 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-black/30"
-          style={{ bottom: insets.bottom + 72 }}
+          style={{ bottom: fabBottom }}
         >
           <MaterialCommunityIcons
             name="plus"

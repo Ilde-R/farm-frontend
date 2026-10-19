@@ -1,19 +1,14 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import QrScanner from "@/core/components/qr-scanner";
+import Button from "@/core/components/ui/button";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import { getErrorMessage } from "@/core/utils/errors";
 import { configureEsp32Service, createAerationDeviceService } from "@/features/aeration/services/aeration.service";
-import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 type FlowStep =
   | "form"
@@ -25,7 +20,6 @@ type FlowStep =
 
 export default function AddAerationScreen() {
   const theme = useTheme();
-  const { token } = useSession();
   const router = useRouter();
 
   const [step, setStep] = useState<FlowStep>("form");
@@ -121,7 +115,7 @@ export default function AddAerationScreen() {
     switch (step) {
       case "form":
         return (
-          <View className="flex-1 px-6 pt-4">
+          <View className="flex-1 px-2 pt-4">
 
             <TextField
               label="ID del blower"
@@ -185,22 +179,15 @@ export default function AddAerationScreen() {
               autoCapitalize="none"
             />
 
-            <TouchableOpacity
-              className="bg-text rounded-lg py-3 items-center dark:bg-text-dark"
-              onPress={handleProvision}
-            >
-              <Text className="text-background font-semibold text-base">
-                Configurar
-              </Text>
-            </TouchableOpacity>
+            <Button title="Configurar" onPress={handleProvision} size="lg" />
           </View>
         );
 
       case "provisioning":
         return (
-          <View className="flex-1 items-center justify-center px-6">
+          <View className="flex-1 items-center justify-center px-2">
             <ActivityIndicator size="large" color={theme.text} />
-            <Text className="text-textSecondary dark:text-text-dark mt-4 text-base">
+            <Text className="mt-4 text-center text-base text-textSecondary dark:text-textSecondary-dark">
               Conectando con el servidor...
             </Text>
           </View>
@@ -208,7 +195,7 @@ export default function AddAerationScreen() {
 
       case "instructions":
         return (
-          <View className="flex-1 px-6 items-center pt-4">
+          <View className="flex-1 px-2 items-center pt-4">
             <MaterialCommunityIcons name="wifi" size={64} color={theme.text} />
             <Text className="text-text dark:text-text-dark text-lg font-bold mt-6 text-center">
               Conéctate a la red del dispositivo
@@ -223,22 +210,20 @@ export default function AddAerationScreen() {
               </Text>
             </View>
             <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mt-4 text-center">
-              Una vez conectado, regresa a esta pantalla y toca "Enviar configuración".
+              Una vez conectado, regresa a esta pantalla y toca «Enviar
+              configuración».
             </Text>
-            <TouchableOpacity
-              className="bg-text rounded-lg py-3 px-8 mt-8"
+            <Button
+              title="Enviar configuración"
               onPress={handleSendConfig}
-            >
-              <Text className="text-background dark:text-background-dark font-semibold text-base">
-                Enviar configuración
-              </Text>
-            </TouchableOpacity>
+              size="lg"
+            />
           </View>
         );
 
       case "sending":
         return (
-          <View className="flex-1 items-center justify-center px-6">
+          <View className="flex-1 items-center justify-center px-2">
             <ActivityIndicator size="large" color={theme.text} />
             <Text className="text-textSecondary dark:text-textSecondary-dark mt-4 text-base text-center">
               Configurando el dispositivo...
@@ -248,11 +233,11 @@ export default function AddAerationScreen() {
 
       case "done":
         return (
-          <View className="flex-1 px-6 items-center pt-4">
+          <View className="flex-1 px-2 items-center pt-4">
             <MaterialCommunityIcons
               name="check-circle"
               size={64}
-              color={theme.text}
+              color={theme.success}
             />
             <Text className="text-text dark:text-text-dark text-lg font-bold mt-6 text-center">
               ¡Dispositivo configurado!
@@ -260,20 +245,18 @@ export default function AddAerationScreen() {
             <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-3 text-center leading-6">
               Reconéctate a tu red WiFi normal. El blower se conectará automáticamente al backend.
             </Text>
-            <TouchableOpacity
-              className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-lg py-3 px-8 mt-8"
+            <Button
+              title="Finalizar"
+              variant="secondary"
               onPress={handleReset}
-            >
-              <Text className="text-text dark:text-text-dark font-semibold text-base">
-                Finalizar
-              </Text>
-            </TouchableOpacity>
+              className="mt-8"
+            />
           </View>
         );
 
       case "error":
         return (
-          <View className="flex-1 px-6 items-center pt-4">
+          <View className="flex-1 px-2 items-center pt-4">
             <MaterialCommunityIcons
               name="alert-circle"
               size={64}
@@ -282,24 +265,17 @@ export default function AddAerationScreen() {
             <Text className="text-textSecondary dark:text-textSecondary-dark text-base mt-4 text-center">
               {errorMsg}
             </Text>
-            <TouchableOpacity
-              accessibilityRole="button"
-              className="bg-textSecondary dark:text-textSecondary-dark rounded-lg py-3 px-8 mt-8"
+            <Button
+              title="Reintentar"
               onPress={handleRetry}
-            >
-              <Text className="text-text dark:text-text-dark font-semibold text-base">
-                Reintentar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="button"
+              className="mt-8"
+            />
+            <Button
+              title="Cancelar"
+              variant="ghost"
               onPress={() => router.back()}
-              className="mt-4 px-8 py-2"
-            >
-              <Text className="text-textSecondary dark:text-textSecondary-dark font-semibold text-base">
-                Cancelar
-              </Text>
-            </TouchableOpacity>
+              className="mt-2"
+            />
           </View>
         );
     }

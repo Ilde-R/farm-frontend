@@ -1,3 +1,5 @@
+import TextField from "@/core/components/ui/text-field";
+import ThresholdSlider from "@/core/components/ui/threshold-slider";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -9,10 +11,8 @@ import {
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from "react-native";
-import TextField from "../../../core/components/ui/text-field";
-import ThresholdSlider from "../../../core/components/ui/threshold-slider";
 
 const SAVE_INTERVAL_OPTIONS = [
   { value: 1800, label: "30 min" },
@@ -100,13 +100,13 @@ export default function SaveIntervalPicker({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <View className="flex-1 bg-black/40 justify-end">
+        <View className="flex-1 justify-end bg-black/50">
           {/* Fondo clickeable para cerrar */}
           <Pressable className="absolute inset-0" onPress={handleClose} />
           
           {/* Contenido del modal (sin Pressable envolviendo) */}
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className="bg-backgroundElement rounded-t-2xl pt-6 pb-10 px-6 overflow-hidden max-h-[90%]  dark:bg-backgroundElement-dark">
+            <View className="max-h-[90%] overflow-hidden rounded-t-3xl bg-backgroundElement px-6 pb-10 pt-6 dark:bg-backgroundElement-dark">
               <View className="items-center mb-5">
                 <Text className="text-text dark:text-text-dark font-bold text-lg">{name}</Text>
               </View>
@@ -119,7 +119,6 @@ export default function SaveIntervalPicker({
                 <View>
                   <TextField
                     containerClassName="mb-4"
-                    className="bg-gray-700 text-white"
                     placeholder="Segundos (60-10800)"
                     value={customInput}
                     onChangeText={setCustomInput}
@@ -128,10 +127,14 @@ export default function SaveIntervalPicker({
                   />
                   <View className="flex-row justify-end gap-3">
                     <TouchableOpacity onPress={() => setCustomMode(false)}>
-                      <Text className="text-gray-400 text-base">Volver</Text>
+                      <Text className="text-base text-textSecondary dark:text-textSecondary-dark">
+                        Volver
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleCustomSave}>
-                      <Text className="text-green-400 font-semibold text-base">Guardar</Text>
+                      <Text className="text-base font-semibold text-primary dark:text-primary-dark">
+                        Guardar
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -153,7 +156,7 @@ export default function SaveIntervalPicker({
                           className={`text-base ${
                             isSelected
                               ? "text-text dark:text-text-dark"
-                              : "text-textSecondary dark:text-text-dark"
+                              : "text-textSecondary dark:text-textSecondary-dark"
                           }`}
                         >
                           {opt.label}
@@ -162,12 +165,10 @@ export default function SaveIntervalPicker({
                     );
                   })}
                   <TouchableOpacity
-                    className={`rounded-lg px-5 py-3 ${
+                    className={`rounded-lg border px-5 py-3 ${
                       isCustomValue
-                        // ? "bg-gray-600 border border-green-500"
-                        ? 'bg-backgroundSelected dark:bg-backgroundSelected-dark'
-                        // : "bg-gray-700/50 border border-transparent"
-                        : 'bg-backgroundElement dark:bg-backgroundElement-dark'
+                        ? "border-transparent bg-backgroundSelected dark:bg-backgroundSelected-dark"
+                        : "border-transparent bg-background dark:bg-background-dark"
                     }`}
                     onPress={() => {
                       setCustomInput(isCustomValue ? String(currentValue) : "");
@@ -187,7 +188,7 @@ export default function SaveIntervalPicker({
                 </View>
               )}
 
-              <View className="border-t border-gray-600 my-4" />
+              <View className="my-4 border-t border-border dark:border-border-dark" />
 
               <View>
                 <Text className="text-textSecondary dark:text-textSecondary-dark text-sm mb-1 text-center">

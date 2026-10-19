@@ -1,28 +1,20 @@
+import Button from "@/core/components/ui/button";
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
 import TextField from "@/core/components/ui/text-field";
-import { useTheme } from "@/core/theme/use-theme";
 import { getErrorMessage } from "@/core/utils/errors";
 import { validateEmail, validatePassword, validateUsername } from "@/core/utils/validations";
 import { useSession } from "@/features/auth/contexts/AuthContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
 export default function RegisterScreen() {
-  const theme = useTheme();
   const { signIn } = useSession();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function clearError(field: string) {
@@ -64,12 +56,21 @@ export default function RegisterScreen() {
 
   return (
     <ScreenLayout isScrollable={false}>
-      <View className="flex-1 justify-center px-5">
-        <Text className="text-text dark:text-text-dark text-3xl font-bold text-center mb-10">
-          Crear Cuenta
-        </Text>
+      <View className="flex-1 justify-center px-1">
+        <View className="items-center">
+          <View className="mb-5 h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30">
+            <MaterialCommunityIcons name="leaf" size={32} color="#FFFFFF" />
+          </View>
+          <Text className="text-3xl font-bold tracking-tight text-text dark:text-text-dark">
+            Crea tu cuenta
+          </Text>
+          <Text className="mt-1.5 text-center text-base text-textSecondary dark:text-textSecondary-dark">
+            Empieza a gestionar tus tanques
+          </Text>
+        </View>
 
-        <TextField
+        <View className="mt-10">
+          <TextField
           containerClassName="mb-4"
           placeholder="Nombre de usuario"
           value={username}
@@ -94,53 +95,35 @@ export default function RegisterScreen() {
           autoCapitalize="none"
         />
 
-        <View className="relative mb-1">
-          <TextField
-            error={errors.password}
-            className="pr-12"
-            placeholder="Contraseña"
-            placeholderTextColor="#60646C"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              clearError("password");
-            }}
-            secureTextEntry={!showPassword}
-          />
-          <TouchableOpacity
-            className="absolute right-3 top-3"
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <MaterialCommunityIcons
-              name={showPassword ? "eye-off" : "eye"}
-              size={24}
-              color={theme.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-        <Text className="text-xs text-textSecondary dark:text-textSecondary-dark mb-6">
+        <TextField
+          containerClassName="mb-1"
+          placeholder="Contraseña"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            clearError("password");
+          }}
+          secureTextEntry
+          error={errors.password}
+        />
+        <Text className="mb-6 text-xs text-textSecondary dark:text-textSecondary-dark">
           Mín. 8 caracteres, mayúscula, minúscula, número y carácter especial
         </Text>
 
-        <TouchableOpacity
-          className="bg-backgroundElement dark:bg-backgroundElement-dark rounded-lg py-4 mt-2"
+        <Button
+          title="Registrarse"
           onPress={handleRegister}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-background dark:text-text-dark text-center font-bold text-lg">
-              Registrarse
-            </Text>
-          )}
-        </TouchableOpacity>
+          loading={loading}
+          size="lg"
+          className="mt-2"
+        />
 
         <TouchableOpacity onPress={() => router.push("/(auth)/login")} className="mt-4">
-          <Text className="text-textSecondary dark:text-textSecondary-dark text-center py-3 text-base">
+          <Text className="py-3 text-center text-base font-medium text-primary dark:text-primary-dark">
             Iniciar sesión
           </Text>
         </TouchableOpacity>
+        </View>
       </View>
     </ScreenLayout>
   );

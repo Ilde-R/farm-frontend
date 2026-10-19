@@ -4,7 +4,12 @@ import { useEffect, useRef } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
-export function SplashScreenController() {
+interface SplashScreenControllerProps {
+  /** False while fonts (or anything else blocking) are still loading. */
+  fontsReady?: boolean;
+}
+
+export function SplashScreenController({ fontsReady = true }: SplashScreenControllerProps) {
   const { isLoading } = useSession();
   const hasHidden = useRef(false);
 
@@ -21,12 +26,11 @@ export function SplashScreenController() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !hasHidden.current) {
+    if (!isLoading && fontsReady && !hasHidden.current) {
       hasHidden.current = true;
-      SplashScreen.hideAsync().catch((e) => {
-      });
+      SplashScreen.hideAsync().catch(() => {});
     }
-  }, [isLoading]);
+  }, [isLoading, fontsReady]);
 
   return null;
 }

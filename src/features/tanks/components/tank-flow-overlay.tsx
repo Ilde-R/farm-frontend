@@ -1,6 +1,7 @@
 import Svg, { G, Line, Polyline } from "react-native-svg";
 import Animated from "react-native-reanimated";
-import { useColorScheme } from "@/core/theme/use-color-scheme";
+import { useColorScheme } from "@/core/theme/use-theme";
+import { flowColors } from "@/core/theme/tokens";
 import { getCircleBorderPoint } from "../utils/tank-geometry";
 import type { TankPosition } from "../types/tank";
 
@@ -33,9 +34,9 @@ export default function TankFlowOverlay({
     animatedLowerSpineFlowProps,
 }: TankFlowOverlayProps) {
     const scheme = useColorScheme();
-    const isDark = scheme === "dark";
-    const trunkColor = isDark ? "#0891B2" : "#06B6D4";
-    const flowColor = isDark ? "#67E8F9" : "#0E7490";
+    const palette = flowColors[scheme];
+    const trunkColor = palette.trunk;
+    const flowColor = palette.flow;
     const readyConnections = visibleConnections.filter(
         ({ fromId, toId }) => tankPositions[fromId] && tankPositions[toId],
     );

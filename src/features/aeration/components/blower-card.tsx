@@ -1,3 +1,4 @@
+import StatusPill, { type StatusPillTone } from "@/core/components/ui/status-pill";
 import { useTheme } from "@/core/theme/use-theme";
 import { logger } from "@/core/utils/logger";
 import SaveIntervalPicker from "@/features/aeration/components/save-interval-picker";
@@ -70,16 +71,8 @@ export default function BlowerCard({
   const isAlert = psi !== null && psi <= threshold;
   const statusLabel =
     psi == null ? "Sin lectura" : isAlert ? "Bajo umbral" : "Normal";
-  const statusTextColor =
-    psi == null
-      ? "text-textSecondary dark:text-textSecondary-dark"
-      : isAlert
-        ? "text-danger dark:text-danger-dark"
-        : "text-success dark:text-success-dark";
-  const statusDotColor =
-    psi == null ? "bg-textTertiary" : isAlert ? "bg-danger" : "bg-success";
-  const statusPillColor =
-    psi == null ? "bg-textTertiary/20" : isAlert ? "bg-danger/15" : "bg-success/15";
+  const statusTone: StatusPillTone =
+    psi == null ? "neutral" : isAlert ? "danger" : "success";
   const chartColor = isAlert ? theme.danger : theme.success;
 
   const trendValues = chartReadings
@@ -101,29 +94,34 @@ export default function BlowerCard({
     .join(" ");
 
   return (
-    <View className="mb-6 w-full overflow-hidden rounded-[28px] border border-backgroundSelected bg-backgroundElement shadow-xl shadow-black/20 dark:border-backgroundSelected-dark dark:bg-backgroundElement-dark">
-      <View className="flex-row items-center justify-between border-b border-backgroundSelected px-4 py-3 dark:border-backgroundSelected-dark">
-        <View className="flex-row items-center gap-2">
-          <Text className="text-sm font-semibold text-text dark:text-text-dark">{name}</Text>
-        </View>
+    <View className="w-full overflow-hidden rounded-2xl border border-border bg-backgroundElement shadow-sm shadow-black/5 dark:border-border-dark dark:bg-backgroundElement-dark">
+      <View className="flex-row items-center justify-between border-b border-border px-4 py-3 dark:border-border-dark">
+        <Text className="min-w-0 flex-1 truncate text-sm font-semibold text-text dark:text-text-dark">
+          {name}
+        </Text>
 
-        <View className="flex-row items-center gap-3">
-          <View className={`flex-row items-center gap-2 rounded-full px-2 py-1 ${statusPillColor}`}>
-            <View className={`h-2.5 w-2.5 rounded-full ${statusDotColor}`} />
-            <Text className={`text-[10px] font-semibold uppercase tracking-[1.2px] ${statusTextColor}`}>
-              {statusLabel}
-            </Text>
-          </View>
+        <View className="ml-3 flex-row items-center gap-3">
+          <StatusPill label={statusLabel} tone={statusTone} />
 
-          <TouchableOpacity onPress={() => setSelectingSave(true)}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Configurar ${name}`}
+            activeOpacity={0.7}
+            hitSlop={6}
+            onPress={() => setSelectingSave(true)}
+          >
             <MaterialCommunityIcons
               name="cog-outline"
-              size={18}
+              size={20}
               color={theme.textSecondary}
             />
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Eliminar ${name}`}
+            activeOpacity={0.7}
+            hitSlop={6}
             onPress={() => {
               Alert.alert(
                 "Eliminar blower",
@@ -139,7 +137,7 @@ export default function BlowerCard({
               );
             }}
           >
-            <MaterialCommunityIcons name="trash-can-outline" size={18} color={theme.danger} />
+            <MaterialCommunityIcons name="trash-can-outline" size={20} color={theme.danger} />
           </TouchableOpacity>
         </View>
       </View>
@@ -174,9 +172,9 @@ export default function BlowerCard({
                 )}
                 <Path
                   d={`M 0 ${thresholdY} L 150 ${thresholdY}`}
-                  stroke={theme.text}
+                  stroke={theme.textTertiary}
                   strokeDasharray="4 4"
-                  opacity={0.5}
+                  opacity={0.9}
                 />
                 <Path
                   d={chartPath}

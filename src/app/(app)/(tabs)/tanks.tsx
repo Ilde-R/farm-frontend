@@ -1,4 +1,7 @@
 import ScreenLayout from "@/core/components/layout/ScreenLayout";
+import Card from "@/core/components/ui/card";
+import EmptyState from "@/core/components/ui/empty-state";
+import Skeleton from "@/core/components/ui/skeleton";
 import TextField from "@/core/components/ui/text-field";
 import { useTheme } from "@/core/theme/use-theme";
 import { useBatch } from "@/features/batches/contexts/BatchContext";
@@ -15,19 +18,8 @@ import {
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
+import { Alert, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 type TankFilter = TankStatus | "todos";
 
@@ -49,28 +41,9 @@ const TANK_SORT_ITEMS: { value: TankSortOption; label: string }[] = [
 ];
 
 function TankCardSkeleton({ size }: { size: number }) {
-  const theme = useTheme();
-  const opacity = useSharedValue(0.4);
-
-  useEffect(() => {
-    opacity.value = withRepeat(withTiming(1, { duration: 800 }), -1, true);
-  }, [opacity]);
-
-  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
-
   return (
-    <View className="w-[48%] items-center">
-      <Animated.View
-        style={[
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: theme.backgroundSelected,
-          },
-          animatedStyle,
-        ]}
-      />
+    <View style={{ width: size }}>
+      <Skeleton className="h-44 rounded-2xl" />
     </View>
   );
 }
@@ -137,11 +110,20 @@ export default function TanksScreen() {
     }
   }
 
+  function cycleSort() {
+    const currentIndex = TANK_SORT_ITEMS.findIndex((item) => item.value === sortBy);
+    const nextIndex = (currentIndex + 1) % TANK_SORT_ITEMS.length;
+    setSortBy(TANK_SORT_ITEMS[nextIndex].value);
+  }
+
   function renderGrid(list: Tank[]) {
     return (
-      <View className="flex-row flex-wrap justify-between gap-y-5 px-4">
-        {list.map((tank) => (
-          <View key={tank.id} className="w-[48%] items-center">
+      <View className="flex-row flex-wrap justify-between gap-y-5">
+        {list.map((tank, index) => (
+          <Animated.View
+            key={tank.id}
+            entering={FadeInDown.delay(Math.min(index, 8) * 50).duration(320)}
+          >
             <TankCard
               size={tankCardSize}
               tankNumber={tank.tankNumber}
@@ -155,7 +137,7 @@ export default function TanksScreen() {
                 })
               }
             />
-          </View>
+          </Animated.View>
         ))}
       </View>
     );
@@ -169,91 +151,74 @@ export default function TanksScreen() {
         refreshing={isRefreshing}
         onRefresh={handleRefresh}
       >
-        <View className="pt-4">
+        <View className="pt-2">
           {tanks.length > 0 && (
-            <View className="mx-4 mb-4 rounded-2xl border border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark p-4">
-              <Text className="text-xs uppercase tracking-widest text-textSecondary dark:text-textSecondary-dark">
+            <Card className="mb-4 items-center py-6">
+              <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-textSecondary dark:text-textSecondary-dark">
                 Total de peces
               </Text>
-              <Text className="mt-1 text-4xl font-extrabold text-text dark:text-text-dark">
+              <Text className="mt-2 text-5xl font-extrabold tracking-tight text-text dark:text-text-dark">
                 {kpis.fish.toLocaleString("es-MX")}
               </Text>
               <Text className="mt-1 text-sm text-textSecondary dark:text-textSecondary-dark">
-                {kpis.total} {kpis.total === 1 ? "tanque" : "tanques"} en total
+                en {kpis.total} {kpis.total === 1 ? "tanque" : "tanques"}
               </Text>
-            </View>
+
+              <View className="mt-5 w-full flex-row border-t border-border pt-4 dark:border-border-dark">
+                {[
+                  { label: "Activos", value: kpis.active, color: theme.success },
+                  { label: "Vacíos", value: kpis.empty, color: theme.textSecondary },
+                  { label: "Mantenim.", value: kpis.maintenance, color: theme.warning },
+                ].map((stat, index) => (
+                  <View
+                    key={stat.label}
+                    className={`flex-1 items-center ${index > 0 ? "border-l border-border dark:border-border-dark" : ""}`}
+                  >
+                    <Text
+                      className="text-xl font-bold"
+                      style={{ color: stat.color }}
+                    >
+                      {stat.value}
+                    </Text>
+                    <Text className="mt-0.5 text-[11px] text-textSecondary dark:text-textSecondary-dark">
+                      {stat.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
           )}
 
           {tanks.length > 0 && (
-            <View className="mx-4 mb-3 flex-row items-center gap-2">
+            <View className="mb-4 flex-row items-center gap-2">
               <View className="flex-1">
                 <TextField
-                  placeholder="Buscar tanque por número"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholder="Buscar por número"
                   value={search}
                   onChangeText={setSearch}
                   keyboardType="number-pad"
                 />
               </View>
-              {search.length > 0 && (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel="Limpiar búsqueda"
-                  onPress={() => setSearch("")}
-                  hitSlop={8}
-                  className="h-12 w-12 items-center justify-center rounded-lg border border-backgroundSelected dark:border-backgroundSelected-dark"
-                >
-                  <MaterialCommunityIcons
-                    name="close"
-                    size={20}
-                    color={theme.textSecondary}
-                  />
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Cambiar orden"
+                onPress={cycleSort}
+                className="h-12 flex-row items-center gap-1.5 rounded-lg border border-backgroundSelected px-3 dark:border-backgroundSelected-dark"
+              >
+                <MaterialCommunityIcons
+                  name="sort"
+                  size={18}
+                  color={theme.textSecondary}
+                />
+                <Text className="text-xs font-semibold text-text dark:text-text-dark">
+                  {TANK_SORT_ITEMS.find((item) => item.value === sortBy)?.label}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
 
           {tanks.length > 0 && (
-            <View className="mx-4 mb-4 flex-row items-center gap-2">
-              <MaterialCommunityIcons
-                name="sort"
-                size={16}
-                color={theme.textSecondary}
-              />
-              <Text className="mr-1 text-xs font-semibold uppercase tracking-widest text-textSecondary dark:text-textSecondary-dark">
-                Orden
-              </Text>
-              {TANK_SORT_ITEMS.map((item) => {
-                const isSelected = sortBy === item.value;
-                return (
-                  <TouchableOpacity
-                    key={item.value}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSelected }}
-                    onPress={() => setSortBy(item.value)}
-                    className={`rounded-full border px-3 py-1.5 ${
-                      isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-backgroundSelected dark:border-backgroundSelected-dark"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${
-                        isSelected
-                          ? "text-primary"
-                          : "text-textSecondary dark:text-textSecondary-dark"
-                      }`}
-                    >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-
-          {tanks.length > 0 && (
-            <View className="mx-4 mb-2 flex-row flex-wrap justify-between gap-y-3">
+            <View className="mb-5 flex-row flex-wrap gap-2">
               {TANK_SUMMARY_ITEMS.map(({ status, label, icon }) => {
                 const count =
                   status === "todos"
@@ -266,47 +231,42 @@ export default function TanksScreen() {
                     key={status}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
-                    className={`w-[48%] flex-row items-center rounded-xl border px-3 py-3 ${
+                    className={`flex-row items-center gap-1.5 rounded-full border px-3 py-2 ${
                       isSelected
                         ? "border-primary bg-primary/10"
-                        : "border-backgroundSelected dark:border-backgroundSelected-dark bg-backgroundElement dark:bg-backgroundElement-dark"
+                        : "border-backgroundSelected dark:border-backgroundSelected-dark"
                     }`}
                     onPress={() => setTankFilter(status)}
                   >
-                    <View
-                      className={`mr-3 h-9 w-9 items-center justify-center rounded-lg ${
-                        isSelected ? "bg-primary/15" : "bg-white/5"
+                    <MaterialCommunityIcons
+                      name={icon}
+                      size={15}
+                      color={isSelected ? theme.primary : theme.textSecondary}
+                    />
+                    <Text
+                      className={`text-xs font-semibold ${
+                        isSelected
+                          ? "text-primary"
+                          : "text-textSecondary dark:text-textSecondary-dark"
                       }`}
                     >
-                      <MaterialCommunityIcons
-                        name={icon}
-                        size={19}
-                        color={isSelected ? theme.primary : theme.textSecondary}
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <Text
-                        numberOfLines={1}
-                        className="text-xs text-textSecondary dark:text-textSecondary-dark"
-                      >
-                        {label}
-                      </Text>
-                      <Text
-                        className={`text-lg font-bold ${
-                          isSelected ? "text-primary" : "text-text dark:text-text-dark"
-                        }`}
-                      >
-                        {count}
-                      </Text>
-                    </View>
+                      {label}
+                    </Text>
+                    <Text
+                      className={`text-xs font-bold ${
+                        isSelected ? "text-primary" : "text-text dark:text-text-dark"
+                      }`}
+                    >
+                      {count}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
           )}
 
-          {isLoading && (
-            <View className="flex-row flex-wrap justify-between gap-y-5 px-4 pt-4">
+          {(isLoading || (tanks.length === 0 && !tanksError)) && (
+            <View className="flex-row flex-wrap justify-between gap-y-5">
               {[0, 1, 2, 3].map((key) => (
                 <TankCardSkeleton key={key} size={tankCardSize} />
               ))}
@@ -314,75 +274,37 @@ export default function TanksScreen() {
           )}
 
           {!isLoading && tanksError && tanks.length === 0 && (
-            <View className="w-full items-center px-4 py-12">
-              <MaterialCommunityIcons
-                name="wifi-off"
-                size={36}
-                color={theme.textSecondary}
-              />
-              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
-                No se pudieron cargar los tanques
-              </Text>
-              <Text className="mt-1 text-center text-sm text-textSecondary dark:text-textSecondary-dark">
-                {tanksError}
-              </Text>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => fetchTanks()}
-                className="mt-3 rounded-lg border border-primary px-4 py-2"
-              >
-                <Text className="font-semibold text-primary">Reintentar</Text>
-              </TouchableOpacity>
-            </View>
+            <EmptyState
+              icon="wifi-off"
+              title="No se pudieron cargar los tanques"
+              description={tanksError}
+              actionLabel="Reintentar"
+              onAction={() => fetchTanks()}
+            />
           )}
 
           {!isLoading && !tanksError && tanks.length === 0 && (
-            <View className="w-full items-center px-4 py-12">
-              <MaterialCommunityIcons
-                name="water-off"
-                size={36}
-                color={theme.textSecondary}
-              />
-              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
-                No hay tanques registrados
-              </Text>
-              <Text className="mt-1 text-center text-sm text-textSecondary dark:text-textSecondary-dark">
-                Usa el botón + para registrar el primero.
-              </Text>
-            </View>
+            <EmptyState
+              icon="water-off"
+              title="No hay tanques registrados"
+              description="Usa el botón + para registrar el primero."
+            />
           )}
 
           {noSearchResults && (
-            <View className="w-full items-center px-4 py-12">
-              <MaterialCommunityIcons
-                name="magnify-close"
-                size={36}
-                color={theme.textSecondary}
-              />
-              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
-                Sin resultados para «{normalizedSearch}»
-              </Text>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => setSearch("")}
-                className="mt-3 rounded-lg border border-primary px-4 py-2"
-              >
-                <Text className="font-semibold text-primary">Limpiar búsqueda</Text>
-              </TouchableOpacity>
-            </View>
+            <EmptyState
+              icon="magnify-close"
+              title={`Sin resultados para «${normalizedSearch}»`}
+              actionLabel="Limpiar búsqueda"
+              onAction={() => setSearch("")}
+            />
           )}
 
           {noFilterResults && (
-            <View className="w-full items-center px-4 py-10">
-              <MaterialCommunityIcons
-                name="water-off"
-                size={32}
-                color={theme.textSecondary}
-              />
-              <Text className="mt-3 text-center font-medium text-text dark:text-text-dark">
-                No hay tanques en este estado
-              </Text>
-            </View>
+            <EmptyState
+              icon="water-off"
+              title="No hay tanques en este estado"
+            />
           )}
 
           {!isLoading &&
@@ -390,7 +312,7 @@ export default function TanksScreen() {
             (tankFilter === "todos" ? (
               sections.map((section) => (
                 <View key={section.status}>
-                  <Text className="mb-3 mt-4 px-4 text-base font-semibold text-text dark:text-text-dark">
+                  <Text className="mb-3 mt-4 text-base font-semibold text-text dark:text-text-dark">
                     {section.label} ({section.tanks.length})
                   </Text>
                   {renderGrid(section.tanks)}
